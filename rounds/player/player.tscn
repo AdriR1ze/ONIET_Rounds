@@ -1,0 +1,218 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://player/player.gd" id="1_player"]
+[ext_resource type="PackedScene" path="res://weapons/bullet.tscn" id="2_bullet"]
+[ext_resource type="Script" path="res://player/components/weapon_component.gd" id="3_weapon"]
+[ext_resource type="Script" path="res://player/components/hurtbox_component.gd" id="4_hurtbox"]
+[ext_resource type="Script" path="res://player/components/health_component.gd" id="5_health"]
+[ext_resource type="Script" path="res://player/components/player_input.gd" id="6_input"]
+[ext_resource type="Script" path="res://player/components/health_display.gd" id="7_display"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_stand"]
+size = Vector2(24, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_crouch"]
+size = Vector2(24, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hurt"]
+size = Vector2(24, 30)
+
+[sub_resource type="Animation" id="Animation_stand"]
+length = 0.01
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("StandShape:disabled")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CrouchShape:disabled")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("WeaponComponent:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(4, 4)]
+}
+
+[sub_resource type="Animation" id="Animation_crouch"]
+length = 0.01
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("StandShape:disabled")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("CrouchShape:disabled")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("WeaponComponent:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(4, -6)]
+}
+
+[sub_resource type="Animation" id="Animation_ragdoll"]
+length = 0.6
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visual:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 6.2831855]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_body"]
+_data = {
+"crouch": SubResource("Animation_crouch"),
+"ragdoll": SubResource("Animation_ragdoll"),
+"stand": SubResource("Animation_stand")
+}
+
+[sub_resource type="Animation" id="Animation_hit"]
+length = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visual:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.08, 0.25),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 0.3, 0.3, 1), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_hit"]
+_data = {
+"hit": SubResource("Animation_hit")
+}
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Body" type="Polygon2D" parent="Visual"]
+color = Color(0.8, 0.8, 0.85, 1)
+polygon = PackedVector2Array(-12, -16, 12, -16, 12, 16, -12, 16)
+
+[node name="Beak" type="Polygon2D" parent="Visual"]
+color = Color(0.65, 0.55, 0.15, 1)
+polygon = PackedVector2Array(12, -4, 20, 0, 12, 4)
+
+[node name="Eye" type="Polygon2D" parent="Visual"]
+color = Color(0.1, 0.1, 0.12, 1)
+polygon = PackedVector2Array(5, -10, 9, -10, 9, -6, 5, -6)
+
+[node name="StandShape" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_stand")
+
+[node name="CrouchShape" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_crouch")
+disabled = true
+
+[node name="WeaponComponent" type="Node2D" parent="."]
+position = Vector2(4, 4)
+script = ExtResource("3_weapon")
+bullet_scene = ExtResource("2_bullet")
+
+[node name="Barrel" type="Polygon2D" parent="WeaponComponent"]
+color = Color(0.45, 0.38, 0.1, 1)
+polygon = PackedVector2Array(0, -3, 22, -3, 22, 3, 0, 3)
+
+[node name="Muzzle" type="Marker2D" parent="WeaponComponent"]
+position = Vector2(24, 0)
+
+[node name="HurtboxComponent" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("4_hurtbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtboxComponent"]
+shape = SubResource("RectangleShape2D_hurt")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("5_health")
+max_health = 3
+
+[node name="PlayerInput" type="Node" parent="."]
+script = ExtResource("6_input")
+
+[node name="BodyAnimation" type="AnimationPlayer" parent="."]
+autoplay = "stand"
+libraries = {
+"": SubResource("AnimationLibrary_body")
+}
+
+[node name="HitFlash" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_hit")
+}
+
+[node name="HealthLabel" type="Label" parent="."]
+offset_left = -40.0
+offset_top = -58.0
+offset_right = 40.0
+offset_bottom = -38.0
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+text = "P1"
+script = ExtResource("7_display")
+
+[connection signal="damaged" from="HealthComponent" to="." method="_on_damaged"]
+[connection signal="died" from="HealthComponent" to="." method="_on_died"]
+[connection signal="health_changed" from="HealthComponent" to="HealthLabel" method="_on_health_changed"]
+[connection signal="hurt" from="HurtboxComponent" to="HealthComponent" method="apply_damage"]

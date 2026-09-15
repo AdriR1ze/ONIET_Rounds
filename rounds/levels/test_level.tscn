@@ -1,0 +1,45 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://levels/test_level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://player/player_1.tscn" id="2_p1"]
+[ext_resource type="PackedScene" path="res://player/player_2.tscn" id="3_p2"]
+[ext_resource type="PackedScene" path="res://world/ground.tscn" id="4_ground"]
+[ext_resource type="PackedScene" path="res://world/wall.tscn" id="5_wall"]
+[ext_resource type="PackedScene" path="res://world/platform.tscn" id="6_platform"]
+
+[node name="TestLevel" type="Node2D"]
+script = ExtResource("1_level")
+
+[node name="Ground" parent="." instance=ExtResource("4_ground")]
+position = Vector2(640, 680)
+
+[node name="LeftWall" parent="." instance=ExtResource("5_wall")]
+position = Vector2(0, 360)
+
+[node name="RightWall" parent="." instance=ExtResource("5_wall")]
+position = Vector2(1280, 360)
+
+[node name="PlatformLeft" parent="." instance=ExtResource("6_platform")]
+position = Vector2(320, 500)
+
+[node name="PlatformRight" parent="." instance=ExtResource("6_platform")]
+position = Vector2(960, 500)
+
+[node name="PlatformTop" parent="." instance=ExtResource("6_platform")]
+position = Vector2(640, 360)
+
+[node name="Player1" parent="." instance=ExtResource("2_p1")]
+position = Vector2(480, 600)
+
+[node name="Player2" parent="." instance=ExtResource("3_p2")]
+position = Vector2(800, 600)
+
+[node name="HUD" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 1000.0
+offset_bottom = 130.0
+theme_override_font_sizes/font_size = 16
+text = "P1  WASD mover/apuntar   W saltar   V disparar   C agarrar   Q trompezar   E graznar   B strafe
+P2  Flechas mover/apuntar   Arriba saltar   , disparar   L agarrar   I trompezar   O graznar   K strafe
+R  reiniciar"
