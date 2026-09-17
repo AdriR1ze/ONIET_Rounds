@@ -107,6 +107,7 @@ func _handle_jump() -> void:
 	if _input.is_jump_just_pressed() and is_on_floor():
 		velocity.y = _stats.get_stat(&"jump_velocity")
 		_crouching = false
+		AudioManager.reproducir("salto", 0.05)
 	if _input.is_jump_just_released() and velocity.y < 0.0:
 		velocity.y *= 0.5
 
@@ -129,7 +130,7 @@ func _handle_actions() -> void:
 		_start_ragdoll()
 	if _input.is_quack_just_pressed():
 		quacked.emit(player_number)
-		print("Player %d: Quack!" % player_number)
+		AudioManager.reproducir("cuac", 0.08)
 
 
 func _update_crouch() -> void:
@@ -174,12 +175,14 @@ func on_parry(bullet: Node) -> void:
 
 
 func _on_damaged(_amount: int, source: Node) -> void:
+	AudioManager.reproducir("golpe", 0.1)
 	_hit_flash.play("hit")
 	if source != null and source is Node2D:
 		velocity += (global_position - (source as Node2D).global_position).normalized() * 220.0
 
 
 func _on_died() -> void:
+	AudioManager.reproducir("muerte")
 	velocity = Vector2.ZERO
 	can_control = false
 	current_state = PlayerState.RAGDOLL
@@ -191,6 +194,9 @@ func respawn() -> void:
 	velocity = Vector2.ZERO
 	can_control = true
 	current_state = PlayerState.IDLE
+	_ragdoll_timer = 0.0
+	_crouching = false
+	_body_animation.play("stand")
 	_health.reset()
 
 

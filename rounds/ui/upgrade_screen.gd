@@ -25,7 +25,7 @@ func abrir() -> void:
 		return
 	_activo = true
 	visible = true
-	get_tree().paused = true
+	PauseManager.tomar(self)
 	_construir()
 	await cerrado
 
@@ -94,9 +94,11 @@ func _process(_delta: float) -> void:
 		if Input.is_action_just_pressed(_accion(numero, "left")):
 			_indices[numero] = wrapi(_indices[numero] - 1, 0, total)
 			_actualizar_seleccion()
+			AudioManager.reproducir("ui_mover", 0.05)
 		if Input.is_action_just_pressed(_accion(numero, "right")):
 			_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
 			_actualizar_seleccion()
+			AudioManager.reproducir("ui_mover", 0.05)
 		if Input.is_action_just_pressed(_accion(numero, "fire")):
 			_confirmar(numero)
 
@@ -117,7 +119,7 @@ func _confirmar(numero: int) -> void:
 func _cerrar() -> void:
 	_activo = false
 	visible = false
-	get_tree().paused = false
+	PauseManager.soltar(self)
 	cerrado.emit()
 
 

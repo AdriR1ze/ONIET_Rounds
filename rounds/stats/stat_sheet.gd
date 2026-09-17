@@ -5,7 +5,7 @@ signal stat_changed(stat: StringName, value: float)
 
 const BASE_STATS := {
 	&"move_speed": 230.0,
-	&"jump_velocity": -780.0,
+	&"jump_velocity": -830.0,
 	&"max_health": 100.0,
 	&"fire_rate": 5.0,
 	&"damage": 25.0,

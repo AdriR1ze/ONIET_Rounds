@@ -1,22 +1,31 @@
 extends Node
 
 signal ronda_iniciada(ronda: int)
-signal ronda_terminada(ronda: int)
+signal ronda_terminada(ronda: int, ganador: int)
 signal mejoras_cambiadas(player_number: int)
-signal vidas_cambiadas(player_number: int, vidas: int)
-signal partida_terminada(ganador_player_number: int)
+signal marcador_cambiado
+signal vidas_cambiadas
+signal partida_terminada(ganador: int)
 
 var ronda: int = 0
+var rondas_para_ganar: int = 5
+var vidas_por_ronda: int = 5
 var rng := RandomNumberGenerator.new()
 
 var vidas: Dictionary = { 1: 5, 2: 5 }
 var partida_finalizada: bool = false
 var _jugadores: Dictionary = {}
 var _mejoras: Dictionary = {}
+var _marcador: Dictionary = {}
 
 
 func _ready() -> void:
 	rng.randomize()
+
+
+func configurar_partida(rondas: int, vidas: int) -> void:
+	rondas_para_ganar = maxi(rondas, 1)
+	vidas_por_ronda = maxi(vidas, 1)
 
 
 func registrar_jugador(player: Node) -> void:
@@ -49,7 +58,7 @@ func perder_vida(player_number: int) -> void:
 	var actual: int = vidas_de(player_number)
 	actual = maxi(actual - 1, 0)
 	vidas[player_number] = actual
-	vidas_cambiadas.emit(player_number, actual)
+	vidas_cambiadas.emit()
 	if actual == 0:
 		partida_finalizada = true
 		var ganador: int = 2 if player_number == 1 else 1
@@ -88,13 +97,68 @@ func elegir(player_number: int, def: UpgradeDefinition) -> void:
 	mejoras_cambiadas.emit(player_number)
 
 
+func marcador_de(player_number: int) -> int:
+	return _marcador.get(player_number, 0)
+
+
+func marcador() -> Dictionary:
+	return _marcador.duplicate()
+
+
+func iniciar_partida() -> void:
+	_marcador.clear()
+	vidas = { 1: 5, 2: 5 }
+	partida_finalizada = false
+	for numero in _jugadores:
+		_marcador[numero] = 0
+		vidas[numero] = 5
+	marcador_cambiado.emit()
+	vidas_cambiadas.emit()
+
+
 func iniciar_ronda(numero: int) -> void:
 	ronda = numero
 	ronda_iniciada.emit(ronda)
+	vidas_cambiadas.emit()
 
 
-func terminar_ronda() -> void:
-	ronda_terminada.emit(ronda)
+func ganador_de_ronda(perdedor: int) -> int:
+	for numero in _jugadores:
+		if numero != perdedor:
+			return numero
+	return 0
+
+
+func terminar_ronda(ganador: int) -> void:
+	_marcador[ganador] = marcador_de(ganador) + 1
+	marcador_cambiado.emit()
+	ronda_terminada.emit(ronda, ganador)
+	if partida_ganada():
+		partida_terminada.emit(ganador)
+
+
+func partida_ganada() -> bool:
+	return ganador_partida() != 0
+
+
+func ganador_partida() -> int:
+	if partida_finalizada:
+		for numero in vidas:
+			if vidas[numero] > 0:
+				return numero
+	for numero in vidas:
+		if vidas[numero] <= 0:
+			return 2 if numero == 1 else 1
+	return 0
+
+
+func reiniciar() -> void:
+	_jugadores.clear()
+	_mejoras.clear()
+	_marcador.clear()
+	vidas = { 1: 5, 2: 5 }
+	partida_finalizada = false
+	ronda = 0
 
 
 func _cumple_requisitos(player_number: int, def: UpgradeDefinition) -> bool:

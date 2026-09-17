@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Rounds"
-run/main_scene="res://levels/test_level.tscn"
+run/main_scene="res://ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -19,6 +19,9 @@ config/icon="res://icon.svg"
 
 UpgradeDatabase="*res://upgrades/upgrade_database.gd"
 RunManager="*res://run/run_manager.gd"
+PauseManager="*res://ui/pause_manager.gd"
+Settings="*res://settings/settings.gd"
+AudioManager="*res://audio/audio_manager.gd"
 
 [display]
 
