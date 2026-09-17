@@ -3,6 +3,7 @@ extends CharacterBody2D
 
 signal quacked(player_number: int)
 signal grabbed(player_number: int)
+signal parried_bullet(bullet: Node)
 
 enum PlayerState {
 	IDLE,
@@ -143,6 +144,21 @@ func _update_ragdoll(delta: float) -> void:
 	_ragdoll_timer -= delta
 	if _ragdoll_timer <= 0.0:
 		can_control = true
+		$Visual.rotation = 0.0
+		_body_animation.play("stand")
+
+
+func is_spinning() -> bool:
+	return _ragdoll_timer > 0.0 or current_state == PlayerState.RAGDOLL
+
+
+func can_parry() -> bool:
+	return is_spinning()
+
+
+func on_parry(bullet: Node) -> void:
+	parried_bullet.emit(bullet)
+	print("Player %d: Parried!" % player_number)
 
 
 func _on_damaged(_amount: int, source: Node) -> void:
