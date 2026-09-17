@@ -6,6 +6,9 @@ signal parried(bullet: Node)
 
 
 func take_hit(amount: int, source: Node = null) -> void:
+	var parent: Node = get_parent()
+	if parent != null and parent.has_method("is_alive") and not parent.is_alive():
+		return
 	hurt.emit(amount, source)
 
 

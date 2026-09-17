@@ -5,11 +5,14 @@ signal quacked(player_number: int)
 signal grabbed(player_number: int)
 signal parried_bullet(bullet: Node)
 
+const BLOOD_SCENE := preload("res://effects/blood_splatter.tscn")
+
 enum PlayerState {
 	IDLE,
 	WALKING,
 	AIRBORNE,
 	RAGDOLL,
+	DEAD,
 }
 
 @export var player_number: int = 1
@@ -55,6 +58,8 @@ func _physics_process(delta: float) -> void:
 	_apply_gravity(delta)
 
 	match current_state:
+		PlayerState.DEAD:
+			velocity.x = move_toward(velocity.x, 0.0, friction * 0.4 * delta)
 		PlayerState.RAGDOLL:
 			velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 		PlayerState.IDLE, PlayerState.WALKING, PlayerState.AIRBORNE:
@@ -67,6 +72,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_state() -> void:
+	if current_state == PlayerState.DEAD:
+		return
 	if not can_control:
 		current_state = PlayerState.RAGDOLL
 	elif not is_on_floor():
@@ -156,8 +163,12 @@ func _update_ragdoll(delta: float) -> void:
 		_body_animation.play("stand")
 
 
+func is_alive() -> bool:
+	return _health != null and _health.is_alive() and current_state != PlayerState.DEAD
+
+
 func is_spinning() -> bool:
-	return _ragdoll_timer > 0.0 or current_state == PlayerState.RAGDOLL
+	return is_alive() and _ragdoll_timer > 0.0
 
 
 func can_parry() -> bool:
@@ -189,10 +200,38 @@ func apply_knockback(dir: Vector2, force: float) -> void:
 
 func _on_died() -> void:
 	AudioManager.reproducir("muerte")
-	velocity = Vector2.ZERO
 	can_control = false
-	current_state = PlayerState.RAGDOLL
-	_body_animation.play("ragdoll")
+	current_state = PlayerState.DEAD
+	_ragdoll_timer = 0.0
+	_body_animation.stop()
+
+	# Impulso de caída al suelo
+	velocity.x *= 0.3
+	velocity.y = maxf(velocity.y, 140.0)
+
+	# Rotar el personaje tumbado en el suelo
+	var rot_target := deg_to_rad(90.0 if facing >= 0 else -90.0)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property($Visual, "rotation", rot_target, 0.22).set_ease(Tween.EASE_OUT)
+	tween.tween_property($Visual, "position:y", 8.0, 0.22)
+	tween.tween_property(self, "modulate", Color(0.72, 0.72, 0.78, 1.0), 0.3)
+
+	# Desactivar colisión con proyectiles para no deflectar ni recibir más impactos
+	var hurtbox_col := get_node_or_null("HurtboxComponent/CollisionShape2D") as CollisionShape2D
+	if hurtbox_col != null:
+		hurtbox_col.set_deferred("disabled", true)
+
+	_spawn_blood()
+
+
+func _spawn_blood() -> void:
+	var scene_root := get_tree().current_scene if is_inside_tree() else get_parent()
+	if scene_root == null:
+		return
+	var blood := BLOOD_SCENE.instantiate() as Node2D
+	blood.global_position = global_position + Vector2(0, -6)
+	scene_root.add_child(blood)
 
 
 func stun(duration: float) -> void:
@@ -220,9 +259,14 @@ func respawn() -> void:
 	_stun_timer = 0.0
 	_active_dots.clear()
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
+	$Visual.rotation = 0.0
+	$Visual.position = Vector2.ZERO
 	_body_animation.play("stand")
 	_update_visual_facing()
 	_health.reset()
+	var hurtbox_col := get_node_or_null("HurtboxComponent/CollisionShape2D") as CollisionShape2D
+	if hurtbox_col != null:
+		hurtbox_col.set_deferred("disabled", false)
 	if _weapon != null and _weapon.has_method("reset_cooldown"):
 		_weapon.reset_cooldown(0.35)
 
