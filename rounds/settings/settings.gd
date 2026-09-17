@@ -30,8 +30,18 @@ const DEFAULT_JOY := {
 }
 const ACCIONES_PROTEGIDAS := ["pause", "ui_cancel"]
 
+enum ModoPantalla {
+	PANTALLA_COMPLETA,
+	VENTANA_SIN_BORDES,
+	EN_VENTANA,
+}
+
+signal video_cambiado
+
 var volumenes := {"Master": 1.0, "Music": 1.0, "SFX": 1.0}
 var pantalla_completa := false
+var modo_pantalla: int = ModoPantalla.EN_VENTANA
+var resolucion_actual: Vector2i = Vector2i(1280, 720)
 
 var _defaults: Dictionary = {}
 var _remaps: Dictionary = {}
@@ -43,6 +53,13 @@ func _ready() -> void:
 	_capturar_defaults()
 	cargar()
 	aplicar_todo()
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.physical_keycode == KEY_F11 or event.keycode == KEY_F11:
+			toggle_pantalla_completa()
+			get_viewport().set_input_as_handled()
 
 
 func _asegurar_acciones_globales() -> void:
@@ -80,6 +97,24 @@ func _capturar_defaults() -> void:
 			_defaults[accion] = eventos
 
 
+func resoluciones_disponibles() -> Array[Vector2i]:
+	var lista: Array[Vector2i] = [
+		Vector2i(1280, 720),
+		Vector2i(1366, 768),
+		Vector2i(1600, 900),
+		Vector2i(1920, 1080),
+		Vector2i(2560, 1440),
+		Vector2i(3840, 2160),
+	]
+	var scr := DisplayServer.screen_get_size()
+	if scr.x >= 640 and scr.y >= 360 and not lista.has(scr):
+		lista.append(scr)
+		lista.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+			return (a.x * a.y) < (b.x * b.y)
+		)
+	return lista
+
+
 func cargar() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(RUTA) != OK:
@@ -87,6 +122,10 @@ func cargar() -> void:
 	for nombre in BUSES:
 		volumenes[nombre] = float(cfg.get_value("audio", nombre, 1.0))
 	pantalla_completa = bool(cfg.get_value("video", "fullscreen", false))
+	modo_pantalla = int(cfg.get_value("video", "window_mode", ModoPantalla.PANTALLA_COMPLETA if pantalla_completa else ModoPantalla.EN_VENTANA))
+	var rw: int = int(cfg.get_value("video", "resolution_w", 1280))
+	var rh: int = int(cfg.get_value("video", "resolution_h", 720))
+	resolucion_actual = Vector2i(rw, rh)
 	_remaps = cfg.get_value("input", "remaps", {})
 
 
@@ -95,6 +134,9 @@ func guardar() -> void:
 	for nombre in BUSES:
 		cfg.set_value("audio", nombre, volumenes[nombre])
 	cfg.set_value("video", "fullscreen", pantalla_completa)
+	cfg.set_value("video", "window_mode", modo_pantalla)
+	cfg.set_value("video", "resolution_w", resolucion_actual.x)
+	cfg.set_value("video", "resolution_h", resolucion_actual.y)
 	cfg.set_value("input", "remaps", _remaps)
 	cfg.save(RUTA)
 
@@ -116,13 +158,57 @@ func set_volumen(bus: String, valor: float) -> void:
 
 
 func set_pantalla_completa(activo: bool) -> void:
-	pantalla_completa = activo
+	set_modo_pantalla(ModoPantalla.PANTALLA_COMPLETA if activo else ModoPantalla.EN_VENTANA)
+
+
+func set_modo_pantalla(modo: int) -> void:
+	modo_pantalla = clampi(modo, 0, 2)
+	pantalla_completa = (modo_pantalla == ModoPantalla.PANTALLA_COMPLETA)
 	aplicar_pantalla()
+	guardar()
+	video_cambiado.emit()
+
+
+func set_resolucion(res: Vector2i) -> void:
+	if res.x < 640 or res.y < 360:
+		return
+	resolucion_actual = res
+	aplicar_pantalla()
+	guardar()
+	video_cambiado.emit()
+
+
+func toggle_pantalla_completa() -> void:
+	if modo_pantalla == ModoPantalla.PANTALLA_COMPLETA:
+		set_modo_pantalla(ModoPantalla.EN_VENTANA)
+	else:
+		set_modo_pantalla(ModoPantalla.PANTALLA_COMPLETA)
 
 
 func aplicar_pantalla() -> void:
-	var modo := DisplayServer.WINDOW_MODE_FULLSCREEN if pantalla_completa else DisplayServer.WINDOW_MODE_WINDOWED
-	DisplayServer.window_set_mode(modo)
+	match modo_pantalla:
+		ModoPantalla.PANTALLA_COMPLETA:
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
+		ModoPantalla.VENTANA_SIN_BORDES:
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+			DisplayServer.window_set_size(resolucion_actual)
+			_centrar_ventana()
+		ModoPantalla.EN_VENTANA:
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			DisplayServer.window_set_size(resolucion_actual)
+			_centrar_ventana()
+
+
+func _centrar_ventana() -> void:
+	var screen := DisplayServer.window_get_current_screen()
+	var screen_rect := DisplayServer.screen_get_usable_rect(screen)
+	var win_size := DisplayServer.window_get_size()
+	if screen_rect.size.x > 0 and screen_rect.size.y > 0 and win_size.x > 0 and win_size.y > 0:
+		var pos := screen_rect.position + (screen_rect.size - win_size) / 2
+		DisplayServer.window_set_position(pos)
 
 
 func aplicar_controles() -> void:

@@ -8,7 +8,8 @@ const COLOR_ERROR := Color(0.85, 0.2, 0.2)
 @onready var _master: HSlider = $Centro/Marco/Margin/VBox/AudioGrid/Master
 @onready var _music: HSlider = $Centro/Marco/Margin/VBox/AudioGrid/Music
 @onready var _sfx: HSlider = $Centro/Marco/Margin/VBox/AudioGrid/Sfx
-@onready var _pantalla: CheckButton = $Centro/Marco/Margin/VBox/PantallaCompleta
+@onready var _modo_pantalla: OptionButton = $Centro/Marco/Margin/VBox/VideoGrid/ModoPantalla
+@onready var _resolucion: OptionButton = $Centro/Marco/Margin/VBox/VideoGrid/Resolucion
 @onready var _aviso: Label = $Centro/Marco/Margin/VBox/Aviso
 @onready var _controles: VBoxContainer = $Centro/Marco/Margin/VBox/Scroll/Controles
 @onready var _boton_guardar: Button = $Centro/Marco/Margin/VBox/Botones/Guardar
@@ -25,11 +26,57 @@ func _ready() -> void:
 	_master.value_changed.connect(func(valor: float) -> void: Settings.set_volumen("Master", valor))
 	_music.value_changed.connect(func(valor: float) -> void: Settings.set_volumen("Music", valor))
 	_sfx.value_changed.connect(func(valor: float) -> void: Settings.set_volumen("SFX", valor))
-	_pantalla.toggled.connect(Settings.set_pantalla_completa)
+
+	_modo_pantalla.clear()
+	_modo_pantalla.add_item("Pantalla completa", 0)
+	_modo_pantalla.add_item("Ventana sin bordes", 1)
+	_modo_pantalla.add_item("En ventana", 2)
+	_modo_pantalla.item_selected.connect(func(idx: int) -> void:
+		Settings.set_modo_pantalla(idx)
+	)
+
+	_poblar_resoluciones()
+	_resolucion.item_selected.connect(func(idx: int) -> void:
+		var res: Vector2i = _resolucion.get_item_metadata(idx)
+		Settings.set_resolucion(res)
+	)
+
+	Settings.video_cambiado.connect(_actualizar_video_ui)
+
 	_boton_guardar.pressed.connect(_guardar)
 	_boton_restablecer.pressed.connect(_restablecer)
 	_boton_volver.pressed.connect(cerrar)
 	_construir_controles()
+
+
+func _poblar_resoluciones() -> void:
+	_resolucion.clear()
+	var lista := Settings.resoluciones_disponibles()
+	var scr := DisplayServer.screen_get_size()
+	for i in lista.size():
+		var r := lista[i]
+		var texto := "%d × %d" % [r.x, r.y]
+		if r == Vector2i(1280, 720):
+			texto += " (Base)"
+		elif r == Vector2i(1920, 1080):
+			texto += " (Full HD)"
+		elif r == Vector2i(2560, 1440):
+			texto += " (2K)"
+		elif r == Vector2i(3840, 2160):
+			texto += " (4K)"
+		if r == scr:
+			texto += " [Nativa]"
+		_resolucion.add_item(texto, i)
+		_resolucion.set_item_metadata(i, r)
+
+
+func _actualizar_video_ui() -> void:
+	_modo_pantalla.select(Settings.modo_pantalla)
+	for i in _resolucion.item_count:
+		var r: Vector2i = _resolucion.get_item_metadata(i)
+		if r == Settings.resolucion_actual:
+			_resolucion.select(i)
+			break
 
 
 func abrir() -> void:
@@ -40,7 +87,7 @@ func abrir() -> void:
 	_master.set_value_no_signal(Settings.volumenes["Master"])
 	_music.set_value_no_signal(Settings.volumenes["Music"])
 	_sfx.set_value_no_signal(Settings.volumenes["SFX"])
-	_pantalla.set_pressed_no_signal(Settings.pantalla_completa)
+	_actualizar_video_ui()
 	_actualizar_botones()
 	_boton_volver.grab_focus()
 

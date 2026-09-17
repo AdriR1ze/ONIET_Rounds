@@ -82,9 +82,33 @@ max_value = 1.0
 step = 0.05
 value = 1.0
 
-[node name="PantallaCompleta" type="CheckButton" parent="Centro/Marco/Margin/VBox"]
+[node name="VideoGrid" type="GridContainer" parent="Centro/Marco/Margin/VBox"]
 layout_mode = 2
-text = "Pantalla completa"
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="LabelModo" type="Label" parent="Centro/Marco/Margin/VBox/VideoGrid"]
+layout_mode = 2
+text = "Modo de pantalla"
+
+[node name="ModoPantalla" type="OptionButton" parent="Centro/Marco/Margin/VBox/VideoGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LabelResolucion" type="Label" parent="Centro/Marco/Margin/VBox/VideoGrid"]
+layout_mode = 2
+text = "Resolución"
+
+[node name="Resolucion" type="OptionButton" parent="Centro/Marco/Margin/VBox/VideoGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HintF11" type="Label" parent="Centro/Marco/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.72, 0.85, 0.65)
+theme_override_font_sizes/font_size = 12
+text = "Tip: Presioná [F11] en cualquier momento para alternar pantalla completa."
 
 [node name="TituloControles" type="Label" parent="Centro/Marco/Margin/VBox"]
 layout_mode = 2
@@ -99,7 +123,7 @@ theme_override_font_sizes/font_size = 15
 text = ""
 
 [node name="Scroll" type="ScrollContainer" parent="Centro/Marco/Margin/VBox"]
-custom_minimum_size = Vector2(560, 300)
+custom_minimum_size = Vector2(560, 200)
 layout_mode = 2
 size_flags_vertical = 3
 
