@@ -2,6 +2,7 @@ extends Control
 
 @export var tema: StringName = &"default"
 @export var border_color: Color = Color(0.25, 0.8, 1.0, 0.8)
+@export var is_mini: bool = false
 
 var _time: float = 0.0
 
@@ -20,28 +21,34 @@ func set_tema(nuevo_tema: StringName, color_rareza: Color = Color(0.25, 0.8, 1.0
 func _draw() -> void:
 	var rect := Rect2(Vector2.ZERO, size)
 	var c := size / 2.0
+	var mini: bool = is_mini or size.x < 90.0
 
 	# Fondo oscuro de la ventana
 	draw_rect(rect, Color(0.03, 0.04, 0.07, 0.96))
 	# Borde sutil
-	draw_rect(rect, Color(border_color.r, border_color.g, border_color.b, 0.35), false, 1.0)
+	draw_rect(rect, Color(border_color.r, border_color.g, border_color.b, 0.45 if mini else 0.35), false, 1.5 if mini else 1.0)
 
-	# Corchetes en las esquinas de la ventana (estilo ROUNDS)
-	var arm := 12.0
-	var thick := 2.0
+	# Corchetes en las esquinas de la ventana
+	var arm := 6.0 if mini else 12.0
+	var thick := 1.5 if mini else 2.0
 	var bracket_col := border_color
 	# Superior Izquierda
-	draw_line(Vector2(4, 4), Vector2(4 + arm, 4), bracket_col, thick)
-	draw_line(Vector2(4, 4), Vector2(4, 4 + arm), bracket_col, thick)
+	draw_line(Vector2(3, 3), Vector2(3 + arm, 3), bracket_col, thick)
+	draw_line(Vector2(3, 3), Vector2(3, 3 + arm), bracket_col, thick)
 	# Superior Derecha
-	draw_line(Vector2(size.x - 4, 4), Vector2(size.x - 4 - arm, 4), bracket_col, thick)
-	draw_line(Vector2(size.x - 4, 4), Vector2(size.x - 4, 4 + arm), bracket_col, thick)
+	draw_line(Vector2(size.x - 3, 3), Vector2(size.x - 3 - arm, 3), bracket_col, thick)
+	draw_line(Vector2(size.x - 3, 3), Vector2(size.x - 3, 3 + arm), bracket_col, thick)
 	# Inferior Izquierda
-	draw_line(Vector2(4, size.y - 4), Vector2(4 + arm, size.y - 4), bracket_col, thick)
-	draw_line(Vector2(4, size.y - 4), Vector2(4, size.y - 4 - arm), bracket_col, thick)
+	draw_line(Vector2(3, size.y - 3), Vector2(3 + arm, size.y - 3), bracket_col, thick)
+	draw_line(Vector2(3, size.y - 3), Vector2(3, size.y - 3 - arm), bracket_col, thick)
 	# Inferior Derecha
-	draw_line(Vector2(size.x - 4, size.y - 4), Vector2(size.x - 4 - arm, size.y - 4), bracket_col, thick)
-	draw_line(Vector2(size.x - 4, size.y - 4), Vector2(size.x - 4, size.y - 4 - arm), bracket_col, thick)
+	draw_line(Vector2(size.x - 3, size.y - 3), Vector2(size.x - 3 - arm, size.y - 3), bracket_col, thick)
+	draw_line(Vector2(size.x - 3, size.y - 3), Vector2(size.x - 3, size.y - 3 - arm), bracket_col, thick)
+
+	if mini:
+		var sf := minf(size.x / 80.0, size.y / 80.0)
+		draw_set_transform(c, 0.0, Vector2(sf, sf))
+		c = Vector2.ZERO
 
 	# Dibujo temático
 	match tema:
@@ -72,6 +79,9 @@ func _draw() -> void:
 		_:
 			_draw_default(c)
 
+	if mini:
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
 
 func _draw_toxico(c: Vector2) -> void:
 	# Resplandor central verde
@@ -87,7 +97,7 @@ func _draw_toxico(c: Vector2) -> void:
 	for i in bubble_offsets.size():
 		var dy: float = fmod(_time * 24.0 * (1.0 + float(i) * 0.2), 48.0)
 		var b_pos: Vector2 = c + bubble_offsets[i] - Vector2(0.0, dy)
-		if b_pos.y > 6.0 and b_pos.y < size.y - 6.0:
+		if absf(b_pos.y - c.y) < 28.0:
 			var rad: float = radii[i]
 			draw_circle(b_pos, rad, Color(0.35, 1.0, 0.45, 0.75))
 			draw_circle(b_pos + Vector2(-rad * 0.3, -rad * 0.3), rad * 0.35, Color(0.9, 1.0, 0.9, 0.9))
@@ -128,9 +138,11 @@ func _draw_explosivo(c: Vector2) -> void:
 func _draw_laser(c: Vector2) -> void:
 	# Línea láser continua roja/cyan brillante
 	var y_beam := c.y
-	draw_line(Vector2(6, y_beam), Vector2(size.x - 6, y_beam), Color(1.0, 0.2, 0.2, 0.3), 8.0)
-	draw_line(Vector2(6, y_beam), Vector2(size.x - 6, y_beam), Color(1.0, 0.4, 0.4, 0.9), 3.0)
-	draw_line(Vector2(6, y_beam), Vector2(size.x - 6, y_beam), Color(1.0, 1.0, 1.0, 1.0), 1.0)
+	var x1 := -44.0 if c == Vector2.ZERO else 6.0
+	var x2 := 44.0 if c == Vector2.ZERO else size.x - 6.0
+	draw_line(Vector2(x1, y_beam), Vector2(x2, y_beam), Color(1.0, 0.2, 0.2, 0.3), 8.0)
+	draw_line(Vector2(x1, y_beam), Vector2(x2, y_beam), Color(1.0, 0.4, 0.4, 0.9), 3.0)
+	draw_line(Vector2(x1, y_beam), Vector2(x2, y_beam), Color(1.0, 1.0, 1.0, 1.0), 1.0)
 	# Retícula de puntería
 	var reticle_col := Color(0.2, 0.9, 1.0, 0.85)
 	draw_arc(c, 22.0, 0, TAU, 32, reticle_col, 1.5)
@@ -148,9 +160,11 @@ func _draw_glitch(c: Vector2) -> void:
 	# Bloque magenta
 	draw_rect(Rect2(c + Vector2(-22 - glitch_shift, -8), Vector2(50, 24)), Color(1.0, 0.15, 0.8, 0.5))
 	# Scanlines
+	var x1 := -36.0 if c == Vector2.ZERO else 8.0
+	var x2 := 36.0 if c == Vector2.ZERO else size.x - 8.0
 	for i in 6:
 		var y_scan := c.y - 20 + i * 8.0
-		draw_line(Vector2(8, y_scan), Vector2(size.x - 8, y_scan), Color(0.9, 1.0, 1.0, 0.25), 1.0)
+		draw_line(Vector2(x1, y_scan), Vector2(x2, y_scan), Color(0.9, 1.0, 1.0, 0.25), 1.0)
 	# Texto de error pixelado
 	draw_rect(Rect2(c + Vector2(-14, -6), Vector2(28, 12)), Color.WHITE)
 
@@ -158,12 +172,16 @@ func _draw_glitch(c: Vector2) -> void:
 func _draw_rebote(c: Vector2) -> void:
 	# Paredes reflectoras en los bordes
 	var wall_col := Color(0.4, 0.7, 1.0, 0.6)
-	draw_line(Vector2(20, 12), Vector2(20, size.y - 12), wall_col, 4.0)
-	draw_line(Vector2(size.x - 20, 12), Vector2(size.x - 20, size.y - 12), wall_col, 4.0)
+	var x1 := -34.0 if c == Vector2.ZERO else 20.0
+	var x2 := 34.0 if c == Vector2.ZERO else size.x - 20.0
+	var y1 := -28.0 if c == Vector2.ZERO else 12.0
+	var y2 := 28.0 if c == Vector2.ZERO else size.y - 12.0
+	draw_line(Vector2(x1, y1), Vector2(x1, y2), wall_col, 4.0)
+	draw_line(Vector2(x2, y1), Vector2(x2, y2), wall_col, 4.0)
 	# Trayectoria zig zag
-	var p1 := Vector2(22, size.y - 24)
-	var p2 := Vector2(size.x - 22, c.y - 6)
-	var p3 := Vector2(c.x + 10, 16)
+	var p1 := Vector2(x1 + 2.0, y2 - 8.0)
+	var p2 := Vector2(x2 - 2.0, c.y - 4.0)
+	var p3 := Vector2(c.x + 8.0, y1 + 4.0)
 	draw_line(p1, p2, Color(0.2, 0.95, 1.0, 0.9), 2.5)
 	draw_line(p2, p3, Color(0.2, 0.95, 1.0, 0.9), 2.5)
 	# Chispas de rebote
@@ -245,7 +263,7 @@ func _draw_roulette(c: Vector2) -> void:
 func _draw_fantasma(c: Vector2) -> void:
 	# Muro intermedio segmentado
 	for i in 4:
-		var y_w: float = 14.0 + float(i) * 14.0
+		var y_w: float = c.y - 21.0 + float(i) * 14.0
 		draw_line(Vector2(c.x, y_w), Vector2(c.x, y_w + 8.0), Color(0.6, 0.6, 0.7, 0.5), 5.0)
 	# Bala espectral que atraviesa
 	var ghost_col := Color(0.75, 0.5, 1.0, 0.75)

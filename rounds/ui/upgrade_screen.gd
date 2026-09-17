@@ -5,6 +5,13 @@ signal cerrado
 const CARD_SCENE := preload("res://ui/upgrade_card.tscn")
 const OPCIONES_POR_JUGADOR := 3
 
+const COLORES_RAREZA := {
+	UpgradeDefinition.Rareza.COMUN: Color(0.78, 0.82, 0.88),
+	UpgradeDefinition.Rareza.RARA: Color(0.35, 0.8, 1.0),
+	UpgradeDefinition.Rareza.EPICA: Color(0.82, 0.45, 1.0),
+	UpgradeDefinition.Rareza.LEGENDARIA: Color(1.0, 0.78, 0.2),
+}
+
 @onready var _contenedor: HBoxContainer = $Contenedor
 @onready var _titulo: Label = $Titulo
 
@@ -140,6 +147,141 @@ func _crear_panel(numero: int) -> void:
 	status_lbl.modulate = Color(0.7, 0.75, 0.85, 0.75)
 	v_box.add_child(status_lbl)
 	_status_labels[numero] = status_lbl
+
+	# Sección de Habilidades Actuales (Estilo Brotato)
+	_crear_seccion_habilidades_actuales(v_box, numero, color_acento)
+
+
+func _crear_seccion_habilidades_actuales(v_box: VBoxContainer, numero: int, color_acento: Color) -> void:
+	var mejoras := RunManager.mejoras_de(numero)
+
+	# Agrupar por id para mostrar cantidades apiladas (ej: x2, x3) estilo Brotato
+	var agrupadas: Array[Dictionary] = []
+	var mapa_pos: Dictionary = {}
+	for def in mejoras:
+		if def == null:
+			continue
+		if mapa_pos.has(def.id):
+			var idx: int = mapa_pos[def.id]
+			agrupadas[idx]["count"] += 1
+		else:
+			mapa_pos[def.id] = agrupadas.size()
+			agrupadas.append({"def": def, "count": 1})
+
+	var sep := HSeparator.new()
+	sep.modulate = Color(color_acento.r, color_acento.g, color_acento.b, 0.30)
+	v_box.add_child(sep)
+
+	var contenedor_seccion := VBoxContainer.new()
+	contenedor_seccion.add_theme_constant_override("separation", 6)
+	v_box.add_child(contenedor_seccion)
+
+	# Encabezado de la sección
+	var header := HBoxContainer.new()
+	header.alignment = BoxContainer.ALIGNMENT_BEGIN
+	contenedor_seccion.add_child(header)
+
+	var lbl_titulo := Label.new()
+	lbl_titulo.text = "HABILIDADES ACTUALES (%d)" % mejoras.size()
+	lbl_titulo.add_theme_font_size_override("font_size", 13)
+	lbl_titulo.modulate = color_acento
+	header.add_child(lbl_titulo)
+
+	var lbl_detalle := Label.new()
+	lbl_detalle.text = "  •  Pasa el cursor sobre un objeto para ver sus efectos" if not agrupadas.is_empty() else ""
+	lbl_detalle.add_theme_font_size_override("font_size", 11)
+	lbl_detalle.modulate = Color(0.75, 0.78, 0.85, 0.65)
+	lbl_detalle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(lbl_detalle)
+
+	# Contenedor horizontal con scroll si excede
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(0, 52)
+	contenedor_seccion.add_child(scroll)
+
+	var tray := HBoxContainer.new()
+	tray.alignment = BoxContainer.ALIGNMENT_BEGIN
+	tray.add_theme_constant_override("separation", 8)
+	scroll.add_child(tray)
+
+	if agrupadas.is_empty():
+		var lbl_vacio := Label.new()
+		lbl_vacio.text = "Sin habilidades previas (se acumularán aquí entre rondas)"
+		lbl_vacio.add_theme_font_size_override("font_size", 11)
+		lbl_vacio.modulate = Color(0.55, 0.58, 0.65, 0.55)
+		tray.add_child(lbl_vacio)
+		return
+
+	var theme_script: Script = load("res://ui/card_theme_window.gd")
+
+	for item in agrupadas:
+		var def: UpgradeDefinition = item["def"]
+		var count: int = item["count"]
+		var col_rareza: Color = COLORES_RAREZA.get(def.rareza, Color(0.78, 0.82, 0.88))
+
+		# Marco de la casilla estilo Brotato
+		var badge := PanelContainer.new()
+		badge.custom_minimum_size = Vector2(46, 46)
+		badge.mouse_filter = Control.MOUSE_FILTER_STOP
+
+		var b_sb := StyleBoxFlat.new()
+		b_sb.bg_color = Color(0.04, 0.06, 0.09, 0.95)
+		b_sb.border_color = Color(col_rareza.r, col_rareza.g, col_rareza.b, 0.85)
+		b_sb.set_border_width_all(2)
+		b_sb.set_corner_radius_all(6)
+		badge.add_theme_stylebox_override("panel", b_sb)
+
+		# Margen interior
+		var margin := MarginContainer.new()
+		margin.add_theme_constant_override("margin_left", 3)
+		margin.add_theme_constant_override("margin_top", 3)
+		margin.add_theme_constant_override("margin_right", 3)
+		margin.add_theme_constant_override("margin_bottom", 3)
+		badge.add_child(margin)
+
+		# Ventana temática animada en miniatura
+		var theme_win: Control = theme_script.new()
+		theme_win.custom_minimum_size = Vector2(38, 38)
+		theme_win.set_tema(def.tema, col_rareza)
+		margin.add_child(theme_win)
+
+		# Etiqueta de cantidad (x2, x3) si está apilada
+		if count > 1:
+			var count_lbl := Label.new()
+			count_lbl.text = "x%d" % count
+			count_lbl.add_theme_font_size_override("font_size", 10)
+			count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			count_lbl.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+			count_lbl.modulate = Color(1.0, 1.0, 1.0, 1.0)
+			badge.add_child(count_lbl)
+
+		# Tooltip detallado
+		var tooltip_lines: Array[String] = [
+			"%s  [%s • %s]" % [def.titulo.to_upper(), def.nivel_texto().to_upper(), def.rareza_texto().to_upper()],
+			def.subtitulo if not def.subtitulo.is_empty() else def.descripcion,
+			""
+		]
+		for m in def.mecanicas:
+			tooltip_lines.append("★  " + m)
+		for v in def.ventajas:
+			tooltip_lines.append("+  " + (v if v.begins_with("+") else "+ " + v))
+		for d in def.desventajas:
+			tooltip_lines.append("-  " + (d if d.begins_with("-") else "- " + d))
+		badge.tooltip_text = "\n".join(tooltip_lines)
+
+		# Eventos de hover para actualizar texto de detalle dinámico
+		badge.mouse_entered.connect(func():
+			lbl_detalle.text = "  •  %s: %s" % [def.titulo, def.subtitulo if not def.subtitulo.is_empty() else def.descripcion]
+			lbl_detalle.modulate = col_rareza
+		)
+		badge.mouse_exited.connect(func():
+			lbl_detalle.text = "  •  Pasa el cursor sobre un objeto para ver sus efectos"
+			lbl_detalle.modulate = Color(0.75, 0.78, 0.85, 0.65)
+		)
+
+		tray.add_child(badge)
 
 
 func _crear_divisor_central() -> void:
