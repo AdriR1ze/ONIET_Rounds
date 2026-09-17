@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://ui/upgrade_screen.tscn" id="9_screen"]
 [ext_resource type="Script" uid="uid://ivdjn1t4pjc3" path="res://run/run_controller.gd" id="10_run"]
 [ext_resource type="PackedScene" path="res://effects/neon_tilemap.tscn" id="12_tilemap"]
+[ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="13_pause"]
 
 [node name="TestLevel" type="Node2D" unique_id=1689345500]
 script = ExtResource("1_level")
@@ -29,6 +30,8 @@ visible = false
 [node name="RunController" type="Node" parent="." unique_id=1016279048]
 script = ExtResource("10_run")
 
+[node name="PauseMenu" parent="." instance=ExtResource("13_pause")]
+
 [node name="HUD" type="Label" parent="." unique_id=1355197308]
 visible = false
 offset_left = 16.0
@@ -38,4 +41,4 @@ offset_bottom = 130.0
 theme_override_font_sizes/font_size = 16
 text = "P1  WASD mover/apuntar   W saltar   V disparar   C agarrar   Q trompezar   E graznar   B strafe
 P2  Flechas mover/apuntar   Arriba saltar   , disparar   L agarrar   I trompezar   O graznar   K strafe
-R  reiniciar"
+R  reiniciar   Esc  pausa"
