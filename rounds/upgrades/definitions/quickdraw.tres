@@ -16,7 +16,12 @@ value = -1.0
 [resource]
 script = ExtResource("3_j1f1c")
 id = &"quickdraw"
-titulo = "Quickdraw"
+titulo = "Desenfundado Rápido"
+subtitulo = "El primer tiro tras recargar es letal"
 descripcion = "El primer tiro disparado inmediatamente después de recargar sale sin dispersión y con velocidad extrema (+70% vel. bala, -1 cargador)."
+tema = &"rapido"
+ventajas = Array[String](["+70% Velocidad de bala en primer tiro", "Precisión perfecta (0 dispersión)"])
+desventajas = Array[String](["-1 Capacidad del cargador"])
+mecanicas = Array[String](["Disparo inicial post-recarga instantáneo"])
 stats = Array[ExtResource("4_bcw7e")]([SubResource("Resource_ry6wn")])
 efectos = Array[ExtResource("1_5ylqt")]([SubResource("Resource_kg6qe")])

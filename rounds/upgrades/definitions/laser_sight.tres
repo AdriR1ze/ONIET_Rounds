@@ -16,9 +16,14 @@ value = -1.0
 [resource]
 script = ExtResource("3_ak672")
 id = &"laser_sight"
-titulo = "Laser Sight"
+titulo = "Mira Láser"
+subtitulo = "Disparo instantáneo con haz continuo"
 nivel = 2
 descripcion = "Tus balas ya no tienen tiempo de viaje; impactan de forma instantánea en línea recta (hitscan, -1 bala en cargador)."
 rareza = 1
+tema = &"laser"
+ventajas = Array[String](["Impacto instantáneo a cualquier distancia"])
+desventajas = Array[String](["-1 Bala en el cargador"])
+mecanicas = Array[String](["Disparo en rayo láser (Hitscan)"])
 stats = Array[ExtResource("4_xot3r")]([SubResource("Resource_1rep2")])
 efectos = Array[ExtResource("1_kjxnj")]([SubResource("Resource_j8jvd")])

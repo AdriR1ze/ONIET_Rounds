@@ -29,7 +29,12 @@ value = 1.6
 [resource]
 script = ExtResource("3_mis7d")
 id = &"heavy_bullet"
-titulo = "Heavy Bullet"
+titulo = "Bala Pesada"
+subtitulo = "Balas más grandes y fuertes"
 descripcion = "Proyectiles más grandes (+60%) y contundentes (+30% daño) que aturden una fracción de segundo al rival."
+tema = &"pesado"
+ventajas = Array[String](["Gran aumento en tamaño de bala (+60%)", "+30% Daño de impacto"])
+desventajas = Array[String](["-35% Cadencia de tiro"])
+mecanicas = Array[String](["Aturde brevemente al oponente"])
 stats = Array[ExtResource("4_qvc2m")]([SubResource("Resource_fbb5p"), SubResource("Resource_44uju"), SubResource("Resource_1j8tc")])
 efectos = Array[ExtResource("1_rp2nc")]([SubResource("Resource_dnbsi")])

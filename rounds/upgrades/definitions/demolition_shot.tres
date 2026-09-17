@@ -21,9 +21,14 @@ stat = &"pierce"
 [resource]
 script = ExtResource("3_471fy")
 id = &"demolition_shot"
-titulo = "Demolition Shot"
+titulo = "Disparo Demoledor"
+subtitulo = "Destruye coberturas y estructuras"
 nivel = 2
 descripcion = "Las balas perforan y destruyen fragmentos de plataformas o estructuras del escenario directamente al impactar."
 rareza = 1
+tema = &"demolicion"
+ventajas = Array[String](["+1 Perforación de objetivos"])
+desventajas = Array[String](["+35% Tiempo de recarga"])
+mecanicas = Array[String](["Destrucción de cobertura del mapa"])
 stats = Array[ExtResource("4_msns4")]([SubResource("Resource_qjsog"), SubResource("Resource_i2w5p")])
 efectos = Array[ExtResource("1_ubend")]([SubResource("Resource_3dd7a")])

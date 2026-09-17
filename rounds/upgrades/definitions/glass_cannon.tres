@@ -19,8 +19,13 @@ value = 0.2
 [resource]
 script = ExtResource("2_3iwdw")
 id = &"glass_cannon"
-titulo = "Glass Cannon"
+titulo = "Cañón de Cristal"
+subtitulo = "Poder destructivo colosal a cambio de tu vida"
 nivel = 4
 descripcion = "Incrementa de forma masiva el daño infligido (+150%) pero reduce casi por completo tu salud máxima (-80%)."
 rareza = 2
+tema = &"cristal"
+ventajas = Array[String](["Extremo aumento en daño (+150%)"])
+desventajas = Array[String](["Salud máxima reducida en un 80% (20 HP)"])
+mecanicas = Array[String](["Mortal a un golpe, daño desmesurado"])
 stats = Array[ExtResource("3_00opo")]([SubResource("Resource_bjfso"), SubResource("Resource_0g7kf")])

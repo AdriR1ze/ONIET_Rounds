@@ -17,9 +17,14 @@ value = 0.85
 [resource]
 script = ExtResource("3_exy1t")
 id = &"vampiric_leech"
-titulo = "Vampiric Leech"
+titulo = "Sanguijuela Vampírica"
+subtitulo = "Robas vida a tu enemigo"
 nivel = 3
 descripcion = "Una porción del daño que le causás al rival se convierte inmediatamente en salud para vos. Salud máxima ligeramente reducida."
 rareza = 1
+tema = &"vampirico"
+ventajas = Array[String](["Regeneración inmediata en combate"])
+desventajas = Array[String](["-15% Salud máxima"])
+mecanicas = Array[String](["Robo de vida (recuperas 30% del daño)"])
 stats = Array[ExtResource("4_adtk8")]([SubResource("Resource_mnast")])
 efectos = Array[ExtResource("1_71n8e")]([SubResource("Resource_sy671")])

@@ -17,6 +17,11 @@ value = 0.9
 [resource]
 script = ExtResource("2_iw0r5")
 id = &"bouncy"
-titulo = "Bouncy"
+titulo = "Rebote"
+subtitulo = "Tus balas rebotan en las paredes"
 descripcion = "Tus balas rebotan en las superficies en vez de destruirse al impacto (+1 rebote, daño ligeramente reducido)."
+tema = &"rebote"
+ventajas = Array[String](["+1 Rebote de bala"])
+desventajas = Array[String](["-10% Daño de impacto"])
+mecanicas = Array[String](["Balas rebotan en superficies"])
 stats = Array[ExtResource("3_ttxvp")]([SubResource("Resource_y7ux0"), SubResource("Resource_snydw")])

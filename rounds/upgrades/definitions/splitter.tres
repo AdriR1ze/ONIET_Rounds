@@ -21,7 +21,12 @@ stat = &"bounces"
 [resource]
 script = ExtResource("3_noaps")
 id = &"splitter"
-titulo = "Splitter"
+titulo = "Bala Divisora"
+subtitulo = "Tu proyectil se divide en 3 fragmentos"
 descripcion = "La bala se divide en 3 fragmentos tras recorrer la mitad del camino o rebotar (+1 rebote)."
+tema = &"rebote"
+ventajas = Array[String](["+1 Rebote base"])
+desventajas = Array[String](["-10% Daño de bala inicial"])
+mecanicas = Array[String](["División en 3 proyectiles"])
 stats = Array[ExtResource("4_adpju")]([SubResource("Resource_c37h6"), SubResource("Resource_ivjn2")])
 efectos = Array[ExtResource("1_jqm7n")]([SubResource("Resource_qx26v")])

@@ -23,7 +23,12 @@ value = 0.9
 [resource]
 script = ExtResource("3_foa81")
 id = &"toxic_cloud"
-titulo = "Toxic Cloud"
+titulo = "Nube Tóxica"
+subtitulo = "Siembra un gas venenoso al impactar"
 descripcion = "Genera una nube tóxica al impactar superficies o rivales (3 ticks de veneno con reinicio por permanencia)."
+tema = &"toxico"
+ventajas = Array[String](["Área persistente por permanencia"])
+desventajas = Array[String](["-10% Daño de bala", "-10% Cadencia de tiro"])
+mecanicas = Array[String](["Nube de veneno acumulativo continuo"])
 stats = Array[ExtResource("4_u8ldu")]([SubResource("Resource_bfct0"), SubResource("Resource_c2ddq")])
 efectos = Array[ExtResource("1_o5wdr")]([SubResource("Resource_yraic")])

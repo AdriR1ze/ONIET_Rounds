@@ -12,8 +12,12 @@ radius = 80.0
 [resource]
 script = ExtResource("3_5jv1f")
 id = &"explosivo"
-titulo = "Explosivo"
+titulo = "Disparo Explosivo"
+subtitulo = "Detonaciones de área devastadoras"
 nivel = 2
 descripcion = "Las balas explotan al impactar (15 de daño en área)."
 rareza = 3
+tema = &"explosivo"
+ventajas = Array[String](["15 de daño explosivo en área"])
+mecanicas = Array[String](["Explosión en área al impactar"])
 efectos = Array[ExtResource("1_n30ke")]([SubResource("Resource_o0d7y")])

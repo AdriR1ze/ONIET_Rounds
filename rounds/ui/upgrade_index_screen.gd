@@ -121,12 +121,37 @@ func _crear_item_mejora(def: UpgradeDefinition) -> PanelContainer:
 	badge.modulate = color_rareza.lerp(Color.WHITE, 0.3)
 	header_item.add_child(badge)
 
-	var desc := Label.new()
-	desc.text = def.descripcion
-	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.add_theme_font_size_override("font_size", 13)
-	desc.modulate = Color(0.85, 0.85, 0.90, 0.9)
-	vbox_texto.add_child(desc)
+	if not def.subtitulo.is_empty():
+		var sub := Label.new()
+		sub.text = def.subtitulo
+		sub.add_theme_font_size_override("font_size", 14)
+		sub.modulate = Color(0.9, 0.92, 0.98, 0.85)
+		vbox_texto.add_child(sub)
+
+	var stats_box := VBoxContainer.new()
+	stats_box.add_theme_constant_override("separation", 2)
+	vbox_texto.add_child(stats_box)
+
+	for m in def.mecanicas:
+		var lm := Label.new()
+		lm.text = "★  " + m
+		lm.modulate = Color(0.82, 0.48, 1.0)
+		lm.add_theme_font_size_override("font_size", 12)
+		stats_box.add_child(lm)
+
+	for v in def.ventajas:
+		var lv := Label.new()
+		lv.text = (v if v.begins_with("+") else "+ " + v)
+		lv.modulate = Color(0.3, 1.0, 0.45)
+		lv.add_theme_font_size_override("font_size", 12)
+		stats_box.add_child(lv)
+
+	for d in def.desventajas:
+		var ld := Label.new()
+		ld.text = (d if d.begins_with("-") else "- " + d)
+		ld.modulate = Color(1.0, 0.35, 0.35)
+		ld.add_theme_font_size_override("font_size", 12)
+		stats_box.add_child(ld)
 
 	# CheckBox de Activación
 	var cb := CheckBox.new()

@@ -17,9 +17,14 @@ value = 1.6
 [resource]
 script = ExtResource("3_r8v2l")
 id = &"minefield"
-titulo = "Minefield"
+titulo = "Campo Minado"
+subtitulo = "Planta minas de proximidad en el suelo"
 nivel = 4
 descripcion = "Las balas que tocan el suelo y no impactan a un rival se plantan como minas de proximidad activas durante 6 segundos."
 rareza = 2
+tema = &"explosivo"
+ventajas = Array[String](["Control de zona y trampa de proximidad"])
+desventajas = Array[String](["+60% Tiempo de recarga"])
+mecanicas = Array[String](["Balas al suelo se vuelven minas (6s)"])
 stats = Array[ExtResource("4_1g3yo")]([SubResource("Resource_lvcao")])
 efectos = Array[ExtResource("1_cxvm7")]([SubResource("Resource_u5nvb")])
