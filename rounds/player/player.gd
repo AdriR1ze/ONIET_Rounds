@@ -223,6 +223,8 @@ func respawn() -> void:
 	_body_animation.play("stand")
 	_update_visual_facing()
 	_health.reset()
+	if _weapon != null and _weapon.has_method("reset_cooldown"):
+		_weapon.reset_cooldown(0.35)
 
 
 func aplicar_mejoras(upgrades: Array) -> void:
@@ -271,10 +273,7 @@ func _update_dots(delta: float) -> void:
 		if dot["tick_timer"] <= 0.0:
 			dot["tick_timer"] = 0.7
 			dot["ticks_remaining"] -= 1
-			_health.current_health = maxi(_health.current_health - dot["damage_per_tick"], 0)
-			_health.health_changed.emit(_health.current_health, _health.max_health)
-			if _health.current_health <= 0:
-				_on_died()
+			_health.apply_silent_damage(dot["damage_per_tick"])
 		if dot["ticks_remaining"] > 0:
 			is_poisoned = true
 		else:

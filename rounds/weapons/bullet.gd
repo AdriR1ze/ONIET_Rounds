@@ -33,6 +33,7 @@ const MAX_TRAIL_POINTS := 8
 
 
 func _ready() -> void:
+	add_to_group("bullet")
 	if velocity == Vector2.ZERO:
 		velocity = direction * speed
 	_initial_dir = direction
@@ -119,6 +120,7 @@ func _do_split() -> void:
 
 	scale *= 0.75
 	damage = child_dmg
+	bounces = 0
 
 	var angles := [deg_to_rad(-20.0), deg_to_rad(20.0)]
 	for ang in angles:
@@ -135,10 +137,13 @@ func _do_split() -> void:
 		child_b.player = player
 		child_b.can_split = false
 		child_b.has_split = true
-		child_b.bounces = bounces
-		child_b.wall_pierce = wall_pierce
-		child_b.scale = scale
-		get_parent().add_child(child_b)
+		child_b.bounces = 0
+		child_b.wall_pierce = 0
+		var target_parent := get_parent()
+		if target_parent == null and get_tree() != null:
+			target_parent = get_tree().current_scene
+		if target_parent != null:
+			target_parent.add_child(child_b)
 
 
 func parry(new_shooter: Node) -> void:

@@ -27,6 +27,7 @@ func _on_jugador_muerto(jugador: Node) -> void:
 		return
 	_procesando = true
 	_ronda_activa = false
+	_limpiar_proyectiles()
 
 	var numero: int = jugador.player_number
 	RunManager.perder_vida(numero)
@@ -41,9 +42,19 @@ func _on_jugador_muerto(jugador: Node) -> void:
 
 	if pantalla_mejoras != null and pantalla_mejoras.has_method("abrir"):
 		await pantalla_mejoras.abrir()
+	_limpiar_proyectiles()
 	for jug in RunManager.jugadores():
 		if is_instance_valid(jug) and jug.has_method("respawn"):
 			jug.respawn()
 	RunManager.iniciar_ronda(RunManager.ronda + 1)
 	_ronda_activa = true
 	_procesando = false
+
+
+func _limpiar_proyectiles() -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	for entidad in tree.get_nodes_in_group("bullet"):
+		if is_instance_valid(entidad):
+			entidad.queue_free()

@@ -14,6 +14,7 @@ var _anim_time: float = 0.0
 
 
 func _ready() -> void:
+	add_to_group("bullet")
 	collision_layer = 0
 	collision_mask = 4  # Hurtbox layer
 	var shape := CircleShape2D.new()

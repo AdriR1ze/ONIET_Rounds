@@ -24,6 +24,15 @@ func apply_damage(amount: int, source: Node = null) -> void:
 		died.emit()
 
 
+func apply_silent_damage(amount: int) -> void:
+	if health <= 0:
+		return
+	health = maxi(health - amount, 0)
+	health_changed.emit(health, max_health)
+	if health == 0:
+		died.emit()
+
+
 func heal(amount: int) -> void:
 	if health <= 0:
 		return

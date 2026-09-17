@@ -113,12 +113,19 @@ func _confirmar(numero: int) -> void:
 	for carta in _cartas.get(numero, []):
 		carta.modulate = Color(1, 1, 1, 0.4)
 	if _todos_confirmados():
-		_cerrar()
+		call_deferred("_cerrar_con_delay")
+
+
+func _cerrar_con_delay() -> void:
+	await get_tree().create_timer(0.18, true, false, true).timeout
+	_cerrar()
 
 
 func _cerrar() -> void:
 	_activo = false
 	visible = false
+	Input.action_release("p1_fire")
+	Input.action_release("p2_fire")
 	PauseManager.soltar(self)
 	cerrado.emit()
 

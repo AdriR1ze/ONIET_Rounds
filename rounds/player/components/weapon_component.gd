@@ -36,6 +36,11 @@ func configurar(stats: StatSheet, player: Node, effects: Array) -> void:
 	current_ammo = max_ammo
 	is_reloading = false
 	ammo_changed.emit(current_ammo, max_ammo)
+	_cooldown = 0.35
+
+
+func reset_cooldown(time: float = 0.35) -> void:
+	_cooldown = time
 
 
 func _process(delta: float) -> void:
