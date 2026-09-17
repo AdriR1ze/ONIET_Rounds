@@ -146,8 +146,10 @@ func try_fire() -> bool:
 			get_tree().current_scene.add_child(bala)
 			var spawn_pos: Vector2 = muzzle.global_position
 			if _player != null and _player.has_method("is_on_floor") and _player.is_on_floor():
-				if spawn_pos.y > _player.global_position.y + 13.0:
-					spawn_pos.y = _player.global_position.y + 13.0
+				var effective_rad: float = 4.0 * escala_bala
+				var max_allowed_y: float = _player.global_position.y + 20.0 - effective_rad - 2.0
+				if spawn_pos.y > max_allowed_y:
+					spawn_pos.y = max_allowed_y
 			bala.global_position = spawn_pos
 
 	current_ammo -= 1

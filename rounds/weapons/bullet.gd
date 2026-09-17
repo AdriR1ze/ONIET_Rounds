@@ -114,7 +114,9 @@ func _physics_process(delta: float) -> void:
 			_is_phasing_wall = false
 
 	# Raycast continuo contra el mundo (Capa 1: mundo/suelo, Capa 16: obstáculos)
-	var query_body := PhysicsRayQueryParameters2D.create(global_position, next_pos)
+	var shape_rad: float = 4.0 * maxf(scale.x, 1.0)
+	var ray_end := next_pos + direction * shape_rad
+	var query_body := PhysicsRayQueryParameters2D.create(global_position, ray_end)
 	query_body.collision_mask = 1 | 16
 	query_body.collide_with_bodies = true
 	query_body.collide_with_areas = false
@@ -130,7 +132,9 @@ func _physics_process(delta: float) -> void:
 	if not hit_world.is_empty():
 		var hit_collider: Node = hit_world.get("collider", null)
 		var hit_pos: Vector2 = hit_world.get("position", next_pos)
-		var hit_norm: Vector2 = hit_world.get("normal", -direction)
+		var hit_norm: Vector2 = hit_world.get("normal", Vector2.UP)
+		if hit_norm.is_zero_approx():
+			hit_norm = _get_surface_normal(hit_collider)
 		_handle_body_collision(hit_collider, hit_pos, hit_norm)
 		if not is_instance_valid(self) or is_queued_for_deletion():
 			return
@@ -321,7 +325,8 @@ func _handle_body_collision(body: Node, hit_pos: Vector2, hit_norm: Vector2) -> 
 		velocity = velocity.bounce(hit_norm) * 0.75
 		direction = velocity.normalized()
 		rotation = velocity.angle()
-		global_position = hit_pos + hit_norm * 4.0
+		var effective_radius: float = 4.0 * maxf(scale.x, 1.0)
+		global_position = hit_pos + hit_norm * (effective_radius + 2.0)
 		_trail_points.clear()
 
 		if can_split and not has_split:
@@ -332,9 +337,35 @@ func _handle_body_collision(body: Node, hit_pos: Vector2, hit_norm: Vector2) -> 
 	queue_free()
 
 
+func _get_surface_normal(hit_body: Node) -> Vector2:
+	var space_state := get_world_2d().direct_space_state
+	var ray_start := global_position - direction * 16.0
+	var ray_end := global_position + direction * 24.0
+	var query := PhysicsRayQueryParameters2D.create(ray_start, ray_end)
+	query.collision_mask = 1 | 16
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	var excludes: Array[RID] = [get_rid()]
+	if shooter != null and shooter is CollisionObject2D:
+		excludes.append((shooter as CollisionObject2D).get_rid())
+	query.exclude = excludes
+
+	var res := space_state.intersect_ray(query)
+	if not res.is_empty() and res.has("normal"):
+		var n: Vector2 = res["normal"]
+		if not n.is_zero_approx():
+			return n
+
+	# Fallback geométrico: si la bala desciende, la superficie es el suelo (Vector2.UP)
+	if absf(velocity.y) >= absf(velocity.x) * 0.35:
+		return Vector2.UP if velocity.y > 0.0 else Vector2.DOWN
+	return Vector2.LEFT if velocity.x > 0.0 else Vector2.RIGHT
+
+
 func _on_body_entered(body: Node) -> void:
 	if not _is_phasing_wall and not (body in _phasing_bodies):
-		_handle_body_collision(body, global_position, -direction)
+		var norm := _get_surface_normal(body)
+		_handle_body_collision(body, global_position, norm)
 
 
 func _on_body_exited(body: Node) -> void:
