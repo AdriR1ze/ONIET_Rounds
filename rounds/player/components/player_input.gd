@@ -61,7 +61,12 @@ func is_ragdoll_just_pressed() -> bool:
 
 
 func is_quack_just_pressed() -> bool:
-	return Input.is_action_just_pressed(_action("quack"))
+	var act := _action("quack")
+	return InputMap.has_action(act) and Input.is_action_just_pressed(act)
+
+
+func is_lock_pressed() -> bool:
+	return Input.is_action_pressed(_action("lock"))
 
 
 func _action(name: String) -> String:

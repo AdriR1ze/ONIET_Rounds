@@ -57,9 +57,14 @@ func _crear_panel(numero: int) -> void:
 	_contenedor.add_child(panel)
 
 	var etiqueta := Label.new()
-	etiqueta.text = "Jugador %d" % numero
+	var vidas_count: int = RunManager.vidas_de(numero)
+	var max_nivel: int = RunManager.nivel_desbloqueado(numero)
+	var corazones := ""
+	for i in 5:
+		corazones += "♥" if i < vidas_count else "♡"
+	etiqueta.text = "Jugador %d  [%s]\nMejoras hasta Nivel %d" % [numero, corazones, max_nivel]
 	etiqueta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	etiqueta.add_theme_font_size_override("font_size", 22)
+	etiqueta.add_theme_font_size_override("font_size", 18)
 	panel.add_child(etiqueta)
 
 	var fila := HBoxContainer.new()

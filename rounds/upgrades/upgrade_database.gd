@@ -39,17 +39,7 @@ func opciones(cantidad: int, rng: RandomNumberGenerator, filtro: Callable) -> Ar
 
 	var elegidas: Array[UpgradeDefinition] = []
 	while elegidas.size() < cantidad and not pool.is_empty():
-		var total := 0.0
-		for def in pool:
-			total += _peso(def)
-		var tirada := rng.randf() * total
-		var acumulado := 0.0
-		var indice := pool.size() - 1
-		for i in pool.size():
-			acumulado += _peso(pool[i])
-			if tirada <= acumulado:
-				indice = i
-				break
+		var indice := rng.randi_range(0, pool.size() - 1)
 		elegidas.append(pool[indice])
 		pool.remove_at(indice)
 	return elegidas

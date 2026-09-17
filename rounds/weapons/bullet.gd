@@ -2,10 +2,12 @@ extends Area2D
 
 @export var speed: float = 900.0
 @export var lifetime: float = 2.0
-@export var damage: int = 1
+@export var damage: int = 25
 @export var pierce: int = 0
 @export var knockback: float = 0.0
-@export var bullet_gravity: float = 800.0
+@export var bullet_gravity: float = 380.0
+@export var bounces: int = 0
+@export var splits: int = 0
 
 var direction: Vector2 = Vector2.RIGHT
 var velocity: Vector2 = Vector2.ZERO
@@ -82,5 +84,12 @@ func _on_area_entered(area: Area2D) -> void:
 
 func _on_body_entered(body: Node) -> void:
 	if shooter != null and (body == shooter or shooter.is_ancestor_of(body)):
+		return
+	if bounces > 0:
+		bounces -= 1
+		velocity.y = -velocity.y * 0.75
+		direction = velocity.normalized()
+		rotation = velocity.angle()
+		position += direction * 6.0
 		return
 	queue_free()

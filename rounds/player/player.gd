@@ -16,11 +16,11 @@ enum PlayerState {
 @export var player_number: int = 1
 
 @export_group("Movement")
-@export var acceleration: float = 1800.0
-@export var friction: float = 2000.0
-@export var air_control: float = 0.55
-@export var gravity: float = 1500.0
-@export var max_fall_speed: float = 950.0
+@export var acceleration: float = 2000.0
+@export var friction: float = 1200.0
+@export var air_control: float = 0.70
+@export var gravity: float = 1800.0
+@export var max_fall_speed: float = 1100.0
 @export var crouch_speed_multiplier: float = 0.4
 @export var ragdoll_time: float = 0.6
 
@@ -36,6 +36,7 @@ var can_control: bool = true
 var current_state: PlayerState = PlayerState.IDLE
 
 var _effects: Array = []
+var _active_dots: Array = []
 var _crouching: bool = false
 var _ragdoll_timer: float = 0.0
 var _spawn_position: Vector2
@@ -43,10 +44,12 @@ var _spawn_position: Vector2
 
 func _ready() -> void:
 	_spawn_position = global_position
+	add_to_group("player")
 	RunManager.registrar_jugador(self)
 
 
 func _physics_process(delta: float) -> void:
+	_update_dots(delta)
 	_update_ragdoll(delta)
 	_update_state()
 	_apply_gravity(delta)
@@ -85,6 +88,9 @@ func _apply_gravity(delta: float) -> void:
 
 
 func _handle_horizontal(delta: float) -> void:
+	if _input.is_lock_pressed():
+		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+		return
 	var direction := _input.move_axis()
 	var speed := _stats.get_stat(&"move_speed")
 	if _crouching:
@@ -96,8 +102,11 @@ func _handle_horizontal(delta: float) -> void:
 
 
 func _handle_jump() -> void:
+	if _input.is_lock_pressed():
+		return
 	if _input.is_jump_just_pressed() and is_on_floor():
 		velocity.y = _stats.get_stat(&"jump_velocity")
+		_crouching = false
 	if _input.is_jump_just_released() and velocity.y < 0.0:
 		velocity.y *= 0.5
 
@@ -106,6 +115,8 @@ func _handle_aim() -> void:
 	var direction := _input.aim()
 	if direction.is_zero_approx():
 		direction = Vector2(facing, 0.0)
+	elif not is_zero_approx(direction.x) and _input.is_lock_pressed():
+		facing = signi(direction.x)
 	_weapon.set_aim(direction)
 
 
@@ -204,3 +215,24 @@ func hurt(amount: int, source: Node = null) -> void:
 
 func heal(amount: int) -> void:
 	_health.heal(amount)
+
+
+func apply_dot(dps: float, duration: float, source: Node = null) -> void:
+	_active_dots.append({
+		"dps": dps,
+		"time_left": duration,
+		"source": source
+	})
+
+
+func _update_dots(delta: float) -> void:
+	var i := _active_dots.size() - 1
+	while i >= 0:
+		var dot: Dictionary = _active_dots[i]
+		dot["time_left"] -= delta
+		var tick_damage: float = dot["dps"] * delta
+		if tick_damage > 0.0:
+			hurt(int(round(tick_damage)), dot.get("source"))
+		if dot["time_left"] <= 0.0:
+			_active_dots.remove_at(i)
+		i -= 1

@@ -10,6 +10,7 @@ enum Rareza {
 
 @export var id: StringName
 @export var titulo: String
+@export_range(1, 5) var nivel: int = 1
 @export_multiline var descripcion: String
 @export var icono: Texture2D
 @export var rareza: Rareza = Rareza.COMUN
@@ -23,3 +24,7 @@ enum Rareza {
 
 func rareza_texto() -> String:
 	return String(Rareza.keys()[rareza]).capitalize()
+
+
+func nivel_texto() -> String:
+	return "Nivel %d" % nivel

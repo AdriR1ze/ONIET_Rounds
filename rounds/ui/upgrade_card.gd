@@ -20,7 +20,7 @@ func configurar(def: UpgradeDefinition) -> void:
 		return
 	_titulo.text = def.titulo
 	_descripcion.text = def.descripcion
-	_rareza.text = def.rareza_texto()
+	_rareza.text = "%s  •  %s" % [def.nivel_texto(), def.rareza_texto()]
 	var color: Color = COLORES.get(def.rareza, Color.WHITE)
 	_titulo.modulate = color
 	_rareza.modulate = color

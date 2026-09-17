@@ -36,6 +36,6 @@ offset_top = 12.0
 offset_right = 1000.0
 offset_bottom = 130.0
 theme_override_font_sizes/font_size = 16
-text = "P1  WASD mover/apuntar   W saltar   V disparar   C agarrar   Q trompezar   E graznar   B strafe
-P2  Flechas mover/apuntar   Arriba saltar   , disparar   L agarrar   I trompezar   O graznar   K strafe
+text = "P1  WASD mover/apuntar   W saltar   E clavarse   V disparar   C agarrar   Q girar/parry   B strafe
+P2  Flechas mover/apuntar   Arriba saltar   O clavarse   , disparar   L agarrar   I girar/parry   K strafe
 R  reiniciar"

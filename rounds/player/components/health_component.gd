@@ -5,7 +5,7 @@ signal health_changed(current: int, maximum: int)
 signal damaged(amount: int, source: Node)
 signal died
 
-@export var max_health: int = 3
+@export var max_health: int = 100
 
 var health: int = 0
 

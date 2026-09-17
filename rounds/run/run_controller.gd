@@ -19,6 +19,7 @@ func _ready() -> void:
 func _on_jugador_muerto(jugador: Node) -> void:
 	if not _muertos.has(jugador):
 		_muertos.append(jugador)
+		RunManager.perder_vida(jugador.player_number)
 	if _procesando:
 		return
 	_procesando = true
