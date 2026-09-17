@@ -42,23 +42,7 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 
 	if can_split and not has_split:
-		call_deferred("_setup_split_distance")
-
-
-func _setup_split_distance() -> void:
-	var space_state := get_world_2d().direct_space_state
-	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + direction * 1400.0)
-	query.collision_mask = 5
-	query.collide_with_areas = true
-	query.collide_with_bodies = true
-	if shooter != null:
-		query.exclude = [shooter, self]
-	var hit := space_state.intersect_ray(query)
-	if not hit.is_empty():
-		var total_dist: float = global_position.distance_to(hit["position"])
-		_split_distance = maxf(total_dist * 0.5, 45.0)
-	else:
-		_split_distance = speed * 0.45
+		_split_distance = 360.0  # Mitad del alcance normal de la bala (rango total ~720px)
 
 
 func _draw() -> void:
@@ -140,7 +124,7 @@ func _do_split() -> void:
 		child_b.bounces = 0
 		child_b.wall_pierce = 0
 		var target_parent := get_parent()
-		if target_parent == null and get_tree() != null:
+		if target_parent == null and is_inside_tree():
 			target_parent = get_tree().current_scene
 		if target_parent != null:
 			target_parent.add_child(child_b)
@@ -223,9 +207,6 @@ func _on_body_entered(body: Node) -> void:
 			if efecto.has_method("on_bounce"):
 				efecto.on_bounce(self, bounce_count, player)
 
-		if can_split and not has_split:
-			_do_split()
-
 		var space_state := get_world_2d().direct_space_state
 		var query := PhysicsRayQueryParameters2D.create(global_position - direction * 16.0, global_position + direction * 16.0)
 		query.exclude = [self]
@@ -238,6 +219,9 @@ func _on_body_entered(body: Node) -> void:
 		rotation = velocity.angle()
 		position += direction * 6.0
 		_trail_points.clear()
+
+		if can_split and not has_split:
+			_do_split()
 		return
 
 	queue_free()
