@@ -4,6 +4,14 @@ extends CharacterBody2D
 signal quacked(player_number: int)
 signal grabbed(player_number: int)
 
+enum PlayerState {
+	IDLE,
+	WALKING,
+	CROUCHING,
+	AIRBORNE,
+	RAGDOLL,
+}
+
 @export var player_number: int = 1
 
 @export_group("Movement")
@@ -25,6 +33,7 @@ signal grabbed(player_number: int)
 
 var facing: int = 1
 var can_control: bool = true
+var current_state: PlayerState = PlayerState.IDLE
 
 var _crouching: bool = false
 var _ragdoll_timer: float = 0.0
@@ -37,18 +46,33 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_update_ragdoll(delta)
+	_update_state()
 	_apply_gravity(delta)
 
-	if can_control:
-		_handle_horizontal(delta)
-		_handle_jump()
-		_handle_aim()
-		_handle_actions()
-	else:
-		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+	match current_state:
+		PlayerState.RAGDOLL:
+			velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+		PlayerState.IDLE, PlayerState.WALKING, PlayerState.CROUCHING, PlayerState.AIRBORNE:
+			_handle_horizontal(delta)
+			_handle_jump()
+			_handle_aim()
+			_handle_actions()
 
 	move_and_slide()
 	_update_crouch()
+
+
+func _update_state() -> void:
+	if not can_control:
+		current_state = PlayerState.RAGDOLL
+	elif not is_on_floor():
+		current_state = PlayerState.AIRBORNE
+	elif _crouching:
+		current_state = PlayerState.CROUCHING
+	elif not is_zero_approx(_input.move_axis()):
+		current_state = PlayerState.WALKING
+	else:
+		current_state = PlayerState.IDLE
 
 
 func _apply_gravity(delta: float) -> void:
@@ -106,6 +130,7 @@ func _update_crouch() -> void:
 
 
 func _start_ragdoll() -> void:
+	current_state = PlayerState.RAGDOLL
 	_ragdoll_timer = ragdoll_time
 	can_control = false
 	velocity.x *= 0.4
