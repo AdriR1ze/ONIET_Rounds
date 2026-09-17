@@ -4,7 +4,8 @@ shader_type canvas_item;
 // GradientTexture2D asignado a "palette". Con 2+ colores interpola solo.
 uniform sampler2D palette : source_color, hint_default_white;
 
-uniform vec2 cell_count = vec2(3.0, 3.0);
+// Tamaño de cada subdivisión en píxeles (independiente de la forma del objeto).
+uniform float cell_size = 80.0;
 uniform float jitter = 2.0;
 uniform float skip_chance = 0.55;
 
@@ -12,6 +13,8 @@ uniform float warp_amount = 1.5;
 uniform float warp_scale = 1.0;
 
 uniform float color_speed = 0.6;
+
+varying vec2 local_pos;
 
 float hash21(vec2 p) {
 	p = fract(p * vec2(123.34, 456.21));
@@ -30,11 +33,15 @@ float noise(vec2 p) {
 	return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
 }
 
-void fragment() {
-	vec2 uv = UV;
+void vertex() {
+	local_pos = VERTEX;
+}
 
-	vec2 warp = vec2(noise(uv * warp_scale * cell_count), noise(uv * warp_scale * cell_count + 31.7)) - 0.5;
-	vec2 warped = uv * cell_count + warp * warp_amount;
+void fragment() {
+	vec2 uv = local_pos / cell_size;
+
+	vec2 warp = vec2(noise(uv * warp_scale), noise(uv * warp_scale + 31.7)) - 0.5;
+	vec2 warped = uv + warp * warp_amount;
 
 	vec2 base_cell = floor(warped);
 
