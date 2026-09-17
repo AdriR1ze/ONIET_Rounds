@@ -10,6 +10,7 @@ const COLOR_ERROR := Color(0.85, 0.2, 0.2)
 @onready var _sfx: HSlider = $Centro/Marco/Margin/VBox/AudioGrid/Sfx
 @onready var _modo_pantalla: OptionButton = $Centro/Marco/Margin/VBox/VideoGrid/ModoPantalla
 @onready var _resolucion: OptionButton = $Centro/Marco/Margin/VBox/VideoGrid/Resolucion
+@onready var _hint_f11: Label = $Centro/Marco/Margin/VBox/HintF11
 @onready var _aviso: Label = $Centro/Marco/Margin/VBox/Aviso
 @onready var _controles: VBoxContainer = $Centro/Marco/Margin/VBox/Scroll/Controles
 @onready var _boton_guardar: Button = $Centro/Marco/Margin/VBox/Botones/Guardar
@@ -77,6 +78,12 @@ func _actualizar_video_ui() -> void:
 		if r == Settings.resolucion_actual:
 			_resolucion.select(i)
 			break
+	if Settings.es_ventana_incrustada():
+		_hint_f11.text = "Aviso: El juego está incrustado en el editor. Desactivá 'Embed Game' (arriba en Godot) para pantalla completa y cambio de resolución."
+		_hint_f11.modulate = Color(1.0, 0.75, 0.25, 1.0)
+	else:
+		_hint_f11.text = "Tip: Presioná [F11] en cualquier momento para alternar pantalla completa."
+		_hint_f11.modulate = Color(0.65, 0.72, 0.85, 0.65)
 
 
 func abrir() -> void:

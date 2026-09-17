@@ -178,7 +178,15 @@ func set_resolucion(res: Vector2i) -> void:
 	video_cambiado.emit()
 
 
+func es_ventana_incrustada() -> bool:
+	var win := get_window()
+	return win != null and win.has_method("is_embedded") and win.is_embedded()
+
+
 func toggle_pantalla_completa() -> void:
+	if es_ventana_incrustada():
+		print("AVISO: El juego está incrustado en el editor de Godot (Game Embed Mode). Para pantalla completa, desactiva 'Embed Game' en la barra del editor.")
+		return
 	if modo_pantalla == ModoPantalla.PANTALLA_COMPLETA:
 		set_modo_pantalla(ModoPantalla.EN_VENTANA)
 	else:
@@ -186,6 +194,9 @@ func toggle_pantalla_completa() -> void:
 
 
 func aplicar_pantalla() -> void:
+	if es_ventana_incrustada():
+		# Dentro del editor en modo incrustado, la ventana es un control secundario del editor
+		return
 	match modo_pantalla:
 		ModoPantalla.PANTALLA_COMPLETA:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
