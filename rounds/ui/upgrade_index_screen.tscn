@@ -1,0 +1,86 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/upgrade_index_screen.gd" id="1_idx"]
+
+[node name="UpgradeIndexScreen" type="CanvasLayer"]
+layer = 45
+process_mode = 3
+script = ExtResource("1_idx")
+
+[node name="Fondo" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.05, 0.08, 0.96)
+
+[node name="Centro" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Marco" type="PanelContainer" parent="Centro"]
+custom_minimum_size = Vector2(860, 640)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Centro/Marco"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Centro/Marco/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="VBoxContainer" parent="Centro/Marco/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Titulo" type="Label" parent="Centro/Marco/Margin/VBox/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+text = "Índice de Habilidades"
+
+[node name="Contador" type="Label" parent="Centro/Marco/Margin/VBox/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+modulate = Color(0.7, 0.85, 1.0, 0.9)
+text = "0 de 0 habilidades activas"
+
+[node name="BotonesRapidos" type="HBoxContainer" parent="Centro/Marco/Margin/VBox/Header"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="ActivarTodas" type="Button" parent="Centro/Marco/Margin/VBox/Header/BotonesRapidos"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Activar Todas"
+
+[node name="DesactivarTodas" type="Button" parent="Centro/Marco/Margin/VBox/Header/BotonesRapidos"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Desactivar Todas"
+
+[node name="Scroll" type="ScrollContainer" parent="Centro/Marco/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Lista" type="VBoxContainer" parent="Centro/Marco/Margin/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Volver" type="Button" parent="Centro/Marco/Margin/VBox"]
+custom_minimum_size = Vector2(220, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Volver"

@@ -2,6 +2,7 @@ extends Node
 
 @export var pantalla_mejoras: CanvasLayer
 @export var pantalla_fin: CanvasLayer
+@export var banner_ganador: CanvasLayer
 
 var _procesando: bool = false
 var _ronda_activa: bool = false
@@ -12,6 +13,8 @@ func _ready() -> void:
 		pantalla_mejoras = get_parent().get_node_or_null("UpgradeScreen")
 	if pantalla_fin == null and get_parent() != null:
 		pantalla_fin = get_parent().get_node_or_null("MatchEnd")
+	if banner_ganador == null and get_parent() != null:
+		banner_ganador = get_parent().get_node_or_null("RoundWinnerBanner")
 	await get_tree().process_frame
 	for jugador in RunManager.jugadores():
 		var salud: Node = jugador.get_node_or_null("HealthComponent")
@@ -33,6 +36,9 @@ func _on_jugador_muerto(jugador: Node) -> void:
 	RunManager.perder_vida(numero)
 	var ganador: int = RunManager.ganador_de_ronda(numero)
 	RunManager.terminar_ronda(ganador)
+
+	if banner_ganador != null and banner_ganador.has_method("mostrar_ganador"):
+		await banner_ganador.mostrar_ganador(ganador)
 
 	if RunManager.partida_ganada():
 		if pantalla_fin != null and pantalla_fin.has_method("mostrar"):

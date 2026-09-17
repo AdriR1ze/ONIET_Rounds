@@ -103,7 +103,7 @@ func _siguiente_voz() -> AudioStreamPlayer:
 
 
 func _conectar_juego() -> void:
-	if RunManager == null:
+	if RunManager == null or not RunManager.has_signal("ronda_iniciada"):
 		return
 	RunManager.ronda_iniciada.connect(func(_ronda: int) -> void: reproducir("ronda_inicio"))
 	RunManager.ronda_terminada.connect(func(_ronda: int, _ganador: int) -> void: reproducir("ronda_ganada"))

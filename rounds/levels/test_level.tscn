@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="13_pause"]
 [ext_resource type="PackedScene" path="res://ui/match_hud.tscn" id="14_hud"]
 [ext_resource type="PackedScene" path="res://ui/match_end.tscn" id="15_end"]
+[ext_resource type="PackedScene" path="res://ui/round_winner_banner.tscn" id="16_banner"]
 
 [sub_resource type="Environment" id="Environment_glow"]
 background_mode = 3
@@ -50,3 +51,5 @@ visible = false
 
 [node name="MatchEnd" parent="." instance=ExtResource("15_end")]
 visible = false
+
+[node name="RoundWinnerBanner" parent="." instance=ExtResource("16_banner")]

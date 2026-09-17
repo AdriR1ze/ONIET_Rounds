@@ -46,7 +46,7 @@ func _construir() -> void:
 		_confirmados[numero] = false
 		_crear_panel(numero)
 	_actualizar_seleccion()
-	_titulo.text = "Elige una mejora   |   P1: A/D + V      P2: Izq/Der + ,"
+	_titulo.text = "Elige una mejora   |   %s: A/D + V      %s: Izq/Der + ," % [RunManager.nombre_jugador(1), RunManager.nombre_jugador(2)]
 
 
 func _crear_panel(numero: int) -> void:
@@ -62,7 +62,7 @@ func _crear_panel(numero: int) -> void:
 	var corazones := ""
 	for i in 5:
 		corazones += "♥" if i < vidas_count else "♡"
-	etiqueta.text = "Jugador %d  [%s]\nMejoras hasta Nivel %d" % [numero, corazones, max_nivel]
+	etiqueta.text = "%s  [%s]\nMejoras hasta Nivel %d" % [RunManager.nombre_jugador(numero), corazones, max_nivel]
 	etiqueta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	etiqueta.add_theme_font_size_override("font_size", 18)
 	panel.add_child(etiqueta)

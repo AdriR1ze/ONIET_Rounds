@@ -18,9 +18,11 @@ const TAMANO_PIP := 12.0
 
 func _process(_delta: float) -> void:
 	_ronda.text = "Ronda %d" % maxi(RunManager.ronda, 1)
-	_marcador.text = "P1  %d  -  %d  P2" % [RunManager.marcador_de(1), RunManager.marcador_de(2)]
-	_p1_nombre.text = "Jugador 1  (%d/%d HP)" % [_salud(1), _salud_max(1)]
-	_p2_nombre.text = "(%d/%d HP)  Jugador 2" % [_salud(2), _salud_max(2)]
+	var n1 := RunManager.nombre_jugador(1)
+	var n2 := RunManager.nombre_jugador(2)
+	_marcador.text = "%s  %d  -  %d  %s" % [n1, RunManager.marcador_de(1), RunManager.marcador_de(2), n2]
+	_p1_nombre.text = "%s  (%d/%d HP)" % [n1, _salud(1), _salud_max(1)]
+	_p2_nombre.text = "(%d/%d HP)  %s" % [_salud(2), _salud_max(2), n2]
 	_pintar_pips(_p1_hp, _salud(1), _salud_max(1), COLOR_HP, COLOR_HP_VACIO)
 	_pintar_pips(_p1_vidas, RunManager.vidas_de(1), RunManager.vidas_por_ronda, COLOR_VIDA, COLOR_VIDA_VACIO)
 	_pintar_pips(_p2_hp, _salud(2), _salud_max(2), COLOR_HP, COLOR_HP_VACIO)
