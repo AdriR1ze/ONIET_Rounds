@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/pause_menu.gd" id="1_pause"]
+[ext_resource type="PackedScene" path="res://ui/options_screen.tscn" id="2_opts"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 layer = 20
@@ -38,6 +39,10 @@ text = "Reanudar"
 custom_minimum_size = Vector2(260, 0)
 text = "Reiniciar"
 
+[node name="Opciones" type="Button" parent="Centro/Menu"]
+custom_minimum_size = Vector2(260, 0)
+text = "Opciones"
+
 [node name="MenuPrincipal" type="Button" parent="Centro/Menu"]
 custom_minimum_size = Vector2(260, 0)
 text = "Menú principal"
@@ -45,3 +50,6 @@ text = "Menú principal"
 [node name="Salir" type="Button" parent="Centro/Menu"]
 custom_minimum_size = Vector2(260, 0)
 text = "Salir"
+
+[node name="OptionsScreen" parent="." instance=ExtResource("2_opts")]
+visible = false

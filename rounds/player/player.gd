@@ -164,6 +164,9 @@ func respawn() -> void:
 	velocity = Vector2.ZERO
 	can_control = true
 	current_state = PlayerState.IDLE
+	_ragdoll_timer = 0.0
+	_crouching = false
+	_body_animation.play("stand")
 	_health.reset()
 
 

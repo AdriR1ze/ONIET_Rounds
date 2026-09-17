@@ -1,0 +1,44 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/match_end.gd" id="1_end"]
+
+[node name="MatchEnd" type="CanvasLayer"]
+layer = 30
+process_mode = 3
+script = ExtResource("1_end")
+
+[node name="Fondo" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.06, 0.1, 0.85)
+
+[node name="Centro" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Menu" type="VBoxContainer" parent="Centro"]
+theme_override_constants/separation = 16
+
+[node name="Titulo" type="Label" parent="Centro/Menu"]
+theme_override_font_sizes/font_size = 40
+horizontal_alignment = 1
+text = "¡Ganó el Jugador 1!"
+
+[node name="Marcador" type="Label" parent="Centro/Menu"]
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+text = "P1  0  -  0  P2"
+
+[node name="Revancha" type="Button" parent="Centro/Menu"]
+custom_minimum_size = Vector2(260, 0)
+text = "Revancha"
+
+[node name="MenuPrincipal" type="Button" parent="Centro/Menu"]
+custom_minimum_size = Vector2(260, 0)
+text = "Menú principal"

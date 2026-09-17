@@ -19,6 +19,8 @@ config/icon="res://icon.svg"
 
 UpgradeDatabase="*res://upgrades/upgrade_database.gd"
 RunManager="*res://run/run_manager.gd"
+PauseManager="*res://ui/pause_manager.gd"
+Settings="*res://settings/settings.gd"
 
 [display]
 

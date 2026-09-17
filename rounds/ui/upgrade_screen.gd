@@ -25,7 +25,7 @@ func abrir() -> void:
 		return
 	_activo = true
 	visible = true
-	get_tree().paused = true
+	PauseManager.tomar(self)
 	_construir()
 	await cerrado
 
@@ -112,7 +112,7 @@ func _confirmar(numero: int) -> void:
 func _cerrar() -> void:
 	_activo = false
 	visible = false
-	get_tree().paused = false
+	PauseManager.soltar(self)
 	cerrado.emit()
 
 

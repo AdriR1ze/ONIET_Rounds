@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/main_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" path="res://ui/options_screen.tscn" id="2_opts"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -44,6 +45,34 @@ theme_override_font_sizes/font_size = 16
 horizontal_alignment = 1
 text = "ONIET"
 
+[node name="Config" type="VBoxContainer" parent="Centro/Menu"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Rondas" type="HBoxContainer" parent="Centro/Menu/Config"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Etiqueta" type="Label" parent="Centro/Menu/Config/Rondas"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Rondas para ganar"
+
+[node name="Valor" type="OptionButton" parent="Centro/Menu/Config/Rondas"]
+layout_mode = 2
+
+[node name="Vidas" type="HBoxContainer" parent="Centro/Menu/Config"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Etiqueta" type="Label" parent="Centro/Menu/Config/Vidas"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Vidas por ronda"
+
+[node name="Valor" type="OptionButton" parent="Centro/Menu/Config/Vidas"]
+layout_mode = 2
+
 [node name="Jugar" type="Button" parent="Centro/Menu"]
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
@@ -53,6 +82,11 @@ text = "Jugar"
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 text = "Controles"
+
+[node name="Opciones" type="Button" parent="Centro/Menu"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+text = "Opciones"
 
 [node name="Salir" type="Button" parent="Centro/Menu"]
 custom_minimum_size = Vector2(260, 0)
@@ -108,3 +142,6 @@ R reiniciar      Esc pausa"
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 text = "Volver"
+
+[node name="OptionsScreen" parent="." instance=ExtResource("2_opts")]
+visible = false
