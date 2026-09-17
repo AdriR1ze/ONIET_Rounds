@@ -80,11 +80,12 @@ func try_fire() -> bool:
 	var cantidad := _stat_entero(&"projectiles", 1)
 	var dispersion: float = _stat(&"spread", 0.0)
 	var dano := _stat_entero(&"damage", 25)
-	var velocidad: float = _stat(&"bullet_speed", 900.0)
-	var duracion: float = _stat(&"bullet_lifetime", 2.0)
+	var velocidad: float = _stat(&"bullet_speed", 780.0)
+	var duracion: float = _stat(&"bullet_lifetime", 2.5)
 	var penetracion := _stat_entero(&"pierce", 0)
 	var empuje: float = _stat(&"knockback", 0.0)
-	var gravedad: float = _stat(&"bullet_gravity", 380.0)
+	var gravedad: float = _stat(&"bullet_gravity", 720.0)
+	var rozamiento: float = _stat(&"bullet_drag", 0.2)
 
 	var base_angle := aim_direction.angle()
 	var centro := (cantidad - 1) / 2.0
@@ -100,6 +101,7 @@ func try_fire() -> bool:
 		bala.pierce = penetracion
 		bala.knockback = empuje
 		bala.bullet_gravity = gravedad
+		bala.drag = rozamiento
 		bala.effects = _effects
 		for efecto in _effects:
 			efecto.on_fire(bala, _player)
