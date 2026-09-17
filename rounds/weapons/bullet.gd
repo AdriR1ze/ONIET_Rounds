@@ -137,7 +137,7 @@ func _on_area_entered(area: Area2D) -> void:
 
 	if area.has_method("try_parry") and area.try_parry(self):
 		return
-	var parent := area.get_parent()
+	var parent: Node = area.get_parent()
 	if parent != null and parent.has_method("can_parry") and parent.can_parry():
 		parry(parent)
 		if parent.has_method("on_parry"):
@@ -147,7 +147,7 @@ func _on_area_entered(area: Area2D) -> void:
 	if not area.has_method("take_hit"):
 		return
 
-	var dueno := area.get_parent()
+	var dueno: Node = area.get_parent()
 	_hit_targets.append(area)
 	for efecto in effects:
 		efecto.on_hit(self, area, player)

@@ -48,7 +48,7 @@ func _reapply_to_overlapping() -> void:
 
 
 func _apply_poison_to_area(area: Area2D) -> void:
-	var target_player := area.get_parent()
+	var target_player: Node = area.get_parent()
 	if target_player == null or target_player == source_player:
 		return
 	if target_player.has_method("apply_dot"):

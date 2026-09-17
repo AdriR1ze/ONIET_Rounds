@@ -63,7 +63,7 @@ func _on_area_entered(area: Area2D) -> void:
 
 
 func _check_target(area: Area2D) -> void:
-	var target := area.get_parent()
+	var target: Node = area.get_parent()
 	if target == null or target == source_player:
 		return
 	_triggered = true
@@ -86,7 +86,7 @@ func _detonate() -> void:
 		var area: Area2D = hit.get("collider")
 		if area == null:
 			continue
-		var target := area.get_parent()
+		var target: Node = area.get_parent()
 		if target != null and not damaged_players.has(target):
 			damaged_players.append(target)
 			if area.has_method("take_hit"):

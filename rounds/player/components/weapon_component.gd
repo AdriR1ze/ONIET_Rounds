@@ -167,11 +167,11 @@ func _fire_laser(dano: int, empuje: float) -> void:
 	var hit_pos := to_pos
 	if not result.is_empty():
 		hit_pos = result["position"]
-		var collider: Object = result["collider"]
+		var collider: Node = result.get("collider") as Node
 		if collider != null:
 			if collider.has_method("take_hit"):
 				collider.take_hit(dano, _player)
-			var target_player := collider.get_parent()
+			var target_player: Node = collider.get_parent()
 			if target_player != null and target_player.has_method("apply_knockback") and empuje > 0.0:
 				target_player.apply_knockback(aim_direction, empuje)
 
