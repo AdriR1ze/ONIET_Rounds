@@ -18,6 +18,7 @@ const OPCIONES_VIDAS := [1, 2, 3, 4, 5]
 
 func _ready() -> void:
 	get_tree().paused = false
+	AudioManager.reproducir_musica("menu")
 	_controles.visible = false
 	_poblar(_rondas, OPCIONES_RONDAS, RunManager.rondas_para_ganar)
 	_poblar(_vidas, OPCIONES_VIDAS, RunManager.vidas_por_ronda)

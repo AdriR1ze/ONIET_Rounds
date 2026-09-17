@@ -21,6 +21,7 @@ UpgradeDatabase="*res://upgrades/upgrade_database.gd"
 RunManager="*res://run/run_manager.gd"
 PauseManager="*res://ui/pause_manager.gd"
 Settings="*res://settings/settings.gd"
+AudioManager="*res://audio/audio_manager.gd"
 
 [display]
 

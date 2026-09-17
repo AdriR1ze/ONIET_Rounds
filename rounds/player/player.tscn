@@ -6,7 +6,6 @@
 [ext_resource type="Script" uid="uid://r1qm8xg76uvj" path="res://player/components/hurtbox_component.gd" id="4_hurtbox"]
 [ext_resource type="Script" uid="uid://0ycbvu1v1lrc" path="res://player/components/health_component.gd" id="5_health"]
 [ext_resource type="Script" uid="uid://c5jrbwt17go3d" path="res://player/components/player_input.gd" id="6_input"]
-[ext_resource type="Script" uid="uid://b4xrpeprwnkrb" path="res://player/components/health_display.gd" id="7_display"]
 [ext_resource type="Script" uid="uid://w3hi3xymg7fs" path="res://stats/stat_sheet.gd" id="8_stats"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_stand"]
@@ -138,20 +137,6 @@ _data = {
 &"hit": SubResource("Animation_hit")
 }
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
-bg_color = Color(0.08, 0.09, 0.12, 0.85)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
-bg_color = Color(0.35, 0.85, 0.4, 1)
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
-
 [node name="Player" type="CharacterBody2D" unique_id=883916071 groups=["player"]]
 collision_layer = 2
 script = ExtResource("1_player")
@@ -217,19 +202,6 @@ autoplay = &"stand"
 [node name="HitFlash" type="AnimationPlayer" parent="." unique_id=1685867087]
 libraries/ = SubResource("AnimationLibrary_hit")
 
-[node name="HealthBar" type="ProgressBar" parent="." unique_id=1197461591]
-offset_left = -24.0
-offset_top = -60.0
-offset_right = 24.0
-offset_bottom = -52.0
-max_value = 3.0
-value = 3.0
-show_percentage = false
-theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
-script = ExtResource("7_display")
-
 [connection signal="hurt" from="HurtboxComponent" to="HealthComponent" method="apply_damage"]
 [connection signal="damaged" from="HealthComponent" to="." method="_on_damaged"]
 [connection signal="died" from="HealthComponent" to="." method="_on_died"]
-[connection signal="health_changed" from="HealthComponent" to="HealthBar" method="_on_health_changed"]

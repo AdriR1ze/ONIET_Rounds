@@ -67,6 +67,7 @@ func try_fire() -> bool:
 		bala.global_position = muzzle.global_position
 
 	_cooldown = 1.0 / maxf(_stat(&"fire_rate", 5.0), 0.1)
+	AudioManager.reproducir("disparo", 0.06)
 	fired.emit()
 	return true
 
