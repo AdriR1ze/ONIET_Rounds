@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_5ylqt"]
+[ext_resource type="Script" path="res://upgrades/effects/quickdraw_effect.gd" id="2_whqrb"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_j1f1c"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_bcw7e"]
+
+[sub_resource type="Resource" id="Resource_kg6qe"]
+script = ExtResource("2_whqrb")
+
+[sub_resource type="Resource" id="Resource_ry6wn"]
+script = ExtResource("4_bcw7e")
+stat = &"max_ammo"
+value = -1.0
+
+[resource]
+script = ExtResource("3_j1f1c")
+id = &"quickdraw"
+titulo = "Quickdraw"
+descripcion = "El primer tiro disparado inmediatamente después de recargar sale sin dispersión y con velocidad extrema (+70% vel. bala, -1 cargador)."
+stats = Array[ExtResource("4_bcw7e")]([SubResource("Resource_ry6wn")])
+efectos = Array[ExtResource("1_5ylqt")]([SubResource("Resource_kg6qe")])

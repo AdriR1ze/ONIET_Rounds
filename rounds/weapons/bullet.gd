@@ -29,6 +29,12 @@ var _initial_dir: Vector2 = Vector2.ZERO
 var _distance_traveled: float = 0.0
 var _split_distance: float = 0.0
 
+var is_glitch: bool = false
+var has_glitched: bool = false
+var is_glitch_clone: bool = false
+var drift_angle: float = 0.0
+var _glitch_timer: float = 0.0
+
 const MAX_TRAIL_POINTS := 8
 
 
@@ -38,8 +44,13 @@ func _ready() -> void:
 		velocity = direction * speed
 	_initial_dir = direction
 	rotation = velocity.angle()
-	area_entered.connect(_on_area_entered)
-	body_entered.connect(_on_body_entered)
+	if not area_entered.is_connected(_on_area_entered):
+		area_entered.connect(_on_area_entered)
+	if not body_entered.is_connected(_on_body_entered):
+		body_entered.connect(_on_body_entered)
+
+	if is_glitch and not has_glitched:
+		_glitch_timer = randf_range(0.12, 0.22)
 
 	if can_split and not has_split:
 		_split_distance = 360.0  # Mitad del alcance normal de la bala (rango total ~720px)
@@ -71,6 +82,9 @@ func _physics_process(delta: float) -> void:
 	if velocity.y > max_fall_speed:
 		velocity.y = max_fall_speed
 
+	if is_glitch_clone and drift_angle != 0.0:
+		velocity = velocity.rotated(drift_angle * delta)
+
 	var step := velocity * delta
 	position += step
 	_distance_traveled += step.length()
@@ -84,12 +98,70 @@ func _physics_process(delta: float) -> void:
 		_trail_points.pop_front()
 	queue_redraw()
 
+	if is_glitch and not has_glitched:
+		_glitch_timer -= delta
+		if randf() < 0.40:
+			modulate = Color(0.2, 1.8, 1.8, 1.0) if randf() < 0.5 else Color(1.8, 0.2, 1.6, 1.0)
+		if _glitch_timer <= 0.0:
+			_do_glitch()
+
 	if can_split and not has_split and _split_distance > 0.0 and _distance_traveled >= _split_distance:
 		_do_split()
 
 	_time_alive += delta
 	if _time_alive >= lifetime:
 		queue_free()
+
+
+func _do_glitch() -> void:
+	if has_glitched:
+		return
+	has_glitched = true
+	is_glitch = false
+	modulate = Color.WHITE
+
+	# Cambiar trayectoria de golpe de la bala original
+	var erratic_angle: float = deg_to_rad(randf_range(-30.0, 30.0))
+	velocity = velocity.rotated(erratic_angle)
+	direction = velocity.normalized()
+	rotation = velocity.angle()
+	position += direction * 6.0
+
+	var bullet_scene: PackedScene = load("res://weapons/bullet.tscn")
+	var current_spd := velocity.length()
+	var clone_dmg := maxi(int(round(damage * 0.50)), 1)
+
+	var clone_angles := [-38.0, 38.0]
+	for ang_deg in clone_angles:
+		var clone: Node = bullet_scene.instantiate()
+		clone.global_position = global_position
+		var clone_dir: Vector2 = direction.rotated(deg_to_rad(ang_deg + randf_range(-10.0, 10.0)))
+		var clone_spd: float = current_spd * randf_range(0.9, 1.1)
+		clone.direction = clone_dir
+		clone.speed = clone_spd
+		clone.velocity = clone_dir * clone_spd
+		clone.damage = clone_dmg
+		clone.lifetime = maxf(lifetime - _time_alive, 0.8)
+		clone.bullet_gravity = bullet_gravity * 0.75
+		clone.drag = drag
+		clone.shooter = shooter
+		clone.player = player
+		clone.can_split = false
+		clone.has_split = true
+		clone.bounces = 0
+		clone.wall_pierce = wall_pierce
+		clone.is_glitch = false
+		clone.has_glitched = true
+		clone.is_glitch_clone = true
+		clone.drift_angle = randf_range(-3.2, 3.2)
+		clone.modulate = Color(0.2, 1.8, 1.8, 1.0) if ang_deg < 0 else Color(1.8, 0.2, 1.6, 1.0)
+		var target_parent := get_parent()
+		if target_parent == null and is_inside_tree():
+			target_parent = get_tree().current_scene
+		if target_parent != null:
+			target_parent.add_child(clone)
+
+	AudioManager.reproducir("disparo", 0.35)
 
 
 func _do_split() -> void:
@@ -165,12 +237,14 @@ func _on_area_entered(area: Area2D) -> void:
 
 	var dueno: Node = area.get_parent()
 	_hit_targets.append(area)
-	for efecto in effects:
-		efecto.on_hit(self, area, player)
 
 	var hit_damage := damage
 	if ricochet_bonus > 0.0 and bounce_count > 0:
 		hit_damage = int(round(damage * (1.0 + ricochet_bonus * bounce_count)))
+	damage = hit_damage
+
+	for efecto in effects:
+		efecto.on_hit(self, area, player)
 
 	area.take_hit(hit_damage, player)
 	if knockback > 0.0 and dueno != null and dueno.has_method("apply_knockback"):

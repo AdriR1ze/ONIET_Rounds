@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_6bv2b"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="2_3iwdw"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="3_00opo"]
+
+[sub_resource type="Resource" id="Resource_bjfso"]
+script = ExtResource("3_00opo")
+stat = &"damage"
+op = 1
+value = 2.5
+
+[sub_resource type="Resource" id="Resource_0g7kf"]
+script = ExtResource("3_00opo")
+stat = &"max_health"
+op = 1
+value = 0.2
+
+[resource]
+script = ExtResource("2_3iwdw")
+id = &"glass_cannon"
+titulo = "Glass Cannon"
+nivel = 4
+descripcion = "Incrementa de forma masiva el daño infligido (+150%) pero reduce casi por completo tu salud máxima (-80%)."
+rareza = 2
+stats = Array[ExtResource("3_00opo")]([SubResource("Resource_bjfso"), SubResource("Resource_0g7kf")])

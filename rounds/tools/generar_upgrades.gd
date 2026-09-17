@@ -11,7 +11,10 @@ const HeavyBulletEffect = preload("res://upgrades/effects/heavy_bullet_effect.gd
 const RicochetMasterEffect = preload("res://upgrades/effects/ricochet_master_effect.gd")
 const MinefieldEffect = preload("res://upgrades/effects/minefield_effect.gd")
 const ExplosiveEffect = preload("res://upgrades/effects/explosive_effect.gd")
-const LifestealEffect = preload("res://upgrades/effects/lifesteal_effect.gd")
+const VampiricLeechEffect = preload("res://upgrades/effects/vampiric_leech_effect.gd")
+const QuickdrawEffect = preload("res://upgrades/effects/quickdraw_effect.gd")
+const RussianRouletteEffect = preload("res://upgrades/effects/russian_roulette_effect.gd")
+const GlitchEffect = preload("res://upgrades/effects/glitch_effect.gd")
 
 
 func _initialize() -> void:
@@ -141,8 +144,37 @@ func _generar() -> void:
 		"Las balas explotan al impactar (15 de daño en área).",
 		UpgradeDefinition.Rareza.LEGENDARIA, 1.0, 1, [], [explosivo])
 
-	var vampirico := LifestealEffect.new()
-	vampirico.amount = 1
-	_crear(&"vampirico", "Vampírico", 3,
-		"Recuperas 1 de vida al golpear a un enemigo o jugador.",
-		UpgradeDefinition.Rareza.EPICA, 1.0, 2, [], [vampirico])
+	# 11. Vampiric Leech: Nivel 3 (Rara)
+	_crear(&"vampiric_leech", "Vampiric Leech", 3,
+		"Una porción del daño que le causás al rival se convierte inmediatamente en salud para vos. Salud máxima ligeramente reducida.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"max_health", StatModifier.Op.MULT, 0.85)],
+		[VampiricLeechEffect.new()])
+
+	# 12. Glass Cannon: Nivel 4 (Épica)
+	_crear(&"glass_cannon", "Glass Cannon", 4,
+		"Incrementa de forma masiva el daño infligido (+150%) pero reduce casi por completo tu salud máxima (-80%).",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 2.50), _mod(&"max_health", StatModifier.Op.MULT, 0.20)],
+		[])
+
+	# 13. Quickdraw: Nivel 1 (Común)
+	_crear(&"quickdraw", "Quickdraw", 1,
+		"El primer tiro disparado inmediatamente después de recargar sale sin dispersión y con velocidad extrema (+70% vel. bala, -1 cargador).",
+		UpgradeDefinition.Rareza.COMUN, 1.0, 1,
+		[_mod(&"max_ammo", StatModifier.Op.ADD, -1.0)],
+		[QuickdrawEffect.new()])
+
+	# 14. Russian Roulette: Nivel 4 (Épica)
+	_crear(&"russian_roulette", "Russian Roulette", 4,
+		"Al recargar, hay 50% de probabilidad de que una bala aleatoria del cargador inflija daño crítico devastador (+300%). Daño base ligeramente reducido.",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.88)],
+		[RussianRouletteEffect.new()])
+
+	# 15. Glitch: Nivel 4 (Épica)
+	_crear(&"glitch", "Glitch", 4,
+		"Las balas tienen probabilidad de 'glitchearse' en el aire, duplicándose erráticamente y cambiando de trayectoria de golpe. Dispersión del arma aumentada.",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"spread", StatModifier.Op.ADD, 18.0)],
+		[GlitchEffect.new()])

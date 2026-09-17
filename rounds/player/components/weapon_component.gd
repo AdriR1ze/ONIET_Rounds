@@ -21,6 +21,8 @@ var current_ammo: int = 3
 var is_reloading: bool = false
 var reload_time: float = 1.2
 var _reload_timer: float = 0.0
+var _quickdraw_ready: bool = false
+var _roulette_bullet: int = -1
 
 
 func _ready() -> void:
@@ -35,6 +37,7 @@ func configurar(stats: StatSheet, player: Node, effects: Array) -> void:
 	reload_time = _stat(&"reload_time", 1.2)
 	current_ammo = max_ammo
 	is_reloading = false
+	_on_reload_finished()
 	ammo_changed.emit(current_ammo, max_ammo)
 	_cooldown = 0.35
 
@@ -50,6 +53,7 @@ func _process(delta: float) -> void:
 		if _reload_timer <= 0.0:
 			is_reloading = false
 			current_ammo = max_ammo
+			_on_reload_finished()
 			ammo_changed.emit(current_ammo, max_ammo)
 			reload_completed.emit()
 
@@ -92,11 +96,24 @@ func try_fire() -> bool:
 	var gravedad: float = _stat(&"bullet_gravity", 720.0)
 	var rozamiento: float = _stat(&"bullet_drag", 0.2)
 
+	var is_quick := false
+	if _quickdraw_ready:
+		is_quick = true
+		_quickdraw_ready = false
+		dispersion = 0.0
+		velocidad *= 1.70
+
+	var is_roulette := false
+	if current_ammo == _roulette_bullet:
+		is_roulette = true
+		_roulette_bullet = -1
+		dano = int(round(dano * 4.0))
+
 	var base_angle := aim_direction.angle()
 	var centro := (cantidad - 1) / 2.0
 
 	if _has_laser_sight():
-		_fire_laser(dano, empuje)
+		_fire_laser(dano, empuje, is_roulette)
 	else:
 		var rebotes := _stat_entero(&"bounces", 0)
 		var penetracion_pared := _stat_entero(&"wall_pierce", 0)
@@ -116,6 +133,11 @@ func try_fire() -> bool:
 			bala.drag = rozamiento
 			bala.bounces = rebotes
 			bala.wall_pierce = penetracion_pared
+			if is_quick:
+				bala.modulate = Color(1.3, 1.2, 0.4, 1.0)
+			if is_roulette:
+				escala_bala *= 1.3
+				bala.modulate = Color(1.8, 0.2, 0.2, 1.0)
 			if escala_bala != 1.0:
 				bala.scale = Vector2(escala_bala, escala_bala)
 			bala.effects = _effects
@@ -134,6 +156,8 @@ func try_fire() -> bool:
 		start_reload()
 
 	_cooldown = 1.0 / maxf(_stat(&"fire_rate", 5.0), 0.1)
+	if is_roulette:
+		AudioManager.reproducir("golpe", 0.08)
 	AudioManager.reproducir("disparo", 0.06)
 	fired.emit()
 	return true
@@ -156,9 +180,29 @@ func _has_laser_sight() -> bool:
 	return false
 
 
-func _fire_laser(dano: int, empuje: float) -> void:
+func _has_glitch() -> bool:
+	for ef in _effects:
+		if ef.get("is_glitch") == true:
+			return true
+	return false
+
+
+func _fire_laser(dano: int, empuje: float, is_roulette: bool = false) -> void:
+	if _player != null:
+		_player.set_meta("last_laser_damage", dano)
+	var color := Color(1.0, 0.2, 0.2, 0.98) if is_roulette else Color(0.25, 0.9, 1.0, 0.95)
+	var width := 6.0 if is_roulette else 4.0
+	_fire_single_laser(aim_direction, dano, empuje, color, width)
+
+	if _has_glitch() and randf() < 0.50:
+		var clone_dmg := maxi(int(round(dano * 0.50)), 1)
+		_fire_single_laser(aim_direction.rotated(deg_to_rad(-16.0)), clone_dmg, empuje * 0.5, Color(0.2, 1.8, 1.8, 0.95), 3.0)
+		_fire_single_laser(aim_direction.rotated(deg_to_rad(16.0)), clone_dmg, empuje * 0.5, Color(1.8, 0.2, 1.6, 0.95), 3.0)
+
+
+func _fire_single_laser(dir: Vector2, dano: int, empuje: float, color: Color, width: float) -> void:
 	var from_pos := muzzle.global_position
-	var to_pos := from_pos + aim_direction * 1400.0
+	var to_pos := from_pos + dir * 1400.0
 
 	var space := get_world_2d().direct_space_state
 	var query := PhysicsRayQueryParameters2D.create(from_pos, to_pos)
@@ -178,7 +222,7 @@ func _fire_laser(dano: int, empuje: float) -> void:
 				collider.take_hit(dano, _player)
 			var target_player: Node = collider.get_parent()
 			if target_player != null and target_player.has_method("apply_knockback") and empuje > 0.0:
-				target_player.apply_knockback(aim_direction, empuje)
+				target_player.apply_knockback(dir, empuje)
 			for ef in _effects:
 				if collider is Area2D and ef.has_method("on_hit"):
 					ef.on_hit(null, collider, _player)
@@ -186,12 +230,36 @@ func _fire_laser(dano: int, empuje: float) -> void:
 					ef.on_body_hit(null, collider, _player)
 
 	var line := Line2D.new()
-	line.width = 4.0
-	line.default_color = Color(0.25, 0.9, 1.0, 0.95)
+	line.width = width
+	line.default_color = color
 	line.add_point(from_pos)
 	line.add_point(hit_pos)
 	get_tree().current_scene.add_child(line)
 
 	var tween := line.create_tween()
-	tween.tween_property(line, "modulate:a", 0.0, 0.14)
+	tween.tween_property(line, "modulate:a", 0.0, 0.16)
 	tween.tween_callback(line.queue_free)
+
+
+func _on_reload_finished() -> void:
+	if _has_quickdraw():
+		_quickdraw_ready = true
+	if _has_russian_roulette():
+		if randf() < 0.50 and max_ammo > 0:
+			_roulette_bullet = randi_range(1, max_ammo)
+		else:
+			_roulette_bullet = -1
+
+
+func _has_quickdraw() -> bool:
+	for ef in _effects:
+		if ef.get("is_quickdraw") == true:
+			return true
+	return false
+
+
+func _has_russian_roulette() -> bool:
+	for ef in _effects:
+		if ef.get("is_russian_roulette") == true:
+			return true
+	return false

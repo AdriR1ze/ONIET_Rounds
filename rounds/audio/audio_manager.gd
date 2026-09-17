@@ -38,6 +38,8 @@ func reproducir(nombre: String, variacion_tono: float = 0.0) -> void:
 	if stream == null:
 		return
 	var voz := _siguiente_voz()
+	if voz == null:
+		return
 	voz.stream = stream
 	voz.pitch_scale = 1.0 if variacion_tono <= 0.0 else 1.0 + randf_range(-variacion_tono, variacion_tono)
 	voz.play()
@@ -88,6 +90,8 @@ func _cargar(ruta: String, cache: Dictionary) -> AudioStream:
 
 
 func _siguiente_voz() -> AudioStreamPlayer:
+	if _voces.is_empty():
+		return null
 	for i in _voces.size():
 		var voz := _voces[(_indice_voz + i) % _voces.size()]
 		if not voz.playing:

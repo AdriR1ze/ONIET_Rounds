@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_71n8e"]
+[ext_resource type="Script" path="res://upgrades/effects/vampiric_leech_effect.gd" id="2_d5sy0"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_exy1t"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_adtk8"]
+
+[sub_resource type="Resource" id="Resource_sy671"]
+script = ExtResource("2_d5sy0")
+
+[sub_resource type="Resource" id="Resource_mnast"]
+script = ExtResource("4_adtk8")
+stat = &"max_health"
+op = 1
+value = 0.85
+
+[resource]
+script = ExtResource("3_exy1t")
+id = &"vampiric_leech"
+titulo = "Vampiric Leech"
+nivel = 3
+descripcion = "Una porción del daño que le causás al rival se convierte inmediatamente en salud para vos. Salud máxima ligeramente reducida."
+rareza = 1
+stats = Array[ExtResource("4_adtk8")]([SubResource("Resource_mnast")])
+efectos = Array[ExtResource("1_71n8e")]([SubResource("Resource_sy671")])

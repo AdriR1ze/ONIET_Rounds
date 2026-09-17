@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_867yx"]
+[ext_resource type="Script" path="res://upgrades/effects/russian_roulette_effect.gd" id="2_ly2hj"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_vj2cf"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_gdf50"]
+
+[sub_resource type="Resource" id="Resource_hyfre"]
+script = ExtResource("2_ly2hj")
+
+[sub_resource type="Resource" id="Resource_kjtxw"]
+script = ExtResource("4_gdf50")
+stat = &"damage"
+op = 1
+value = 0.88
+
+[resource]
+script = ExtResource("3_vj2cf")
+id = &"russian_roulette"
+titulo = "Russian Roulette"
+nivel = 4
+descripcion = "Al recargar, hay 50% de probabilidad de que una bala aleatoria del cargador inflija daño crítico devastador (+300%). Daño base ligeramente reducido."
+rareza = 2
+stats = Array[ExtResource("4_gdf50")]([SubResource("Resource_kjtxw")])
+efectos = Array[ExtResource("1_867yx")]([SubResource("Resource_hyfre")])
