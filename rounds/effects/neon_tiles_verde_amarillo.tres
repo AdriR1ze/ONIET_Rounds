@@ -1,0 +1,21 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cj3117by482ca"]
+
+[ext_resource type="Shader" uid="uid://liu6cn6d71xg" path="res://effects/neon_grid.gdshader" id="1_jmwcj"]
+
+[sub_resource type="Gradient" id="Gradient_jb64b"]
+colors = PackedColorArray(0, 1, 0.05, 1, 1, 1, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_kpot0"]
+gradient = SubResource("Gradient_jb64b")
+width = 256
+height = 1
+
+[resource]
+shader = ExtResource("1_jmwcj")
+shader_parameter/palette = SubResource("GradientTexture2D_kpot0")
+shader_parameter/cell_size = 32.0
+shader_parameter/jitter = 0.0
+shader_parameter/skip_chance = 0.0
+shader_parameter/warp_amount = 0.0
+shader_parameter/warp_scale = 1.0
+shader_parameter/color_speed = 0.6

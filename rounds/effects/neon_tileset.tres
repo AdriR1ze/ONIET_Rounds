@@ -1,0 +1,28 @@
+[gd_resource type="TileSet" format=3 uid="uid://dvdcgus4kg6tn"]
+
+[ext_resource type="Material" uid="uid://cj3117by482ca" path="res://effects/neon_tiles_verde_amarillo.tres" id="1_xmbpp"]
+[ext_resource type="Material" path="res://effects/neon_tiles_cian_magenta.tres" id="2_n51ip"]
+[ext_resource type="Material" path="res://effects/neon_tiles_azul_violeta.tres" id="3_mnv5x"]
+[ext_resource type="Material" path="res://effects/neon_tiles_rosa_naranja.tres" id="4_j88qb"]
+[ext_resource type="Texture2D" uid="uid://b4cuu43ij0g12" path="res://effects/tile_white_strip.png" id="5_8i66l"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5fp4i"]
+texture = ExtResource("5_8i66l")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+0:0/0/material = ExtResource("1_xmbpp")
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+1:0/0 = 0
+1:0/0/material = ExtResource("2_n51ip")
+1:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+2:0/0 = 0
+2:0/0/material = ExtResource("3_mnv5x")
+2:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+3:0/0 = 0
+3:0/0/material = ExtResource("4_j88qb")
+3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[resource]
+tile_size = Vector2i(32, 32)
+physics_layer_0/collision_layer = 1
+sources/0 = SubResource("TileSetAtlasSource_5fp4i")
