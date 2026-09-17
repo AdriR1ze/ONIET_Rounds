@@ -174,6 +174,11 @@ func _fire_laser(dano: int, empuje: float) -> void:
 			var target_player: Node = collider.get_parent()
 			if target_player != null and target_player.has_method("apply_knockback") and empuje > 0.0:
 				target_player.apply_knockback(aim_direction, empuje)
+			for ef in _effects:
+				if collider is Area2D and ef.has_method("on_hit"):
+					ef.on_hit(null, collider, _player)
+				elif ef.has_method("on_body_hit"):
+					ef.on_body_hit(null, collider, _player)
 
 	var line := Line2D.new()
 	line.width = 4.0

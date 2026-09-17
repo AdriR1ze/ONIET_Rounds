@@ -12,12 +12,16 @@ script = ExtResource("2_o35xh")
 script = ExtResource("4_adpju")
 stat = &"damage"
 op = 1
-value = 0.4
+value = 0.9
+
+[sub_resource type="Resource" id="Resource_ivjn2"]
+script = ExtResource("4_adpju")
+stat = &"bounces"
 
 [resource]
 script = ExtResource("3_noaps")
 id = &"splitter"
 titulo = "Splitter"
-descripcion = "La bala se divide en 3 fragmentos más chicos tras recorrer media distancia o tras el primer rebote."
-stats = Array[ExtResource("4_adpju")]([SubResource("Resource_c37h6")])
+descripcion = "La bala se divide en 3 fragmentos tras recorrer la mitad del camino o rebotar (+1 rebote)."
+stats = Array[ExtResource("4_adpju")]([SubResource("Resource_c37h6"), SubResource("Resource_ivjn2")])
 efectos = Array[ExtResource("1_jqm7n")]([SubResource("Resource_qx26v")])

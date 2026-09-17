@@ -11,8 +11,19 @@
 [ext_resource type="PackedScene" path="res://ui/match_hud.tscn" id="14_hud"]
 [ext_resource type="PackedScene" path="res://ui/match_end.tscn" id="15_end"]
 
+[sub_resource type="Environment" id="Environment_glow"]
+background_mode = 3
+glow_enabled = true
+glow_intensity = 0.6
+glow_blend_mode = 0
+glow_hdr_threshold = 0.8
+glow_hdr_scale = 1.0
+
 [node name="TestLevel" type="Node2D" unique_id=1689345500]
 script = ExtResource("1_level")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1191904550]
+environment = SubResource("Environment_glow")
 
 [node name="Ground" parent="." unique_id=1007988154 instance=ExtResource("4_ground")]
 position = Vector2(640, 680)

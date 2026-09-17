@@ -25,6 +25,9 @@ var _hit_targets: Array = []
 var _trail_points: Array[Vector2] = []
 var bounce_count: int = 0
 var has_split: bool = false
+var _initial_dir: Vector2 = Vector2.ZERO
+var _distance_traveled: float = 0.0
+var _split_distance: float = 0.0
 
 const MAX_TRAIL_POINTS := 8
 
@@ -32,9 +35,29 @@ const MAX_TRAIL_POINTS := 8
 func _ready() -> void:
 	if velocity == Vector2.ZERO:
 		velocity = direction * speed
+	_initial_dir = direction
 	rotation = velocity.angle()
 	area_entered.connect(_on_area_entered)
 	body_entered.connect(_on_body_entered)
+
+	if can_split and not has_split:
+		call_deferred("_setup_split_distance")
+
+
+func _setup_split_distance() -> void:
+	var space_state := get_world_2d().direct_space_state
+	var query := PhysicsRayQueryParameters2D.create(global_position, global_position + direction * 1400.0)
+	query.collision_mask = 5
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+	if shooter != null:
+		query.exclude = [shooter, self]
+	var hit := space_state.intersect_ray(query)
+	if not hit.is_empty():
+		var total_dist: float = global_position.distance_to(hit["position"])
+		_split_distance = maxf(total_dist * 0.5, 45.0)
+	else:
+		_split_distance = speed * 0.45
 
 
 func _draw() -> void:
@@ -56,12 +79,16 @@ func _physics_process(delta: float) -> void:
 	if drag > 0.0:
 		velocity -= velocity * (drag * delta)
 
-	# Aceleración por gravedad
-	velocity.y += bullet_gravity * delta
+	# Aceleración por gravedad: menor al disparar horizontalmente, completa al tirar en parábola
+	var vert_ratio := clampf(absf(_initial_dir.y) / 0.55, 0.0, 1.0)
+	var gravity_factor := lerpf(0.20, 1.0, vert_ratio)
+	velocity.y += (bullet_gravity * gravity_factor) * delta
 	if velocity.y > max_fall_speed:
 		velocity.y = max_fall_speed
 
-	position += velocity * delta
+	var step := velocity * delta
+	position += step
+	_distance_traveled += step.length()
 
 	if not velocity.is_zero_approx():
 		direction = velocity.normalized()
@@ -72,7 +99,7 @@ func _physics_process(delta: float) -> void:
 		_trail_points.pop_front()
 	queue_redraw()
 
-	if can_split and not has_split and _time_alive >= lifetime * 0.5:
+	if can_split and not has_split and _split_distance > 0.0 and _distance_traveled >= _split_distance:
 		_do_split()
 
 	_time_alive += delta
@@ -88,12 +115,12 @@ func _do_split() -> void:
 
 	var bullet_scene: PackedScene = load("res://weapons/bullet.tscn")
 	var current_spd := velocity.length()
-	var child_dmg := maxi(int(damage * 0.4), 1)
+	var child_dmg := maxi(int(round(damage * 0.40)), 1)
 
 	scale *= 0.75
 	damage = child_dmg
 
-	var angles := [deg_to_rad(-25.0), deg_to_rad(25.0)]
+	var angles := [deg_to_rad(-20.0), deg_to_rad(20.0)]
 	for ang in angles:
 		var child_b: Node = bullet_scene.instantiate()
 		child_b.global_position = global_position
@@ -108,8 +135,8 @@ func _do_split() -> void:
 		child_b.player = player
 		child_b.can_split = false
 		child_b.has_split = true
-		child_b.bounces = 0
-		child_b.wall_pierce = 0
+		child_b.bounces = bounces
+		child_b.wall_pierce = wall_pierce
 		child_b.scale = scale
 		get_parent().add_child(child_b)
 

@@ -17,7 +17,7 @@ value = 2.0
 script = ExtResource("4_4pc1y")
 stat = &"damage"
 op = 1
-value = 0.8
+value = 0.85
 
 [resource]
 script = ExtResource("3_4owid")

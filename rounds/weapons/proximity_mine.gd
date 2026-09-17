@@ -71,7 +71,6 @@ func _check_target(area: Area2D) -> void:
 
 
 func _detonate() -> void:
-	# Query in explosion radius
 	var space := get_world_2d().direct_space_state
 	var query := PhysicsShapeQueryParameters2D.new()
 	var circle := CircleShape2D.new()
@@ -79,11 +78,13 @@ func _detonate() -> void:
 	query.shape = circle
 	query.transform = Transform2D(0.0, global_position)
 	query.collision_mask = 4  # Hurtbox
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
 
 	var hits := space.intersect_shape(query, 16)
 	var damaged_players: Array = []
 	for hit in hits:
-		var area: Area2D = hit.get("collider")
+		var area: Area2D = hit.get("collider") as Area2D
 		if area == null:
 			continue
 		var target: Node = area.get_parent()
@@ -97,6 +98,36 @@ func _detonate() -> void:
 				if dir.is_zero_approx():
 					dir = Vector2.UP
 				target.apply_knockback(dir, knockback)
+
+	# Direct fallback check for all players in group within radius
+	var tree := get_tree()
+	if tree != null:
+		for p in tree.get_nodes_in_group("player"):
+			if p != null and p is Node2D and not damaged_players.has(p):
+				if (p as Node2D).global_position.distance_to(global_position) <= explosion_radius:
+					damaged_players.append(p)
+					if p.has_method("hurt"):
+						p.hurt(damage, source_player)
+					if p.has_method("apply_knockback"):
+						var dir := ((p as Node2D).global_position - global_position).normalized()
+						if dir.is_zero_approx():
+							dir = Vector2.UP
+						p.apply_knockback(dir, knockback)
+
+	# Visual explosion flash
+	if tree != null and tree.current_scene != null:
+		var boom := Polygon2D.new()
+		var pts: PackedVector2Array = []
+		for a in 16:
+			var ang := float(a) / 16.0 * TAU
+			pts.append(Vector2(cos(ang), sin(ang)) * explosion_radius)
+		boom.polygon = pts
+		boom.color = Color(1.0, 0.45, 0.1, 0.65)
+		boom.global_position = global_position
+		tree.current_scene.add_child(boom)
+		var tween := boom.create_tween()
+		tween.tween_property(boom, "modulate:a", 0.0, 0.22)
+		tween.tween_callback(boom.queue_free)
 
 	var audio := get_node_or_null("/root/AudioManager")
 	if audio != null and audio.has_method("reproducir"):

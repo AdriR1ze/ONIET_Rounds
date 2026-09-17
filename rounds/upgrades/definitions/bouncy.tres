@@ -12,7 +12,7 @@ stat = &"bounces"
 script = ExtResource("3_ttxvp")
 stat = &"damage"
 op = 1
-value = 0.85
+value = 0.9
 
 [resource]
 script = ExtResource("2_iw0r5")

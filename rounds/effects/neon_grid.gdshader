@@ -14,7 +14,7 @@ uniform float warp_scale = 1.0;
 
 uniform float color_speed = 0.6;
 
-varying vec2 local_pos;
+varying vec2 world_pos;
 
 float hash21(vec2 p) {
 	p = fract(p * vec2(123.34, 456.21));
@@ -34,11 +34,11 @@ float noise(vec2 p) {
 }
 
 void vertex() {
-	local_pos = VERTEX;
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy;
 }
 
 void fragment() {
-	vec2 uv = local_pos / cell_size;
+	vec2 uv = world_pos / cell_size;
 
 	vec2 warp = vec2(noise(uv * warp_scale), noise(uv * warp_scale + 31.7)) - 0.5;
 	vec2 warped = uv + warp * warp_amount;

@@ -11,10 +11,19 @@ func on_body_hit(bullet: Node, body: Node, _player: Node) -> void:
 
 func _destroy_tiles(layer: Node, world_pos: Vector2, dir: Vector2) -> void:
 	var local_pos: Vector2 = layer.to_local(world_pos)
-	var center_cell: Vector2i = layer.local_to_map(local_pos)
+	# Step slightly into the hit surface to ensure we map inside the correct tile
+	var contact_pos := local_pos + dir.normalized() * 6.0
+	var center_cell: Vector2i = layer.local_to_map(contact_pos)
+	if layer is TileMapLayer and (layer as TileMapLayer).get_cell_source_id(center_cell) == -1:
+		center_cell = layer.local_to_map(local_pos)
 
-	# Destroy impact cell and forward cell
-	var forward_cell := center_cell + Vector2i(int(round(dir.x)), int(round(dir.y)))
+	# Demolish impact cell and one adjacent cell along the dominant impact axis (not diagonal leap)
+	var forward_cell := center_cell
+	if absf(dir.x) >= absf(dir.y):
+		forward_cell += Vector2i(signi(dir.x), 0)
+	else:
+		forward_cell += Vector2i(0, signi(dir.y))
+
 	_erase(layer, center_cell)
 	_erase(layer, forward_cell)
 

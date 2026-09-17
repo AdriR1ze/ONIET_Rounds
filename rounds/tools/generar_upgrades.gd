@@ -59,14 +59,14 @@ func _generar() -> void:
 	_crear(&"bouncy", "Bouncy", 1,
 		"Tus balas rebotan en las superficies en vez de destruirse al impacto (+1 rebote, daño ligeramente reducido).",
 		UpgradeDefinition.Rareza.COMUN, 1.0, 1,
-		[_mod(&"bounces", StatModifier.Op.ADD, 1.0), _mod(&"damage", StatModifier.Op.MULT, 0.85)],
+		[_mod(&"bounces", StatModifier.Op.ADD, 1.0), _mod(&"damage", StatModifier.Op.MULT, 0.90)],
 		[])
 
 	# 2. Toxic Cloud: Nivel 1 (Común)
 	_crear(&"toxic_cloud", "Toxic Cloud", 1,
 		"Genera una nube tóxica al impactar superficies o rivales (3 ticks de veneno con reinicio por permanencia).",
 		UpgradeDefinition.Rareza.COMUN, 1.0, 1,
-		[_mod(&"fire_rate", StatModifier.Op.MULT, 0.85)],
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90), _mod(&"fire_rate", StatModifier.Op.MULT, 0.90)],
 		[ToxicCloudEffect.new()])
 
 	# 3. Demolition Shot: Nivel 2 (Rara)
@@ -78,9 +78,9 @@ func _generar() -> void:
 
 	# 4. Splitter: Nivel 1 (Común)
 	_crear(&"splitter", "Splitter", 1,
-		"La bala se divide en 3 fragmentos más chicos tras recorrer media distancia o tras el primer rebote.",
+		"La bala se divide en 3 fragmentos tras recorrer la mitad del camino o rebotar (+1 rebote).",
 		UpgradeDefinition.Rareza.COMUN, 1.0, 1,
-		[_mod(&"damage", StatModifier.Op.MULT, 0.40)],
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90), _mod(&"bounces", StatModifier.Op.ADD, 1.0)],
 		[SplitterEffect.new()])
 
 	# 5. Lead Slug: Nivel 2 (Rara)
@@ -104,9 +104,9 @@ func _generar() -> void:
 
 	# 7. Phantom Rounds: Nivel 2 (Rara)
 	_crear(&"phantom_rounds", "Phantom Rounds", 2,
-		"Las balas atraviesan la primera pared o estructura sólida del escenario sin destruirse (-15% de daño).",
+		"Las balas atraviesan la primera pared o estructura sólida del escenario sin destruirse (-10% de daño).",
 		UpgradeDefinition.Rareza.RARA, 1.0, 1,
-		[_mod(&"damage", StatModifier.Op.MULT, 0.85), _mod(&"wall_pierce", StatModifier.Op.ADD, 1.0)],
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90), _mod(&"wall_pierce", StatModifier.Op.ADD, 1.0)],
 		[PhantomRoundsEffect.new()])
 
 	# 8. Heavy Bullet: Nivel 1 (Común)
@@ -124,7 +124,7 @@ func _generar() -> void:
 	_crear(&"ricochet_master", "Ricochet Master", 3,
 		"+2 rebotes. Cada rebote que realiza la bala antes de tocar al rival incrementa notablemente (+45%) el daño final.",
 		UpgradeDefinition.Rareza.RARA, 1.0, 1,
-		[_mod(&"bounces", StatModifier.Op.ADD, 2.0), _mod(&"damage", StatModifier.Op.MULT, 0.80)],
+		[_mod(&"bounces", StatModifier.Op.ADD, 2.0), _mod(&"damage", StatModifier.Op.MULT, 0.85)],
 		[RicochetMasterEffect.new()])
 
 	# 10. Minefield: Nivel 4 (Épica)

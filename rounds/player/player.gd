@@ -90,8 +90,12 @@ func _handle_horizontal(delta: float) -> void:
 		return
 	var direction := _input.move_axis()
 	var speed := _stats.get_stat(&"move_speed")
-	var accel := acceleration if is_on_floor() else acceleration * air_control
-	velocity.x = move_toward(velocity.x, direction * speed, accel * delta)
+	if absf(velocity.x) > speed and (is_zero_approx(direction) or signi(velocity.x) != signi(direction)):
+		var decel := friction * 0.4 if is_on_floor() else friction * 0.15
+		velocity.x = move_toward(velocity.x, direction * speed, decel * delta)
+	else:
+		var accel := acceleration if is_on_floor() else acceleration * air_control
+		velocity.x = move_toward(velocity.x, direction * speed, accel * delta)
 	if not is_zero_approx(direction) and not _input.is_strafe_pressed():
 		facing = signi(direction)
 		_update_visual_facing()
@@ -165,11 +169,22 @@ func on_parry(bullet: Node) -> void:
 	print("Player %d: Parried!" % player_number)
 
 
-func _on_damaged(_amount: int, source: Node) -> void:
+func _on_damaged(_amount: int, _source: Node) -> void:
 	AudioManager.reproducir("golpe", 0.1)
 	_hit_flash.play("hit")
-	if source != null and source is Node2D:
-		velocity += (global_position - (source as Node2D).global_position).normalized() * 220.0
+
+
+func apply_knockback(dir: Vector2, force: float) -> void:
+	if force <= 0.0:
+		return
+	var push := dir.normalized()
+	# Apply strong horizontal knockback
+	velocity.x += push.x * force
+	# Moderate vertical impulse, never launch out of the map
+	if push.y < -0.15:
+		velocity.y = maxf(velocity.y + push.y * force * 0.35, -420.0)
+	elif push.y > 0.0:
+		velocity.y += push.y * force * 0.35
 
 
 func _on_died() -> void:
@@ -203,6 +218,7 @@ func respawn() -> void:
 	current_state = PlayerState.IDLE
 	_ragdoll_timer = 0.0
 	_stun_timer = 0.0
+	_active_dots.clear()
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	_body_animation.play("stand")
 	_update_visual_facing()
@@ -232,22 +248,40 @@ func heal(amount: int) -> void:
 	_health.heal(amount)
 
 
-func apply_dot(dps: float, duration: float, source: Node = null) -> void:
+func apply_dot(dps: float, _duration: float, source: Node = null) -> void:
+	for dot in _active_dots:
+		if dot.get("source") == source:
+			dot["ticks_remaining"] = 3
+			dot["tick_timer"] = 0.7
+			return
 	_active_dots.append({
-		"dps": dps,
-		"time_left": duration,
+		"damage_per_tick": maxi(int(round(dps)), 5),
+		"ticks_remaining": 3,
+		"tick_timer": 0.7,
 		"source": source
 	})
 
 
 func _update_dots(delta: float) -> void:
 	var i := _active_dots.size() - 1
+	var is_poisoned := false
 	while i >= 0:
 		var dot: Dictionary = _active_dots[i]
-		dot["time_left"] -= delta
-		var tick_damage: float = dot["dps"] * delta
-		if tick_damage > 0.0:
-			hurt(int(round(tick_damage)), dot.get("source"))
-		if dot["time_left"] <= 0.0:
+		dot["tick_timer"] -= delta
+		if dot["tick_timer"] <= 0.0:
+			dot["tick_timer"] = 0.7
+			dot["ticks_remaining"] -= 1
+			_health.current_health = maxi(_health.current_health - dot["damage_per_tick"], 0)
+			_health.health_changed.emit(_health.current_health, _health.max_health)
+			if _health.current_health <= 0:
+				_on_died()
+		if dot["ticks_remaining"] > 0:
+			is_poisoned = true
+		else:
 			_active_dots.remove_at(i)
 		i -= 1
+
+	if is_poisoned and _stun_timer <= 0.0:
+		modulate = Color(0.55, 1.15, 0.55, 1.0)
+	elif _stun_timer <= 0.0 and modulate != Color(1.0, 1.0, 1.0, 1.0):
+		modulate = Color(1.0, 1.0, 1.0, 1.0)
