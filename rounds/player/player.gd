@@ -38,6 +38,8 @@ var current_state: PlayerState = PlayerState.IDLE
 
 var _effects: Array = []
 var _active_dots: Array = []
+var _toxic_cloud_count: int = 0
+var _poison_flash_timer: float = 0.0
 var _ragdoll_timer: float = 0.0
 var _stun_timer: float = 0.0
 var _spawn_position: Vector2
@@ -257,6 +259,8 @@ func respawn() -> void:
 	current_state = PlayerState.IDLE
 	_ragdoll_timer = 0.0
 	_stun_timer = 0.0
+	_toxic_cloud_count = 0
+	_poison_flash_timer = 0.0
 	_active_dots.clear()
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	$Visual.rotation = 0.0
@@ -294,37 +298,69 @@ func heal(amount: int) -> void:
 	_health.heal(amount)
 
 
-func apply_dot(dps: float, _duration: float, source: Node = null) -> void:
+func apply_dot(damage_per_tick: float, ticks_count: int = 3, source: Node = null) -> void:
+	if current_state == PlayerState.DEAD:
+		return
+	var dmg := maxi(int(round(damage_per_tick)), 4)
+	var ticks := maxi(ticks_count, 1)
 	for dot in _active_dots:
 		if dot.get("source") == source:
-			dot["ticks_remaining"] = 3
-			dot["tick_timer"] = 0.7
+			dot["damage_per_tick"] = dmg
+			dot["ticks_remaining"] = ticks
+			dot["tick_timer"] = 0.65
 			return
 	_active_dots.append({
-		"damage_per_tick": maxi(int(round(dps)), 5),
-		"ticks_remaining": 3,
-		"tick_timer": 0.7,
+		"damage_per_tick": dmg,
+		"ticks_remaining": ticks,
+		"tick_timer": 0.65,
 		"source": source
 	})
 
 
+func apply_poison_tick(damage: float, _source: Node = null) -> void:
+	if current_state == PlayerState.DEAD:
+		return
+	var dmg := maxi(int(round(damage)), 4)
+	_health.apply_silent_damage(dmg)
+	_trigger_poison_feedback()
+
+
+func set_in_toxic_cloud(in_cloud: bool) -> void:
+	if in_cloud:
+		_toxic_cloud_count += 1
+	else:
+		_toxic_cloud_count = maxi(_toxic_cloud_count - 1, 0)
+
+
+func _trigger_poison_feedback() -> void:
+	_poison_flash_timer = 0.14
+	AudioManager.reproducir("golpe", 0.04)
+
+
 func _update_dots(delta: float) -> void:
+	if _poison_flash_timer > 0.0:
+		_poison_flash_timer -= delta
+
 	var i := _active_dots.size() - 1
 	var is_poisoned := false
 	while i >= 0:
 		var dot: Dictionary = _active_dots[i]
 		dot["tick_timer"] -= delta
 		if dot["tick_timer"] <= 0.0:
-			dot["tick_timer"] = 0.7
+			dot["tick_timer"] = 0.65
 			dot["ticks_remaining"] -= 1
 			_health.apply_silent_damage(dot["damage_per_tick"])
+			_trigger_poison_feedback()
 		if dot["ticks_remaining"] > 0:
 			is_poisoned = true
 		else:
 			_active_dots.remove_at(i)
 		i -= 1
 
-	if is_poisoned and _stun_timer <= 0.0:
-		modulate = Color(0.55, 1.15, 0.55, 1.0)
-	elif _stun_timer <= 0.0 and modulate != Color(1.0, 1.0, 1.0, 1.0):
-		modulate = Color(1.0, 1.0, 1.0, 1.0)
+	if _stun_timer <= 0.0 and current_state != PlayerState.DEAD:
+		if _poison_flash_timer > 0.0:
+			modulate = Color(0.4, 2.2, 0.4, 1.0)
+		elif is_poisoned or _toxic_cloud_count > 0:
+			modulate = Color(0.55, 1.25, 0.55, 1.0)
+		elif modulate != Color(1.0, 1.0, 1.0, 1.0):
+			modulate = Color(1.0, 1.0, 1.0, 1.0)

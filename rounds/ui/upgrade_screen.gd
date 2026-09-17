@@ -24,6 +24,7 @@ var _cartas: Dictionary = {}
 
 
 var _status_labels: Dictionary = {}
+var _floating_tags: Array[PanelContainer] = []
 
 
 func _ready() -> void:
@@ -49,6 +50,7 @@ func _construir() -> void:
 	_indices.clear()
 	_confirmados.clear()
 	_status_labels.clear()
+	_floating_tags.clear()
 	_jugadores = RunManager.jugadores()
 
 	for i in _jugadores.size():
@@ -214,6 +216,30 @@ func _crear_seccion_habilidades_actuales(v_box: VBoxContainer, numero: int, colo
 		tray.add_child(lbl_vacio)
 		return
 
+	# Etiqueta flotante con el nombre arriba del ícono
+	var floating_tag := PanelContainer.new()
+	floating_tag.visible = false
+	floating_tag.top_level = true
+	floating_tag.z_index = 100
+	floating_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tag_sb := StyleBoxFlat.new()
+	tag_sb.bg_color = Color(0.04, 0.06, 0.10, 0.96)
+	tag_sb.border_color = Color(1.0, 1.0, 1.0, 0.85)
+	tag_sb.set_border_width_all(2)
+	tag_sb.set_corner_radius_all(5)
+	tag_sb.content_margin_left = 8
+	tag_sb.content_margin_right = 8
+	tag_sb.content_margin_top = 3
+	tag_sb.content_margin_bottom = 3
+	floating_tag.add_theme_stylebox_override("panel", tag_sb)
+
+	var tag_lbl := Label.new()
+	tag_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tag_lbl.add_theme_font_size_override("font_size", 12)
+	floating_tag.add_child(tag_lbl)
+	v_box.add_child(floating_tag)
+	_floating_tags.append(floating_tag)
+
 	var theme_script: Script = load("res://ui/card_theme_window.gd")
 
 	for item in agrupadas:
@@ -233,16 +259,18 @@ func _crear_seccion_habilidades_actuales(v_box: VBoxContainer, numero: int, colo
 		b_sb.set_corner_radius_all(6)
 		badge.add_theme_stylebox_override("panel", b_sb)
 
-		# Margen interior
+		# Margen interior (ignora ratón para no interceptar hover del badge)
 		var margin := MarginContainer.new()
+		margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		margin.add_theme_constant_override("margin_left", 3)
 		margin.add_theme_constant_override("margin_top", 3)
 		margin.add_theme_constant_override("margin_right", 3)
 		margin.add_theme_constant_override("margin_bottom", 3)
 		badge.add_child(margin)
 
-		# Ventana temática animada en miniatura
+		# Ventana temática animada en miniatura (ignora ratón para que el badge reciba hover)
 		var theme_win: Control = theme_script.new()
+		theme_win.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		theme_win.custom_minimum_size = Vector2(38, 38)
 		theme_win.set_tema(def.tema, col_rareza)
 		margin.add_child(theme_win)
@@ -250,6 +278,7 @@ func _crear_seccion_habilidades_actuales(v_box: VBoxContainer, numero: int, colo
 		# Etiqueta de cantidad (x2, x3) si está apilada
 		if count > 1:
 			var count_lbl := Label.new()
+			count_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			count_lbl.text = "x%d" % count
 			count_lbl.add_theme_font_size_override("font_size", 10)
 			count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -271,14 +300,29 @@ func _crear_seccion_habilidades_actuales(v_box: VBoxContainer, numero: int, colo
 			tooltip_lines.append("-  " + (d if d.begins_with("-") else "- " + d))
 		badge.tooltip_text = "\n".join(tooltip_lines)
 
-		# Eventos de hover para actualizar texto de detalle dinámico
+		# Eventos de hover para mostrar el nombre arriba del ícono y actualizar texto de detalle
 		badge.mouse_entered.connect(func():
 			lbl_detalle.text = "  •  %s: %s" % [def.titulo, def.subtitulo if not def.subtitulo.is_empty() else def.descripcion]
 			lbl_detalle.modulate = col_rareza
+
+			tag_lbl.text = "%s  (%s)" % [def.titulo.to_upper(), def.rareza_texto().to_upper()]
+			tag_lbl.modulate = col_rareza
+			tag_sb.border_color = col_rareza
+			floating_tag.visible = true
+			floating_tag.reset_size()
+			var tag_x: float = badge.global_position.x + (badge.size.x * 0.5) - (floating_tag.size.x * 0.5)
+			var tag_y: float = badge.global_position.y - floating_tag.size.y - 6.0
+			floating_tag.global_position = Vector2(tag_x, tag_y)
+
+			b_sb.border_color = Color(col_rareza.r, col_rareza.g, col_rareza.b, 1.0)
+			b_sb.set_border_width_all(3)
 		)
 		badge.mouse_exited.connect(func():
 			lbl_detalle.text = "  •  Pasa el cursor sobre un objeto para ver sus efectos"
 			lbl_detalle.modulate = Color(0.75, 0.78, 0.85, 0.65)
+			floating_tag.visible = false
+			b_sb.border_color = Color(col_rareza.r, col_rareza.g, col_rareza.b, 0.85)
+			b_sb.set_border_width_all(2)
 		)
 
 		tray.add_child(badge)
@@ -377,6 +421,9 @@ func _cerrar_con_delay() -> void:
 func _cerrar() -> void:
 	_activo = false
 	visible = false
+	for tag in _floating_tags:
+		if is_instance_valid(tag):
+			tag.visible = false
 	Input.action_release("p1_fire")
 	Input.action_release("p2_fire")
 	PauseManager.soltar(self)
