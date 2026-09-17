@@ -11,6 +11,7 @@ const BASE_STATS := {
 	&"damage": 1.0,
 	&"bullet_speed": 900.0,
 	&"bullet_lifetime": 2.0,
+	&"bullet_gravity": 800.0,
 	&"projectiles": 1.0,
 	&"spread": 0.0,
 	&"pierce": 0.0,

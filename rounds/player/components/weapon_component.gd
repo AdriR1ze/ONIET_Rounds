@@ -46,6 +46,7 @@ func try_fire() -> bool:
 	var duracion: float = _stat(&"bullet_lifetime", 2.0)
 	var penetracion := _stat_entero(&"pierce", 0)
 	var empuje: float = _stat(&"knockback", 0.0)
+	var gravedad: float = _stat(&"bullet_gravity", 800.0)
 
 	var base_angle := aim_direction.angle()
 	var centro := (cantidad - 1) / 2.0
@@ -60,6 +61,7 @@ func try_fire() -> bool:
 		bala.lifetime = duracion
 		bala.pierce = penetracion
 		bala.knockback = empuje
+		bala.bullet_gravity = gravedad
 		bala.effects = _effects
 		for efecto in _effects:
 			efecto.on_fire(bala, _player)

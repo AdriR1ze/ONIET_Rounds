@@ -5,8 +5,10 @@ extends Area2D
 @export var damage: int = 1
 @export var pierce: int = 0
 @export var knockback: float = 0.0
+@export var bullet_gravity: float = 800.0
 
 var direction: Vector2 = Vector2.RIGHT
+var velocity: Vector2 = Vector2.ZERO
 var shooter: Node = null
 var _time_alive: float = 0.0
 var player: Node = null
@@ -15,13 +17,18 @@ var _hit_targets: Array = []
 
 
 func _ready() -> void:
-	rotation = direction.angle()
+	if velocity == Vector2.ZERO:
+		velocity = direction * speed
+	rotation = velocity.angle()
 	area_entered.connect(_on_area_entered)
 	body_entered.connect(_on_body_entered)
 
 
 func _physics_process(delta: float) -> void:
-	position += direction * speed * delta
+	velocity.y += bullet_gravity * delta
+	position += velocity * delta
+	direction = velocity.normalized()
+	rotation = velocity.angle()
 	_time_alive += delta
 	if _time_alive >= lifetime:
 		queue_free()
@@ -30,8 +37,9 @@ func _physics_process(delta: float) -> void:
 func parry(new_shooter: Node) -> void:
 	shooter = new_shooter
 	player = new_shooter
-	direction = -direction
-	rotation = direction.angle()
+	velocity = -velocity
+	direction = velocity.normalized()
+	rotation = velocity.angle()
 	position += direction * 8.0
 	_time_alive = 0.0
 	_hit_targets.clear()
