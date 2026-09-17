@@ -62,6 +62,12 @@ func terminar_ronda() -> void:
 	ronda_terminada.emit(ronda)
 
 
+func reiniciar() -> void:
+	_jugadores.clear()
+	_mejoras.clear()
+	ronda = 0
+
+
 func _cumple_requisitos(player_number: int, def: UpgradeDefinition) -> bool:
 	for requerido in def.requiere:
 		if stacks_de(player_number, requerido) <= 0:

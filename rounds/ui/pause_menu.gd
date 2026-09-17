@@ -46,6 +46,7 @@ func reanudar() -> void:
 
 func _reiniciar() -> void:
 	get_tree().paused = false
+	RunManager.reiniciar()
 	get_tree().reload_current_scene()
 
 

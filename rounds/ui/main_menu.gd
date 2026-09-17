@@ -22,6 +22,7 @@ func _ready() -> void:
 
 
 func _jugar() -> void:
+	RunManager.reiniciar()
 	get_tree().change_scene_to_file(NIVEL)
 
 
