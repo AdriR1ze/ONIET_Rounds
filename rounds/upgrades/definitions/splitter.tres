@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_jqm7n"]
+[ext_resource type="Script" path="res://upgrades/effects/splitter_effect.gd" id="2_o35xh"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_noaps"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_adpju"]
+
+[sub_resource type="Resource" id="Resource_qx26v"]
+script = ExtResource("2_o35xh")
+
+[sub_resource type="Resource" id="Resource_c37h6"]
+script = ExtResource("4_adpju")
+stat = &"damage"
+op = 1
+value = 0.4
+
+[resource]
+script = ExtResource("3_noaps")
+id = &"splitter"
+titulo = "Splitter"
+descripcion = "La bala se divide en 3 fragmentos más chicos tras recorrer media distancia o tras el primer rebote."
+stats = Array[ExtResource("4_adpju")]([SubResource("Resource_c37h6")])
+efectos = Array[ExtResource("1_jqm7n")]([SubResource("Resource_qx26v")])

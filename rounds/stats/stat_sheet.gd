@@ -19,6 +19,9 @@ const BASE_STATS := {
 	&"spread": 0.0,
 	&"pierce": 0.0,
 	&"knockback": 0.0,
+	&"bounces": 0.0,
+	&"wall_pierce": 0.0,
+	&"bullet_scale": 1.0,
 }
 
 var _base: Dictionary = BASE_STATS.duplicate()

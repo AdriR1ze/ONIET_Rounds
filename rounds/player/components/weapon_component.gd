@@ -89,28 +89,39 @@ func try_fire() -> bool:
 
 	var base_angle := aim_direction.angle()
 	var centro := (cantidad - 1) / 2.0
-	for i in cantidad:
-		var angulo := base_angle + deg_to_rad(dispersion * (i - centro))
-		var bala := bullet_scene.instantiate()
-		bala.direction = Vector2.RIGHT.rotated(angulo)
-		bala.shooter = _player
-		bala.player = _player
-		bala.damage = dano
-		bala.speed = velocidad
-		bala.lifetime = duracion
-		bala.pierce = penetracion
-		bala.knockback = empuje
-		bala.bullet_gravity = gravedad
-		bala.drag = rozamiento
-		bala.effects = _effects
-		for efecto in _effects:
-			efecto.on_fire(bala, _player)
-		get_tree().current_scene.add_child(bala)
-		var spawn_pos: Vector2 = muzzle.global_position
-		if _player != null and _player.has_method("is_on_floor") and _player.is_on_floor():
-			if spawn_pos.y > _player.global_position.y + 13.0:
-				spawn_pos.y = _player.global_position.y + 13.0
-		bala.global_position = spawn_pos
+
+	if _has_laser_sight():
+		_fire_laser(dano, empuje)
+	else:
+		var rebotes := _stat_entero(&"bounces", 0)
+		var penetracion_pared := _stat_entero(&"wall_pierce", 0)
+		var escala_bala := _stat(&"bullet_scale", 1.0)
+		for i in cantidad:
+			var angulo := base_angle + deg_to_rad(dispersion * (i - centro))
+			var bala := bullet_scene.instantiate()
+			bala.direction = Vector2.RIGHT.rotated(angulo)
+			bala.shooter = _player
+			bala.player = _player
+			bala.damage = dano
+			bala.speed = velocidad
+			bala.lifetime = duracion
+			bala.pierce = penetracion
+			bala.knockback = empuje
+			bala.bullet_gravity = gravedad
+			bala.drag = rozamiento
+			bala.bounces = rebotes
+			bala.wall_pierce = penetracion_pared
+			if escala_bala != 1.0:
+				bala.scale = Vector2(escala_bala, escala_bala)
+			bala.effects = _effects
+			for efecto in _effects:
+				efecto.on_fire(bala, _player)
+			get_tree().current_scene.add_child(bala)
+			var spawn_pos: Vector2 = muzzle.global_position
+			if _player != null and _player.has_method("is_on_floor") and _player.is_on_floor():
+				if spawn_pos.y > _player.global_position.y + 13.0:
+					spawn_pos.y = _player.global_position.y + 13.0
+			bala.global_position = spawn_pos
 
 	current_ammo -= 1
 	ammo_changed.emit(current_ammo, max_ammo)
@@ -131,3 +142,46 @@ func _stat(stat: StringName, por_defecto: float) -> float:
 
 func _stat_entero(stat: StringName, por_defecto: int) -> int:
 	return int(round(_stat(stat, float(por_defecto))))
+
+
+func _has_laser_sight() -> bool:
+	for ef in _effects:
+		if ef.get("is_laser_sight") == true:
+			return true
+	return false
+
+
+func _fire_laser(dano: int, empuje: float) -> void:
+	var from_pos := muzzle.global_position
+	var to_pos := from_pos + aim_direction * 1400.0
+
+	var space := get_world_2d().direct_space_state
+	var query := PhysicsRayQueryParameters2D.create(from_pos, to_pos)
+	query.collision_mask = 5  # Hurtbox (4) and solid world (1)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+	if _player != null:
+		query.exclude = [_player]
+
+	var result := space.intersect_ray(query)
+	var hit_pos := to_pos
+	if not result.is_empty():
+		hit_pos = result["position"]
+		var collider: Object = result["collider"]
+		if collider != null:
+			if collider.has_method("take_hit"):
+				collider.take_hit(dano, _player)
+			var target_player := collider.get_parent()
+			if target_player != null and target_player.has_method("apply_knockback") and empuje > 0.0:
+				target_player.apply_knockback(aim_direction, empuje)
+
+	var line := Line2D.new()
+	line.width = 4.0
+	line.default_color = Color(0.25, 0.9, 1.0, 0.95)
+	line.add_point(from_pos)
+	line.add_point(hit_pos)
+	get_tree().current_scene.add_child(line)
+
+	var tween := line.create_tween()
+	tween.tween_property(line, "modulate:a", 0.0, 0.14)
+	tween.tween_callback(line.queue_free)

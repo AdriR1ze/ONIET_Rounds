@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_rp2nc"]
+[ext_resource type="Script" path="res://upgrades/effects/heavy_bullet_effect.gd" id="2_pes6l"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_mis7d"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_qvc2m"]
+
+[sub_resource type="Resource" id="Resource_dnbsi"]
+script = ExtResource("2_pes6l")
+
+[sub_resource type="Resource" id="Resource_fbb5p"]
+script = ExtResource("4_qvc2m")
+stat = &"damage"
+op = 1
+value = 1.3
+
+[sub_resource type="Resource" id="Resource_44uju"]
+script = ExtResource("4_qvc2m")
+stat = &"fire_rate"
+op = 1
+value = 0.65
+
+[sub_resource type="Resource" id="Resource_1j8tc"]
+script = ExtResource("4_qvc2m")
+stat = &"bullet_scale"
+op = 1
+value = 1.6
+
+[resource]
+script = ExtResource("3_mis7d")
+id = &"heavy_bullet"
+titulo = "Heavy Bullet"
+descripcion = "Proyectiles más grandes (+60%) y contundentes (+30% daño) que aturden una fracción de segundo al rival."
+stats = Array[ExtResource("4_qvc2m")]([SubResource("Resource_fbb5p"), SubResource("Resource_44uju"), SubResource("Resource_1j8tc")])
+efectos = Array[ExtResource("1_rp2nc")]([SubResource("Resource_dnbsi")])

@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_cxvm7"]
+[ext_resource type="Script" path="res://upgrades/effects/minefield_effect.gd" id="2_yw7h1"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_r8v2l"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_1g3yo"]
+
+[sub_resource type="Resource" id="Resource_u5nvb"]
+script = ExtResource("2_yw7h1")
+
+[sub_resource type="Resource" id="Resource_lvcao"]
+script = ExtResource("4_1g3yo")
+stat = &"reload_time"
+op = 1
+value = 1.6
+
+[resource]
+script = ExtResource("3_r8v2l")
+id = &"minefield"
+titulo = "Minefield"
+nivel = 4
+descripcion = "Las balas que tocan el suelo y no impactan a un rival se plantan como minas de proximidad activas durante 6 segundos."
+rareza = 2
+stats = Array[ExtResource("4_1g3yo")]([SubResource("Resource_lvcao")])
+efectos = Array[ExtResource("1_cxvm7")]([SubResource("Resource_u5nvb")])

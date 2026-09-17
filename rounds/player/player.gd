@@ -36,6 +36,7 @@ var current_state: PlayerState = PlayerState.IDLE
 var _effects: Array = []
 var _active_dots: Array = []
 var _ragdoll_timer: float = 0.0
+var _stun_timer: float = 0.0
 var _spawn_position: Vector2
 
 
@@ -47,6 +48,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_update_stun(delta)
 	_update_dots(delta)
 	_update_ragdoll(delta)
 	_update_state()
@@ -178,12 +180,30 @@ func _on_died() -> void:
 	_body_animation.play("ragdoll")
 
 
+func stun(duration: float) -> void:
+	_stun_timer = maxf(_stun_timer, duration)
+	can_control = false
+	modulate = Color(0.7, 0.7, 1.3, 1.0)
+
+
+func _update_stun(delta: float) -> void:
+	if _stun_timer <= 0.0:
+		return
+	_stun_timer -= delta
+	if _stun_timer <= 0.0:
+		if _ragdoll_timer <= 0.0:
+			can_control = true
+		modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+
 func respawn() -> void:
 	global_position = _spawn_position
 	velocity = Vector2.ZERO
 	can_control = true
 	current_state = PlayerState.IDLE
 	_ragdoll_timer = 0.0
+	_stun_timer = 0.0
+	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	_body_animation.play("stand")
 	_update_visual_facing()
 	_health.reset()

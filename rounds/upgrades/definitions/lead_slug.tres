@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_7gy1r"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="2_k7rgx"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="3_bb032"]
+
+[sub_resource type="Resource" id="Resource_stcl8"]
+script = ExtResource("3_bb032")
+stat = &"damage"
+op = 1
+value = 1.35
+
+[sub_resource type="Resource" id="Resource_cm3i6"]
+script = ExtResource("3_bb032")
+stat = &"knockback"
+value = 450.0
+
+[sub_resource type="Resource" id="Resource_k1p0b"]
+script = ExtResource("3_bb032")
+stat = &"bullet_speed"
+op = 1
+value = 0.65
+
+[sub_resource type="Resource" id="Resource_pnflq"]
+script = ExtResource("3_bb032")
+stat = &"bullet_gravity"
+op = 1
+value = 1.6
+
+[resource]
+script = ExtResource("2_k7rgx")
+id = &"lead_slug"
+titulo = "Lead Slug"
+nivel = 2
+descripcion = "Balas pesadas con caída pronunciada, daño mejorado (+35%) y empuje cinético masivo (velocidad muy reducida)."
+rareza = 1
+stats = Array[ExtResource("3_bb032")]([SubResource("Resource_stcl8"), SubResource("Resource_cm3i6"), SubResource("Resource_k1p0b"), SubResource("Resource_pnflq")])

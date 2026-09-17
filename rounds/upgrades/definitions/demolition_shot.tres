@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_ubend"]
+[ext_resource type="Script" path="res://upgrades/effects/demolition_effect.gd" id="2_wca5j"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_471fy"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_msns4"]
+
+[sub_resource type="Resource" id="Resource_3dd7a"]
+script = ExtResource("2_wca5j")
+
+[sub_resource type="Resource" id="Resource_qjsog"]
+script = ExtResource("4_msns4")
+stat = &"reload_time"
+op = 1
+value = 1.35
+
+[sub_resource type="Resource" id="Resource_i2w5p"]
+script = ExtResource("4_msns4")
+stat = &"pierce"
+
+[resource]
+script = ExtResource("3_471fy")
+id = &"demolition_shot"
+titulo = "Demolition Shot"
+nivel = 2
+descripcion = "Las balas perforan y destruyen fragmentos de plataformas o estructuras del escenario directamente al impactar."
+rareza = 1
+stats = Array[ExtResource("4_msns4")]([SubResource("Resource_qjsog"), SubResource("Resource_i2w5p")])
+efectos = Array[ExtResource("1_ubend")]([SubResource("Resource_3dd7a")])

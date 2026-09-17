@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_0lix7"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="2_iw0r5"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="3_ttxvp"]
+
+[sub_resource type="Resource" id="Resource_y7ux0"]
+script = ExtResource("3_ttxvp")
+stat = &"bounces"
+
+[sub_resource type="Resource" id="Resource_snydw"]
+script = ExtResource("3_ttxvp")
+stat = &"damage"
+op = 1
+value = 0.85
+
+[resource]
+script = ExtResource("2_iw0r5")
+id = &"bouncy"
+titulo = "Bouncy"
+descripcion = "Tus balas rebotan en las superficies en vez de destruirse al impacto (+1 rebote, daño ligeramente reducido)."
+stats = Array[ExtResource("3_ttxvp")]([SubResource("Resource_y7ux0"), SubResource("Resource_snydw")])

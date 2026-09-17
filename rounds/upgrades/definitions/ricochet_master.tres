@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_e3chg"]
+[ext_resource type="Script" path="res://upgrades/effects/ricochet_master_effect.gd" id="2_dli75"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_4owid"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_4pc1y"]
+
+[sub_resource type="Resource" id="Resource_bsmcb"]
+script = ExtResource("2_dli75")
+
+[sub_resource type="Resource" id="Resource_ec62q"]
+script = ExtResource("4_4pc1y")
+stat = &"bounces"
+value = 2.0
+
+[sub_resource type="Resource" id="Resource_hly8f"]
+script = ExtResource("4_4pc1y")
+stat = &"damage"
+op = 1
+value = 0.8
+
+[resource]
+script = ExtResource("3_4owid")
+id = &"ricochet_master"
+titulo = "Ricochet Master"
+nivel = 3
+descripcion = "+2 rebotes. Cada rebote que realiza la bala antes de tocar al rival incrementa notablemente (+45%) el daño final."
+rareza = 1
+stats = Array[ExtResource("4_4pc1y")]([SubResource("Resource_ec62q"), SubResource("Resource_hly8f")])
+efectos = Array[ExtResource("1_e3chg")]([SubResource("Resource_bsmcb")])
