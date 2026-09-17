@@ -1,40 +1,51 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene format=3 uid="uid://b6witot1x1adh"]
 
-[ext_resource type="Script" path="res://levels/test_level.gd" id="1_level"]
+[ext_resource type="Script" uid="uid://ct0w1skavdyfe" path="res://levels/test_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://player/player_1.tscn" id="2_p1"]
 [ext_resource type="PackedScene" path="res://player/player_2.tscn" id="3_p2"]
 [ext_resource type="PackedScene" path="res://world/ground.tscn" id="4_ground"]
 [ext_resource type="PackedScene" path="res://world/wall.tscn" id="5_wall"]
 [ext_resource type="PackedScene" path="res://world/platform.tscn" id="6_platform"]
+[ext_resource type="PackedScene" path="res://ui/upgrade_screen.tscn" id="9_screen"]
+[ext_resource type="Script" uid="uid://ivdjn1t4pjc3" path="res://run/run_controller.gd" id="10_run"]
+[ext_resource type="PackedScene" path="res://effects/neon_square.tscn" id="11_neon"]
 
-[node name="TestLevel" type="Node2D"]
+[node name="TestLevel" type="Node2D" unique_id=1689345500]
 script = ExtResource("1_level")
 
-[node name="Ground" parent="." instance=ExtResource("4_ground")]
+[node name="Ground" parent="." unique_id=1007988154 instance=ExtResource("4_ground")]
 position = Vector2(640, 680)
 
-[node name="LeftWall" parent="." instance=ExtResource("5_wall")]
+[node name="LeftWall" parent="." unique_id=117345860 instance=ExtResource("5_wall")]
 position = Vector2(0, 360)
 
-[node name="RightWall" parent="." instance=ExtResource("5_wall")]
+[node name="RightWall" parent="." unique_id=2096188607 instance=ExtResource("5_wall")]
 position = Vector2(1280, 360)
 
-[node name="PlatformLeft" parent="." instance=ExtResource("6_platform")]
+[node name="PlatformLeft" parent="." unique_id=1577838758 instance=ExtResource("6_platform")]
 position = Vector2(320, 500)
 
-[node name="PlatformRight" parent="." instance=ExtResource("6_platform")]
+[node name="PlatformRight" parent="." unique_id=796938243 instance=ExtResource("6_platform")]
 position = Vector2(960, 500)
 
-[node name="PlatformTop" parent="." instance=ExtResource("6_platform")]
+[node name="PlatformTop" parent="." unique_id=439660679 instance=ExtResource("6_platform")]
 position = Vector2(640, 360)
 
-[node name="Player1" parent="." instance=ExtResource("2_p1")]
+[node name="NeonSquare" parent="." unique_id=1191904555 instance=ExtResource("11_neon")]
+position = Vector2(640, 360)
+
+[node name="Player1" parent="." unique_id=493393470 instance=ExtResource("2_p1")]
 position = Vector2(480, 600)
 
-[node name="Player2" parent="." instance=ExtResource("3_p2")]
+[node name="Player2" parent="." unique_id=1488856975 instance=ExtResource("3_p2")]
 position = Vector2(800, 600)
 
-[node name="HUD" type="Label" parent="."]
+[node name="UpgradeScreen" parent="." unique_id=1518481688 instance=ExtResource("9_screen")]
+
+[node name="RunController" type="Node" parent="." unique_id=1016279048]
+script = ExtResource("10_run")
+
+[node name="HUD" type="Label" parent="." unique_id=1355197308]
 offset_left = 16.0
 offset_top = 12.0
 offset_right = 1000.0

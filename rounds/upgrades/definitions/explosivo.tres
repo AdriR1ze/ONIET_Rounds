@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_n30ke"]
+[ext_resource type="Script" path="res://upgrades/effects/explosive_effect.gd" id="2_1pnew"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_5jv1f"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_2nuet"]
+
+[sub_resource type="Resource" id="Resource_o0d7y"]
+script = ExtResource("2_1pnew")
+radius = 80.0
+
+[resource]
+script = ExtResource("3_5jv1f")
+id = &"explosivo"
+titulo = "Explosivo"
+descripcion = "Las balas explotan al impactar (daño en área)."
+rareza = 3
+efectos = Array[ExtResource("1_n30ke")]([SubResource("Resource_o0d7y")])
