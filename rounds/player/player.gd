@@ -25,6 +25,11 @@ enum PlayerState {
 @export var max_fall_speed: float = 1100.0
 @export var ragdoll_time: float = 0.6
 
+@export_group("Jump Game Feel")
+@export var coyote_time: float = 0.12
+@export var jump_buffer_time: float = 0.12
+@export var corner_correction_distance: float = 8.0
+
 @onready var _input: PlayerInput = $PlayerInput
 @onready var _weapon: WeaponComponent = $WeaponComponent
 @onready var _health: HealthComponent = $HealthComponent
@@ -42,6 +47,8 @@ var _toxic_cloud_count: int = 0
 var _poison_flash_timer: float = 0.0
 var _ragdoll_timer: float = 0.0
 var _stun_timer: float = 0.0
+var _coyote_timer: float = 0.0
+var _jump_buffer_timer: float = 0.0
 var _spawn_position: Vector2
 
 
@@ -58,6 +65,7 @@ func _physics_process(delta: float) -> void:
 	_update_ragdoll(delta)
 	_update_state()
 	_apply_gravity(delta)
+	_update_jump_timers(delta)
 
 	match current_state:
 		PlayerState.DEAD:
@@ -70,6 +78,7 @@ func _physics_process(delta: float) -> void:
 			_handle_aim()
 			_handle_actions()
 
+	_apply_corner_correction(delta)
 	move_and_slide()
 
 
@@ -84,6 +93,77 @@ func _update_state() -> void:
 		current_state = PlayerState.WALKING
 	else:
 		current_state = PlayerState.IDLE
+
+
+func _update_jump_timers(delta: float) -> void:
+	if not can_control or current_state == PlayerState.DEAD:
+		_coyote_timer = 0.0
+		_jump_buffer_timer = 0.0
+		return
+
+	if is_on_floor():
+		_coyote_timer = coyote_time
+	else:
+		_coyote_timer = maxf(_coyote_timer - delta, 0.0)
+
+	if _input.is_jump_just_pressed():
+		_jump_buffer_timer = jump_buffer_time
+	else:
+		_jump_buffer_timer = maxf(_jump_buffer_timer - delta, 0.0)
+
+
+func _apply_corner_correction(delta: float) -> void:
+	if not can_control or current_state == PlayerState.DEAD or velocity.y >= 0.0:
+		return
+
+	var up_step := Vector2(0.0, minf(velocity.y * delta, -2.0))
+	if not test_move(global_transform, up_step):
+		return
+
+	var max_dist := int(corner_correction_distance)
+	var found_right := 0
+	var found_left := 0
+
+	# Buscar menor desplazamiento a la derecha
+	for i in range(1, max_dist + 1):
+		var step_x := float(i)
+		if not test_move(global_transform, Vector2(step_x, 0.0), null, 0.08, true):
+			var trans_right := global_transform
+			trans_right.origin.x += step_x
+			if not test_move(trans_right, up_step, null, 0.08, true):
+				found_right = i
+				break
+
+	# Buscar menor desplazamiento a la izquierda
+	for i in range(1, max_dist + 1):
+		var step_x := float(-i)
+		if not test_move(global_transform, Vector2(step_x, 0.0), null, 0.08, true):
+			var trans_left := global_transform
+			trans_left.origin.x += step_x
+			if not test_move(trans_left, up_step, null, 0.08, true):
+				found_left = i
+				break
+
+	var chosen_offset := 0.0
+	if found_right > 0 and found_left > 0:
+		if found_right < found_left:
+			chosen_offset = float(found_right)
+		elif found_left < found_right:
+			chosen_offset = float(-found_left)
+		else:
+			if velocity.x > 0.0:
+				chosen_offset = float(found_right)
+			elif velocity.x < 0.0:
+				chosen_offset = float(-found_left)
+			else:
+				chosen_offset = float(found_right * facing)
+	elif found_right > 0:
+		chosen_offset = float(found_right)
+	elif found_left > 0:
+		chosen_offset = float(-found_left)
+
+	if not is_zero_approx(chosen_offset):
+		global_position.x += chosen_offset
 
 
 func _apply_gravity(delta: float) -> void:
@@ -113,7 +193,9 @@ func _handle_horizontal(delta: float) -> void:
 func _handle_jump() -> void:
 	if _input.is_lock_pressed():
 		return
-	if _input.is_jump_just_pressed() and is_on_floor():
+	if _jump_buffer_timer > 0.0 and _coyote_timer > 0.0:
+		_jump_buffer_timer = 0.0
+		_coyote_timer = 0.0
 		velocity.y = _stats.get_stat(&"jump_velocity")
 		AudioManager.reproducir("salto", 0.05)
 	if _input.is_jump_just_released() and velocity.y < 0.0:
@@ -259,6 +341,8 @@ func respawn() -> void:
 	current_state = PlayerState.IDLE
 	_ragdoll_timer = 0.0
 	_stun_timer = 0.0
+	_coyote_timer = 0.0
+	_jump_buffer_timer = 0.0
 	_toxic_cloud_count = 0
 	_poison_flash_timer = 0.0
 	_active_dots.clear()
