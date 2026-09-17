@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://duqg21rb7pf1l"]
 
-[ext_resource type="Shader" uid="uid://liu6cn6d71xg" path="res://effects/neon_grid.gdshader" id="1_shader"]
+[ext_resource type="Material" uid="uid://ccwrfo4kar0t2" path="res://effects/material_paredes.tres" id="1_od7ur"]
 
 [sub_resource type="Environment" id="Environment_glow"]
 background_mode = 3
@@ -10,34 +10,13 @@ glow_blend_mode = 0
 glow_hdr_threshold = 0.8
 glow_hdr_scale = 1.0
 
-[sub_resource type="Gradient" id="Gradient_neon"]
-colors = PackedColorArray(0, 1, 0.05, 1, 1, 1, 0, 1)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_neon"]
-gradient = SubResource("Gradient_neon")
-width = 256
-height = 1
-fill_from = Vector2(0.9747475, 0)
-fill_to = Vector2(0, 0)
-metadata/_snap_enabled = true
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_neon"]
-shader = ExtResource("1_shader")
-shader_parameter/palette = SubResource("GradientTexture2D_neon")
-shader_parameter/cell_count = Vector2(3, 3)
-shader_parameter/jitter = 2.0
-shader_parameter/skip_chance = 0.55
-shader_parameter/warp_amount = 1.5
-shader_parameter/warp_scale = 1.0
-shader_parameter/color_speed = 0.6
-
 [node name="NeonSquare" type="Node2D" unique_id=1627370783]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=492273391]
 environment = SubResource("Environment_glow")
 
 [node name="Square" type="ColorRect" parent="." unique_id=1487757359]
-material = SubResource("ShaderMaterial_neon")
+material = ExtResource("1_od7ur")
 offset_left = -120.0
 offset_top = -120.0
 offset_right = 120.0
