@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://player/player.gd" id="1_player"]
 [ext_resource type="PackedScene" path="res://weapons/bullet.tscn" id="2_bullet"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://player/components/health_component.gd" id="5_health"]
 [ext_resource type="Script" path="res://player/components/player_input.gd" id="6_input"]
 [ext_resource type="Script" path="res://player/components/health_display.gd" id="7_display"]
+[ext_resource type="Script" path="res://stats/stat_sheet.gd" id="8_stats"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_stand"]
 size = Vector2(24, 32)
@@ -137,7 +138,7 @@ _data = {
 "hit": SubResource("Animation_hit")
 }
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody2D" groups=["player"]]
 collision_layer = 2
 collision_mask = 1
 script = ExtResource("1_player")
@@ -176,7 +177,7 @@ polygon = PackedVector2Array(0, -3, 22, -3, 22, 3, 0, 3)
 position = Vector2(24, 0)
 
 [node name="HurtboxComponent" type="Area2D" parent="."]
-collision_layer = 8
+collision_layer = 4
 collision_mask = 0
 monitoring = false
 script = ExtResource("4_hurtbox")
@@ -190,6 +191,9 @@ max_health = 3
 
 [node name="PlayerInput" type="Node" parent="."]
 script = ExtResource("6_input")
+
+[node name="StatSheet" type="Node" parent="."]
+script = ExtResource("8_stats")
 
 [node name="BodyAnimation" type="AnimationPlayer" parent="."]
 autoplay = "stand"
