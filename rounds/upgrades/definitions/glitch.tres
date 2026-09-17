@@ -11,19 +11,19 @@ script = ExtResource("2_7wk5i")
 [sub_resource type="Resource" id="Resource_wbugr"]
 script = ExtResource("4_01l3d")
 stat = &"spread"
-value = 18.0
+value = 8.0
 
 [resource]
 script = ExtResource("3_t7cp0")
 id = &"glitch"
 titulo = "Glitch"
-subtitulo = "Balas erráticas que se clonan en vuelo"
+subtitulo = "Salto de fase y clonación en vuelo"
 nivel = 4
-descripcion = "Las balas tienen probabilidad de 'glitchearse' en el aire, duplicándose erráticamente y cambiando de trayectoria de golpe. Dispersión del arma aumentada."
+descripcion = "Las balas tienen probabilidad de desfasarse en el aire, realizando un micro-salto cibernético y duplicándose hacia adelante."
 rareza = 2
 tema = &"glitch"
-ventajas = Array[String](["Genera 2 proyectiles clones secundarios"])
-desventajas = Array[String](["Gran aumento en dispersión (+18°)"])
-mecanicas = Array[String](["Duplicación bugeada y desvío en el aire"])
+ventajas = Array[String](["Genera un clon cibernético secundario"])
+desventajas = Array[String](["Ligera dispersión (+8°)"])
+mecanicas = Array[String](["Fase cibernética y clonación en vuelo"])
 stats = Array[ExtResource("4_01l3d")]([SubResource("Resource_wbugr")])
 efectos = Array[ExtResource("1_ddjhk")]([SubResource("Resource_250xh")])

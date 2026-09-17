@@ -140,8 +140,8 @@ func try_fire() -> bool:
 				bala.modulate = Color(1.8, 0.2, 0.2, 1.0)
 			if escala_bala != 1.0:
 				bala.scale = Vector2(escala_bala, escala_bala)
-			bala.effects = _effects
-			for efecto in _effects:
+			bala.effects = _effects.duplicate(true)
+			for efecto in bala.effects:
 				efecto.on_fire(bala, _player)
 			get_tree().current_scene.add_child(bala)
 			var spawn_pos: Vector2 = muzzle.global_position

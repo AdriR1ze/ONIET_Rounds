@@ -265,12 +265,12 @@ func _generar() -> void:
 		&"roulette")
 
 	# 16. Glitch: Nivel 4 (Épica)
-	_crear(&"glitch", "Glitch", "Balas erráticas que se clonan en vuelo", 4,
-		"Las balas tienen probabilidad de 'glitchearse' en el aire, duplicándose erráticamente y cambiando de trayectoria de golpe. Dispersión del arma aumentada.",
+	_crear(&"glitch", "Glitch", "Salto de fase y clonación en vuelo", 4,
+		"Las balas tienen probabilidad de desfasarse en el aire, realizando un micro-salto cibernético y duplicándose hacia adelante.",
 		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
-		[_mod(&"spread", StatModifier.Op.ADD, 18.0)],
+		[_mod(&"spread", StatModifier.Op.ADD, 8.0)],
 		[GlitchEffect.new()],
-		["Genera 2 proyectiles clones secundarios"],
-		["Gran aumento en dispersión (+18°)"],
-		["Duplicación bugeada y desvío en el aire"],
+		["Genera un clon cibernético secundario"],
+		["Ligera dispersión (+8°)"],
+		["Fase cibernética y clonación en vuelo"],
 		&"glitch")
