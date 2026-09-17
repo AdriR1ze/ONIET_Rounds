@@ -8,7 +8,6 @@ signal parried_bullet(bullet: Node)
 enum PlayerState {
 	IDLE,
 	WALKING,
-	CROUCHING,
 	AIRBORNE,
 	RAGDOLL,
 }
@@ -21,7 +20,6 @@ enum PlayerState {
 @export var air_control: float = 0.70
 @export var gravity: float = 1800.0
 @export var max_fall_speed: float = 1100.0
-@export var crouch_speed_multiplier: float = 0.4
 @export var ragdoll_time: float = 0.6
 
 @onready var _input: PlayerInput = $PlayerInput
@@ -37,7 +35,6 @@ var current_state: PlayerState = PlayerState.IDLE
 
 var _effects: Array = []
 var _active_dots: Array = []
-var _crouching: bool = false
 var _ragdoll_timer: float = 0.0
 var _spawn_position: Vector2
 
@@ -46,6 +43,7 @@ func _ready() -> void:
 	_spawn_position = global_position
 	add_to_group("player")
 	RunManager.registrar_jugador(self)
+	_update_visual_facing()
 
 
 func _physics_process(delta: float) -> void:
@@ -57,14 +55,13 @@ func _physics_process(delta: float) -> void:
 	match current_state:
 		PlayerState.RAGDOLL:
 			velocity.x = move_toward(velocity.x, 0.0, friction * delta)
-		PlayerState.IDLE, PlayerState.WALKING, PlayerState.CROUCHING, PlayerState.AIRBORNE:
+		PlayerState.IDLE, PlayerState.WALKING, PlayerState.AIRBORNE:
 			_handle_horizontal(delta)
 			_handle_jump()
 			_handle_aim()
 			_handle_actions()
 
 	move_and_slide()
-	_update_crouch()
 
 
 func _update_state() -> void:
@@ -72,8 +69,6 @@ func _update_state() -> void:
 		current_state = PlayerState.RAGDOLL
 	elif not is_on_floor():
 		current_state = PlayerState.AIRBORNE
-	elif _crouching:
-		current_state = PlayerState.CROUCHING
 	elif not is_zero_approx(_input.move_axis()):
 		current_state = PlayerState.WALKING
 	else:
@@ -93,12 +88,11 @@ func _handle_horizontal(delta: float) -> void:
 		return
 	var direction := _input.move_axis()
 	var speed := _stats.get_stat(&"move_speed")
-	if _crouching:
-		speed *= crouch_speed_multiplier
 	var accel := acceleration if is_on_floor() else acceleration * air_control
 	velocity.x = move_toward(velocity.x, direction * speed, accel * delta)
 	if not is_zero_approx(direction) and not _input.is_strafe_pressed():
 		facing = signi(direction)
+		_update_visual_facing()
 
 
 func _handle_jump() -> void:
@@ -106,7 +100,6 @@ func _handle_jump() -> void:
 		return
 	if _input.is_jump_just_pressed() and is_on_floor():
 		velocity.y = _stats.get_stat(&"jump_velocity")
-		_crouching = false
 		AudioManager.reproducir("salto", 0.05)
 	if _input.is_jump_just_released() and velocity.y < 0.0:
 		velocity.y *= 0.5
@@ -116,9 +109,10 @@ func _handle_aim() -> void:
 	var direction := _input.aim()
 	if direction.is_zero_approx():
 		direction = Vector2(facing, 0.0)
-	elif not is_zero_approx(direction.x) and _input.is_lock_pressed():
+	elif not is_zero_approx(direction.x):
 		facing = signi(direction.x)
 	_weapon.set_aim(direction)
+	_update_visual_facing()
 
 
 func _handle_actions() -> void:
@@ -133,14 +127,9 @@ func _handle_actions() -> void:
 		AudioManager.reproducir("cuac", 0.08)
 
 
-func _update_crouch() -> void:
-	if not can_control:
-		return
-	var wants_crouch := _input.is_crouch_pressed() and is_on_floor()
-	if wants_crouch == _crouching:
-		return
-	_crouching = wants_crouch
-	_body_animation.play("crouch" if _crouching else "stand")
+func _update_visual_facing() -> void:
+	$Visual.scale.x = absf($Visual.scale.x) * facing
+	_weapon.position.x = 4.0 * facing
 
 
 func _start_ragdoll() -> void:
@@ -195,8 +184,8 @@ func respawn() -> void:
 	can_control = true
 	current_state = PlayerState.IDLE
 	_ragdoll_timer = 0.0
-	_crouching = false
 	_body_animation.play("stand")
+	_update_visual_facing()
 	_health.reset()
 
 

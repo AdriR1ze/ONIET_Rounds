@@ -104,7 +104,11 @@ func try_fire() -> bool:
 		for efecto in _effects:
 			efecto.on_fire(bala, _player)
 		get_tree().current_scene.add_child(bala)
-		bala.global_position = muzzle.global_position
+		var spawn_pos: Vector2 = muzzle.global_position
+		if _player != null and _player.has_method("is_on_floor") and _player.is_on_floor():
+			if spawn_pos.y > _player.global_position.y + 13.0:
+				spawn_pos.y = _player.global_position.y + 13.0
+		bala.global_position = spawn_pos
 
 	current_ammo -= 1
 	ammo_changed.emit(current_ammo, max_ammo)
