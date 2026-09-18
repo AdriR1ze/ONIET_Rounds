@@ -3,10 +3,12 @@ extends Node
 @export var pantalla_mejoras: CanvasLayer
 @export var pantalla_fin: CanvasLayer
 @export var banner_ganador: CanvasLayer
+@export var banner_intro: CanvasLayer
 
 var _procesando: bool = false
 var _ronda_activa: bool = false
 var _mapa_actual: Node2D = null
+var _mapa_info_actual: Dictionary = {}
 
 
 func _ready() -> void:
@@ -16,6 +18,8 @@ func _ready() -> void:
 		pantalla_fin = get_parent().get_node_or_null("MatchEnd")
 	if banner_ganador == null and get_parent() != null:
 		banner_ganador = get_parent().get_node_or_null("RoundWinnerBanner")
+	if banner_intro == null and get_parent() != null:
+		banner_intro = get_parent().get_node_or_null("MapIntroBanner")
 	await get_tree().process_frame
 	for jugador in RunManager.jugadores():
 		var salud: Node = jugador.get_node_or_null("HealthComponent")
@@ -24,6 +28,8 @@ func _ready() -> void:
 	RunManager.iniciar_partida()
 	cargar_nuevo_mapa()
 	RunManager.iniciar_ronda(1)
+	if banner_intro != null and banner_intro.has_method("mostrar_intro"):
+		await banner_intro.mostrar_intro(1, _mapa_info_actual)
 	_ronda_activa = true
 
 
@@ -58,7 +64,10 @@ func _on_jugador_muerto(jugador: Node) -> void:
 	for jug in RunManager.jugadores():
 		if is_instance_valid(jug) and jug.has_method("respawn"):
 			jug.respawn()
-	RunManager.iniciar_ronda(RunManager.ronda + 1)
+	var proxima_ronda: int = RunManager.ronda + 1
+	RunManager.iniciar_ronda(proxima_ronda)
+	if banner_intro != null and banner_intro.has_method("mostrar_intro"):
+		await banner_intro.mostrar_intro(proxima_ronda, _mapa_info_actual)
 	_ronda_activa = true
 	_procesando = false
 
@@ -76,6 +85,7 @@ func cargar_nuevo_mapa() -> void:
 		_mapa_actual = null
 
 	var info := MapManager.obtener_mapa_aleatorio()
+	_mapa_info_actual = info
 	var escena_path: String = info.get("escena", "")
 	if escena_path.is_empty():
 		return

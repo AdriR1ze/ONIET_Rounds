@@ -1,0 +1,106 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
+[ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
+
+[sub_resource type="RectangleShape2D" id="shape_1"]
+size = Vector2(340, 28)
+
+[sub_resource type="CircleShape2D" id="shape_2"]
+radius = 42
+
+[sub_resource type="RectangleShape2D" id="shape_3"]
+size = Vector2(260, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_4"]
+size = Vector2(24, 80)
+
+[sub_resource type="RectangleShape2D" id="shape_5"]
+size = Vector2(120, 80)
+
+[node name="MapNucleoFlotante" type="Node2D"]
+
+[node name="SpawnP1" type="Marker2D" parent="."]
+position = Vector2(200, 580)
+
+[node name="SpawnP2" type="Marker2D" parent="."]
+position = Vector2(1080, 580)
+
+[node name="PisoBajoL" type="StaticBody2D" parent="."]
+position = Vector2(260, 620)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.2, 0.7, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="PisoBajoL"]
+shape = SubResource("shape_1")
+
+[node name="PisoBajoR" type="StaticBody2D" parent="."]
+position = Vector2(1020, 620)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.2, 0.7, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="PisoBajoR"]
+shape = SubResource("shape_1")
+
+[node name="IslaOrbL1" type="StaticBody2D" parent="."]
+position = Vector2(440, 490)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.2, 0.7, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="IslaOrbL1"]
+shape = SubResource("shape_2")
+
+[node name="IslaOrbR1" type="StaticBody2D" parent="."]
+position = Vector2(840, 490)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.2, 0.7, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="IslaOrbR1"]
+shape = SubResource("shape_2")
+
+[node name="IslaOrbL2" type="StaticBody2D" parent="."]
+position = Vector2(430, 270)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.2, 0.7, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="IslaOrbL2"]
+shape = SubResource("shape_2")
+
+[node name="IslaOrbR2" type="StaticBody2D" parent="."]
+position = Vector2(850, 270)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.2, 0.7, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="IslaOrbR2"]
+shape = SubResource("shape_2")
+
+[node name="PuenteAlto" type="StaticBody2D" parent="."]
+position = Vector2(640, 190)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.2, 0.7, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="PuenteAlto"]
+shape = SubResource("shape_3")
+
+[node name="CoberturaL" type="StaticBody2D" parent="."]
+position = Vector2(280, 530)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.2, 0.7, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="CoberturaL"]
+shape = SubResource("shape_4")
+
+[node name="CoberturaR" type="StaticBody2D" parent="."]
+position = Vector2(1000, 530)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.2, 0.7, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="CoberturaR"]
+shape = SubResource("shape_4")
+
+[node name="NucleoSuspendido" type="Area2D" parent="."]
+position = Vector2(640, 380)
+script = ExtResource("2_haz")
+
+[node name="Shape" type="CollisionShape2D" parent="NucleoSuspendido"]
+shape = SubResource("shape_5")

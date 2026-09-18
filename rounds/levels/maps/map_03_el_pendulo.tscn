@@ -1,0 +1,96 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
+
+[sub_resource type="RectangleShape2D" id="shape_1"]
+size = Vector2(800, 32)
+
+[sub_resource type="RectangleShape2D" id="shape_2"]
+size = Vector2(320, 28)
+
+[sub_resource type="CapsuleShape2D" id="shape_3"]
+radius = 22
+height = 90
+
+[sub_resource type="CapsuleShape2D" id="shape_4"]
+radius = 24
+height = 100
+
+[node name="MapElPendulo" type="Node2D"]
+
+[node name="SpawnP1" type="Marker2D" parent="."]
+position = Vector2(340, 560)
+
+[node name="SpawnP2" type="Marker2D" parent="."]
+position = Vector2(940, 560)
+
+[node name="BaseSuelo" type="StaticBody2D" parent="."]
+position = Vector2(640, 600)
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.9, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BaseSuelo"]
+shape = SubResource("shape_1")
+
+[node name="VigaDiagonal" type="StaticBody2D" parent="."]
+position = Vector2(640, 390)
+rotation = -0.733
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.9, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="VigaDiagonal"]
+shape = SubResource("shape_2")
+
+[node name="ElipseL1" type="StaticBody2D" parent="."]
+position = Vector2(180, 500)
+rotation = -0.61
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.9, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="ElipseL1"]
+shape = SubResource("shape_3")
+
+[node name="ElipseL2" type="StaticBody2D" parent="."]
+position = Vector2(290, 390)
+rotation = -0.61
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.9, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="ElipseL2"]
+shape = SubResource("shape_4")
+
+[node name="ElipseL3" type="StaticBody2D" parent="."]
+position = Vector2(430, 290)
+rotation = -0.2
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.9, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="ElipseL3"]
+shape = SubResource("shape_4")
+
+[node name="ElipseR1" type="StaticBody2D" parent="."]
+position = Vector2(850, 290)
+rotation = 0.2
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.9, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="ElipseR1"]
+shape = SubResource("shape_4")
+
+[node name="ElipseR2" type="StaticBody2D" parent="."]
+position = Vector2(990, 390)
+rotation = 0.61
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.9, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="ElipseR2"]
+shape = SubResource("shape_4")
+
+[node name="ElipseR3" type="StaticBody2D" parent="."]
+position = Vector2(1100, 500)
+rotation = 0.61
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.9, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="ElipseR3"]
+shape = SubResource("shape_3")

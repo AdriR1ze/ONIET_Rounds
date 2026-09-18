@@ -1,0 +1,95 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
+
+[sub_resource type="RectangleShape2D" id="shape_1"]
+size = Vector2(280, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_2"]
+size = Vector2(260, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_3"]
+size = Vector2(240, 24)
+
+[sub_resource type="CircleShape2D" id="shape_4"]
+radius = 36
+
+[node name="MapRepisasOrbes" type="Node2D"]
+
+[node name="SpawnP1" type="Marker2D" parent="."]
+position = Vector2(420, 580)
+
+[node name="SpawnP2" type="Marker2D" parent="."]
+position = Vector2(880, 480)
+
+[node name="RepisaBajaL" type="StaticBody2D" parent="."]
+position = Vector2(510, 620)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.65, 0.15, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="RepisaBajaL"]
+shape = SubResource("shape_1")
+
+[node name="RepisaBajaR" type="StaticBody2D" parent="."]
+position = Vector2(800, 520)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.65, 0.15, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="RepisaBajaR"]
+shape = SubResource("shape_2")
+
+[node name="RepisaMediaL" type="StaticBody2D" parent="."]
+position = Vector2(490, 430)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.65, 0.15, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="RepisaMediaL"]
+shape = SubResource("shape_2")
+
+[node name="RepisaMediaR" type="StaticBody2D" parent="."]
+position = Vector2(780, 350)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.65, 0.15, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="RepisaMediaR"]
+shape = SubResource("shape_1")
+
+[node name="RepisaAltaL" type="StaticBody2D" parent="."]
+position = Vector2(470, 250)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.65, 0.15, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="RepisaAltaL"]
+shape = SubResource("shape_3")
+
+[node name="OrbeL1" type="StaticBody2D" parent="."]
+position = Vector2(270, 540)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.65, 0.15, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="OrbeL1"]
+shape = SubResource("shape_4")
+
+[node name="OrbeL2" type="StaticBody2D" parent="."]
+position = Vector2(270, 390)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.65, 0.15, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="OrbeL2"]
+shape = SubResource("shape_4")
+
+[node name="OrbeR1" type="StaticBody2D" parent="."]
+position = Vector2(1020, 440)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.65, 0.15, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="OrbeR1"]
+shape = SubResource("shape_4")
+
+[node name="OrbeR2" type="StaticBody2D" parent="."]
+position = Vector2(1020, 290)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.65, 0.15, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="OrbeR2"]
+shape = SubResource("shape_4")

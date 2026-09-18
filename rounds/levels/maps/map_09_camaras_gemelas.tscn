@@ -1,0 +1,109 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
+
+[sub_resource type="RectangleShape2D" id="shape_1"]
+size = Vector2(300, 28)
+
+[sub_resource type="RectangleShape2D" id="shape_2"]
+size = Vector2(300, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_3"]
+size = Vector2(28, 160)
+
+[sub_resource type="RectangleShape2D" id="shape_4"]
+size = Vector2(320, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_5"]
+size = Vector2(260, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_6"]
+size = Vector2(20, 20)
+
+[node name="MapCamarasGemelas" type="Node2D"]
+
+[node name="SpawnP1" type="Marker2D" parent="."]
+position = Vector2(240, 540)
+
+[node name="SpawnP2" type="Marker2D" parent="."]
+position = Vector2(1040, 540)
+
+[node name="BunkerPisoL" type="StaticBody2D" parent="."]
+position = Vector2(260, 580)
+script = ExtResource("1_geom")
+border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BunkerPisoL"]
+shape = SubResource("shape_1")
+
+[node name="BunkerTechoL" type="StaticBody2D" parent="."]
+position = Vector2(260, 400)
+script = ExtResource("1_geom")
+border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BunkerTechoL"]
+shape = SubResource("shape_2")
+
+[node name="BunkerPilarL" type="StaticBody2D" parent="."]
+position = Vector2(120, 490)
+script = ExtResource("1_geom")
+border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BunkerPilarL"]
+shape = SubResource("shape_3")
+
+[node name="BunkerPisoR" type="StaticBody2D" parent="."]
+position = Vector2(1020, 580)
+script = ExtResource("1_geom")
+border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BunkerPisoR"]
+shape = SubResource("shape_1")
+
+[node name="BunkerTechoR" type="StaticBody2D" parent="."]
+position = Vector2(1020, 400)
+script = ExtResource("1_geom")
+border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BunkerTechoR"]
+shape = SubResource("shape_2")
+
+[node name="BunkerPilarR" type="StaticBody2D" parent="."]
+position = Vector2(1160, 490)
+script = ExtResource("1_geom")
+border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BunkerPilarR"]
+shape = SubResource("shape_3")
+
+[node name="PuenteElevado" type="StaticBody2D" parent="."]
+position = Vector2(640, 470)
+script = ExtResource("1_geom")
+border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="PuenteElevado"]
+shape = SubResource("shape_4")
+
+[node name="ValleBajo" type="StaticBody2D" parent="."]
+position = Vector2(640, 630)
+script = ExtResource("1_geom")
+border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="ValleBajo"]
+shape = SubResource("shape_5")
+
+[node name="AlmenaTechoL" type="StaticBody2D" parent="."]
+position = Vector2(360, 380)
+script = ExtResource("1_geom")
+border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaTechoL"]
+shape = SubResource("shape_6")
+
+[node name="AlmenaTechoR" type="StaticBody2D" parent="."]
+position = Vector2(920, 380)
+script = ExtResource("1_geom")
+border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaTechoR"]
+shape = SubResource("shape_6")
