@@ -47,6 +47,7 @@ enum PlayerState {
 @onready var _eye_mesh: Polygon2D = $Visual.get_node_or_null("Eye")
 @onready var _pupil_mesh: Polygon2D = $Visual.get_node_or_null("Pupil")
 @onready var _feet_node: Node2D = $Visual.get_node_or_null("Feet")
+@onready var _floating_hp: Node2D = get_node_or_null("FloatingHealthBar")
 
 var facing: int = 1
 var can_control: bool = true
@@ -70,6 +71,9 @@ func _ready() -> void:
 	RunManager.registrar_jugador(self)
 	_configurar_personaje()
 	_update_visual_facing()
+	if _floating_hp != null:
+		_floating_hp.setup(player_number, _health.health, _health.max_health)
+		_health.health_changed.connect(_floating_hp.update_health)
 
 
 func _physics_process(delta: float) -> void:
@@ -340,6 +344,9 @@ func _on_died() -> void:
 	_ragdoll_timer = 0.0
 	_body_animation.stop()
 
+	if _floating_hp != null:
+		_floating_hp.update_health(0, _health.max_health)
+
 	# Impulso de caída al suelo
 	velocity.x *= 0.3
 	velocity.y = maxf(velocity.y, 140.0)
@@ -413,6 +420,10 @@ func respawn() -> void:
 		hurtbox_col.set_deferred("disabled", false)
 	if _weapon != null and _weapon.has_method("reset_cooldown"):
 		_weapon.reset_cooldown(0.35)
+	if _weapon != null and _weapon.has_method("reset_ammo"):
+		_weapon.reset_ammo()
+	if _floating_hp != null:
+		_floating_hp.setup(player_number, _health.health, _health.max_health)
 
 
 func aplicar_mejoras(upgrades: Array) -> void:
@@ -427,6 +438,8 @@ func aplicar_mejoras(upgrades: Array) -> void:
 			efecto.on_apply(self, 1)
 	_health.max_health = maxi(_stats.get_entero(&"max_health"), 1)
 	_health.reset()
+	if _floating_hp != null:
+		_floating_hp.setup(player_number, _health.health, _health.max_health)
 	_weapon.configurar(_stats, self, _effects)
 
 

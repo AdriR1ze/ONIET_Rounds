@@ -9,6 +9,8 @@
 [ext_resource type="Script" uid="uid://w3hi3xymg7fs" path="res://stats/stat_sheet.gd" id="8_stats"]
 [ext_resource type="SpriteFrames" path="res://player/skeleton_frames.tres" id="9_skel"]
 [ext_resource type="Shader" path="res://player/skeleton_palette.gdshader" id="10_shader"]
+[ext_resource type="Script" path="res://player/components/floating_health_bar.gd" id="11_healthbar"]
+[ext_resource type="Script" path="res://player/components/ammo_display.gd" id="12_ammo"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_skel"]
 shader = ExtResource("10_shader")
@@ -396,6 +398,14 @@ polygon = PackedVector2Array(18, -3, 22, -3, 22, 3, 18, 3)
 
 [node name="Muzzle" type="Marker2D" parent="WeaponComponent" unique_id=234082670]
 position = Vector2(24, 0)
+
+[node name="AmmoDisplay" type="Node2D" parent="WeaponComponent" unique_id=184920194]
+position = Vector2(8, 7)
+script = ExtResource("12_ammo")
+
+[node name="FloatingHealthBar" type="Node2D" parent="." unique_id=184920195]
+position = Vector2(0, -28)
+script = ExtResource("11_healthbar")
 
 [node name="HurtboxComponent" type="Area2D" parent="." unique_id=983772338]
 collision_layer = 4
