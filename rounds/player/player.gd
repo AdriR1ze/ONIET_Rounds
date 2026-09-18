@@ -42,8 +42,11 @@ enum PlayerState {
 @onready var _ground_ray: RayCast2D = $GroundRay
 @onready var _skeleton_sprite: AnimatedSprite2D = $Visual.get_node_or_null("SkeletonSprite")
 @onready var _body_mesh: Polygon2D = $Visual.get_node_or_null("Body")
+@onready var _wing_mesh: Polygon2D = $Visual.get_node_or_null("Wing")
 @onready var _beak_mesh: Polygon2D = $Visual.get_node_or_null("Beak")
 @onready var _eye_mesh: Polygon2D = $Visual.get_node_or_null("Eye")
+@onready var _pupil_mesh: Polygon2D = $Visual.get_node_or_null("Pupil")
+@onready var _feet_node: Node2D = $Visual.get_node_or_null("Feet")
 
 var facing: int = 1
 var can_control: bool = true
@@ -106,46 +109,63 @@ func _update_state() -> void:
 	_update_character_visual()
 
 
+func _set_duck_parts_visible(v: bool) -> void:
+	if _body_mesh != null: _body_mesh.visible = v
+	if _wing_mesh != null: _wing_mesh.visible = v
+	if _beak_mesh != null: _beak_mesh.visible = v
+	if _eye_mesh != null: _eye_mesh.visible = v
+	if _pupil_mesh != null: _pupil_mesh.visible = v
+	if _feet_node != null: _feet_node.visible = v
+
+
 func _configurar_personaje() -> void:
 	tipo_personaje = RunManager.personaje_de(player_number)
 	if tipo_personaje == "esqueleto":
-		if _body_mesh != null:
-			_body_mesh.visible = false
-		if _beak_mesh != null:
-			_beak_mesh.visible = false
-		if _eye_mesh != null:
-			_eye_mesh.visible = false
+		_set_duck_parts_visible(false)
 		if _skeleton_sprite != null:
 			_skeleton_sprite.visible = true
 			if player_number == 1:
-				_skeleton_sprite.modulate = Color(1.0, 0.94, 0.65, 1.0)
+				_skeleton_sprite.modulate = Color(1.25, 1.05, 0.25, 1.0)
 			else:
-				_skeleton_sprite.modulate = Color(0.65, 0.94, 1.0, 1.0)
+				_skeleton_sprite.modulate = Color(0.35, 0.85, 1.3, 1.0)
 			_skeleton_sprite.play("idle")
+		_body_animation.play("stand")
 	else:
-		if _body_mesh != null:
-			_body_mesh.visible = true
-		if _beak_mesh != null:
-			_beak_mesh.visible = true
-		if _eye_mesh != null:
-			_eye_mesh.visible = true
+		_set_duck_parts_visible(true)
+		if _wing_mesh != null:
+			if player_number == 1:
+				_wing_mesh.color = Color(0.85, 0.68, 0.1, 1.0)
+			else:
+				_wing_mesh.color = Color(0.2, 0.58, 0.85, 1.0)
 		if _skeleton_sprite != null:
 			_skeleton_sprite.visible = false
+		_body_animation.play("duck_idle")
 
 
 func _update_character_visual() -> void:
-	if tipo_personaje != "esqueleto" or _skeleton_sprite == null:
-		return
-	match current_state:
-		PlayerState.DEAD:
-			if _skeleton_sprite.animation != "dead":
-				_skeleton_sprite.play("dead")
-		PlayerState.WALKING:
-			if _skeleton_sprite.animation != "walk":
-				_skeleton_sprite.play("walk")
-		_:
-			if _skeleton_sprite.animation != "idle":
-				_skeleton_sprite.play("idle")
+	if tipo_personaje == "esqueleto":
+		if _skeleton_sprite == null:
+			return
+		match current_state:
+			PlayerState.DEAD:
+				if _skeleton_sprite.animation != "dead":
+					_skeleton_sprite.play("dead")
+			PlayerState.WALKING:
+				if _skeleton_sprite.animation != "walk":
+					_skeleton_sprite.play("walk")
+			_:
+				if _skeleton_sprite.animation != "idle":
+					_skeleton_sprite.play("idle")
+	else:
+		match current_state:
+			PlayerState.DEAD:
+				_body_animation.stop()
+			PlayerState.WALKING:
+				if _body_animation.current_animation != "duck_walk":
+					_body_animation.play("duck_walk")
+			_:
+				if _body_animation.current_animation != "duck_idle":
+					_body_animation.play("duck_idle")
 
 
 func _update_jump_timers(delta: float) -> void:
@@ -249,7 +269,7 @@ func _handle_actions() -> void:
 
 func _update_visual_facing() -> void:
 	$Visual.scale.x = absf($Visual.scale.x) * facing
-	_weapon.position.x = 4.0 * facing
+	_weapon.position = Vector2(4.0 * facing, 9.0)
 
 
 func _start_ragdoll() -> void:
@@ -372,9 +392,12 @@ func respawn() -> void:
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	$Visual.rotation = 0.0
 	$Visual.position = Vector2.ZERO
-	_body_animation.play("stand")
-	if tipo_personaje == "esqueleto" and _skeleton_sprite != null:
-		_skeleton_sprite.play("idle")
+	if tipo_personaje == "esqueleto":
+		_body_animation.play("stand")
+		if _skeleton_sprite != null:
+			_skeleton_sprite.play("idle")
+	else:
+		_body_animation.play("duck_idle")
 	_update_visual_facing()
 	_health.reset()
 	var hurtbox_col := get_node_or_null("HurtboxComponent/CollisionShape2D") as CollisionShape2D

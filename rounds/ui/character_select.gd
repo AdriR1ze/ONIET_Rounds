@@ -41,10 +41,12 @@ func _ready() -> void:
 	_p1_titulo.text = RunManager.nombre_jugador(1)
 	_p2_titulo.text = RunManager.nombre_jugador(2)
 
-	# Iniciar animaciones de spritesheet
+	# Iniciar animaciones de spritesheet y modular colores
 	if _p1_skel_sprite != null:
+		_p1_skel_sprite.modulate = Color(1.25, 1.05, 0.25, 1.0)
 		_p1_skel_sprite.play("walk")
 	if _p2_skel_sprite != null:
+		_p2_skel_sprite.modulate = Color(0.35, 0.85, 1.3, 1.0)
 		_p2_skel_sprite.play("walk")
 
 	# Conectar botones de ratón
