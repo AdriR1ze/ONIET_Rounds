@@ -128,9 +128,9 @@ func _configurar_personaje() -> void:
 			var mat := ShaderMaterial.new()
 			mat.shader = preload("res://player/skeleton_palette.gdshader")
 			if player_number == 1:
-				mat.set_shader_parameter("color_highlight", Color(1.0, 1.0, 0.45, 1.0))
-				mat.set_shader_parameter("color_midtone", Color(1.0, 0.85, 0.20, 1.0))
-				mat.set_shader_parameter("color_shadow", Color(0.40, 0.30, 0.05, 1.0))
+				mat.set_shader_parameter("color_highlight", Color(0.97, 0.93, 0.62, 1.0))
+				mat.set_shader_parameter("color_midtone", Color(0.90, 0.82, 0.42, 1.0))
+				mat.set_shader_parameter("color_shadow", Color(0.40, 0.33, 0.16, 1.0))
 			else:
 				mat.set_shader_parameter("color_highlight", Color(0.80, 0.98, 1.0, 1.0))
 				mat.set_shader_parameter("color_midtone", Color(0.35, 0.78, 1.0, 1.0))

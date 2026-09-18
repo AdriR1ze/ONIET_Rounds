@@ -186,8 +186,8 @@ layout_mode = 2
 
 [node name="SkelSpriteP1" type="AnimatedSprite2D" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardEsqueleto/VBox/PreviewBox"]
 texture_filter = 1
-position = Vector2(115, 60)
-scale = Vector2(3.6, 3.6)
+position = Vector2(115, 58)
+scale = Vector2(4.2, 4.2)
 sprite_frames = ExtResource("2_skel")
 animation = &"walk"
 frame_progress = 0.5
@@ -330,8 +330,8 @@ layout_mode = 2
 
 [node name="SkelSpriteP2" type="AnimatedSprite2D" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardEsqueleto/VBox/PreviewBox"]
 texture_filter = 1
-position = Vector2(115, 60)
-scale = Vector2(3.6, 3.6)
+position = Vector2(115, 58)
+scale = Vector2(4.2, 4.2)
 sprite_frames = ExtResource("2_skel")
 animation = &"walk"
 frame_progress = 0.5
