@@ -54,6 +54,8 @@ var _stun_timer: float = 0.0
 var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
 var _spawn_position: Vector2
+var _hit_stop_remaining: float = 0.0
+var _hit_stop_active: bool = false
 
 
 func _ready() -> void:
@@ -241,6 +243,47 @@ func on_parry(bullet: Node) -> void:
 func _on_damaged(_amount: int, _source: Node) -> void:
 	AudioManager.reproducir("golpe", 0.1)
 	_hit_flash.play("hit")
+	CombatCamera.shake_viewport(self, 4.0, 0.2)
+	if is_alive():
+		_hit_stop(0.04)
+
+
+func _hit_stop(duracion: float) -> void:
+	if not is_inside_tree():
+		return
+	_hit_stop_remaining = maxf(_hit_stop_remaining, duracion)
+	if _hit_stop_active:
+		return
+	_hit_stop_active = true
+	Engine.time_scale = 0.0
+	while _hit_stop_remaining > 0.0 and is_inside_tree():
+		var paso := _hit_stop_remaining
+		await get_tree().create_timer(paso, true, false, true).timeout
+		_hit_stop_remaining = maxf(_hit_stop_remaining - paso, 0.0)
+	_restaurar_hit_stop()
+
+
+func _restaurar_hit_stop() -> void:
+	_hit_stop_remaining = 0.0
+	_hit_stop_active = false
+	Engine.time_scale = 1.0
+
+
+func _exit_tree() -> void:
+	if _hit_stop_active:
+		_restaurar_hit_stop()
+
+
+func _secuencia_muerte() -> void:
+	if not is_inside_tree():
+		return
+	_hit_stop_active = true
+	Engine.time_scale = 0.0
+	await get_tree().create_timer(0.10, true, false, true).timeout
+	if is_inside_tree():
+		Engine.time_scale = 0.25
+		await get_tree().create_timer(0.45, true, false, true).timeout
+	_restaurar_hit_stop()
 
 
 func apply_knockback(dir: Vector2, force: float) -> void:
@@ -258,6 +301,8 @@ func apply_knockback(dir: Vector2, force: float) -> void:
 
 func _on_died() -> void:
 	AudioManager.reproducir("muerte")
+	CombatCamera.shake_viewport(self, 9.0, 0.35)
+	_secuencia_muerte()
 	can_control = false
 	current_state = PlayerState.DEAD
 	_ragdoll_timer = 0.0

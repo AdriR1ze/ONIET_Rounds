@@ -5,6 +5,6 @@ extends UpgradeEffect
 @export var glitch_chance: float = 0.65
 
 
-func on_fire(bullet: Node, _player: Node) -> void:
-	if bullet != null and randf() < glitch_chance:
-		bullet.set("is_glitch", true)
+func on_fire(shot: Shot, _player: Node) -> void:
+	if shot != null and randf() < glitch_chance:
+		shot.is_glitch = true

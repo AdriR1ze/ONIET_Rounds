@@ -9,6 +9,8 @@ signal reload_completed
 @export var bullet_scene: PackedScene
 
 @onready var muzzle: Marker2D = $Muzzle
+@onready var _muzzle_flash: Polygon2D = $Muzzle/MuzzleFlash
+@onready var _muzzle_flash_timer: Timer = $Muzzle/MuzzleFlashTimer
 
 var aim_direction: Vector2 = Vector2.RIGHT
 var _cooldown: float = 0.0
@@ -27,6 +29,16 @@ var _roulette_bullet: int = -1
 
 func _ready() -> void:
 	current_ammo = max_ammo
+	_muzzle_flash_timer.timeout.connect(_on_muzzle_flash_timeout)
+
+
+func _on_muzzle_flash_timeout() -> void:
+	_muzzle_flash.visible = false
+
+
+func _flash_muzzle() -> void:
+	_muzzle_flash.visible = true
+	_muzzle_flash_timer.start()
 
 
 func configurar(stats: StatSheet, player: Node, effects: Array) -> void:
@@ -113,26 +125,59 @@ func try_fire() -> bool:
 	var centro := (cantidad - 1) / 2.0
 
 	if _has_laser_sight():
-		_fire_laser(dano, empuje, is_roulette)
+		var rebotes := _stat_entero(&"bounces", 0)
+		var penetracion_pared := _stat_entero(&"wall_pierce", 0)
+		var s := Shot.new()
+		s.direction = aim_direction
+		s.damage = dano
+		s.speed = velocidad
+		s.lifetime = duracion
+		s.knockback = empuje
+		s.pierce = penetracion
+		s.wall_pierce = penetracion_pared
+		s.bounces = rebotes
+		s.gravity = gravedad
+		s.drag = rozamiento
+		for efecto in _effects:
+			efecto.on_fire(s, _player)
+		_fire_laser(s, is_roulette)
 	else:
 		var rebotes := _stat_entero(&"bounces", 0)
 		var penetracion_pared := _stat_entero(&"wall_pierce", 0)
 		var escala_bala := _stat(&"bullet_scale", 1.0)
 		for i in cantidad:
 			var angulo := base_angle + deg_to_rad(dispersion * (i - centro))
+			var s := Shot.new()
+			s.direction = Vector2.RIGHT.rotated(angulo)
+			s.damage = dano
+			s.speed = velocidad
+			s.lifetime = duracion
+			s.knockback = empuje
+			s.pierce = penetracion
+			s.wall_pierce = penetracion_pared
+			s.bounces = rebotes
+			s.gravity = gravedad
+			s.drag = rozamiento
+			for efecto in _effects:
+				efecto.on_fire(s, _player)
+
 			var bala := bullet_scene.instantiate()
-			bala.direction = Vector2.RIGHT.rotated(angulo)
+			bala.direction = s.direction
 			bala.shooter = _player
 			bala.player = _player
-			bala.damage = dano
-			bala.speed = velocidad
-			bala.lifetime = duracion
-			bala.pierce = penetracion
-			bala.knockback = empuje
-			bala.bullet_gravity = gravedad
-			bala.drag = rozamiento
-			bala.bounces = rebotes
-			bala.wall_pierce = penetracion_pared
+			bala.damage = s.damage
+			bala.speed = s.speed
+			bala.lifetime = s.lifetime
+			bala.pierce = s.pierce
+			bala.knockback = s.knockback
+			bala.bullet_gravity = s.gravity
+			bala.drag = s.drag
+			bala.bounces = s.bounces
+			bala.wall_pierce = s.wall_pierce
+			bala.can_split = s.can_split
+			bala.is_glitch = s.is_glitch
+			bala.stun_duration = s.stun_duration
+			bala.ricochet_bonus = s.ricochet_bonus
 			if is_quick:
 				bala.modulate = Color(1.3, 1.2, 0.4, 1.0)
 			if is_roulette:
@@ -141,8 +186,7 @@ func try_fire() -> bool:
 			if escala_bala != 1.0:
 				bala.scale = Vector2(escala_bala, escala_bala)
 			bala.effects = _effects.duplicate(true)
-			for efecto in bala.effects:
-				efecto.on_fire(bala, _player)
+			bala.shot = s
 			get_tree().current_scene.add_child(bala)
 			var spawn_pos: Vector2 = muzzle.global_position
 			if _player != null and _player.has_method("is_on_floor") and _player.is_on_floor():
@@ -161,6 +205,8 @@ func try_fire() -> bool:
 	if is_roulette:
 		AudioManager.reproducir("golpe", 0.08)
 	AudioManager.reproducir("disparo", 0.06)
+	_flash_muzzle()
+	CombatCamera.shake_viewport(self, 1.2, 0.12)
 	fired.emit()
 	return true
 
@@ -182,60 +228,92 @@ func _has_laser_sight() -> bool:
 	return false
 
 
-func _has_glitch() -> bool:
-	for ef in _effects:
-		if ef.get("is_glitch") == true:
-			return true
-	return false
-
-
-func _fire_laser(dano: int, empuje: float, is_roulette: bool = false) -> void:
-	if _player != null:
-		_player.set_meta("last_laser_damage", dano)
+func _fire_laser(shot: Shot, is_roulette: bool = false) -> void:
 	var color := Color(1.0, 0.2, 0.2, 0.98) if is_roulette else Color(0.25, 0.9, 1.0, 0.95)
 	var width := 6.0 if is_roulette else 4.0
-	_fire_single_laser(aim_direction, dano, empuje, color, width)
+	_fire_single_laser(shot, aim_direction, color, width)
 
-	if _has_glitch() and randf() < 0.50:
-		var clone_dmg := maxi(int(round(dano * 0.50)), 1)
-		_fire_single_laser(aim_direction.rotated(deg_to_rad(-16.0)), clone_dmg, empuje * 0.5, Color(0.2, 1.8, 1.8, 0.95), 3.0)
-		_fire_single_laser(aim_direction.rotated(deg_to_rad(16.0)), clone_dmg, empuje * 0.5, Color(1.8, 0.2, 1.6, 0.95), 3.0)
+	if shot.is_glitch:
+		var clone_dmg := maxi(int(round(shot.damage * 0.50)), 1)
+		var clone_kb := shot.knockback * 0.5
+		var glitch_left := shot.copy()
+		glitch_left.damage = clone_dmg
+		glitch_left.knockback = clone_kb
+		_fire_single_laser(glitch_left, aim_direction.rotated(deg_to_rad(-16.0)), Color(0.2, 1.8, 1.8, 0.95), 3.0)
+		var glitch_right := shot.copy()
+		glitch_right.damage = clone_dmg
+		glitch_right.knockback = clone_kb
+		_fire_single_laser(glitch_right, aim_direction.rotated(deg_to_rad(16.0)), Color(1.8, 0.2, 1.6, 0.95), 3.0)
+
+	if shot.can_split:
+		var split_dmg := maxi(int(round(shot.damage * 0.30)), 1)
+		var split_kb := shot.knockback * 0.5
+		var split_left := shot.copy()
+		split_left.damage = split_dmg
+		split_left.knockback = split_kb
+		_fire_single_laser(split_left, aim_direction.rotated(deg_to_rad(-18.0)), color, width)
+		var split_right := shot.copy()
+		split_right.damage = split_dmg
+		split_right.knockback = split_kb
+		_fire_single_laser(split_right, aim_direction.rotated(deg_to_rad(18.0)), color, width)
 
 
-func _fire_single_laser(dir: Vector2, dano: int, empuje: float, color: Color, width: float) -> void:
+func _fire_single_laser(shot: Shot, dir: Vector2, color: Color, width: float) -> void:
+	var s := shot.copy()
 	var from_pos := muzzle.global_position
-	var to_pos := from_pos + dir * 1400.0
+	var cur_dir := dir
+	var points := PackedVector2Array()
+	points.append(from_pos)
 
 	var space := get_world_2d().direct_space_state
-	var query := PhysicsRayQueryParameters2D.create(from_pos, to_pos)
-	query.collision_mask = 5  # Hurtbox (4) and solid world (1)
-	query.collide_with_areas = true
-	query.collide_with_bodies = true
-	if _player != null:
-		query.exclude = [_player]
+	var max_segments := s.bounces + 1
+	for _i in max_segments:
+		var to_pos := from_pos + cur_dir * 1400.0
+		var query := PhysicsRayQueryParameters2D.create(from_pos, to_pos)
+		query.collision_mask = 5  # Hurtbox (4) and solid world (1)
+		query.collide_with_areas = true
+		query.collide_with_bodies = true
+		if _player != null:
+			query.exclude = [_player]
 
-	var result := space.intersect_ray(query)
-	var hit_pos := to_pos
-	if not result.is_empty():
-		hit_pos = result["position"]
+		var result := space.intersect_ray(query)
+		if result.is_empty():
+			points.append(to_pos)
+			break
+
+		var hit_pos: Vector2 = result["position"]
+		var hit_norm: Vector2 = result["normal"]
 		var collider: Node = result.get("collider") as Node
 		if collider != null:
+			s.hit_position = hit_pos
+			s.hit_normal = hit_norm
+			s.direction = cur_dir
 			if collider.has_method("take_hit"):
-				collider.take_hit(dano, _player)
+				collider.take_hit(s.damage, _player)
 			var target_player: Node = collider.get_parent()
-			if target_player != null and target_player.has_method("apply_knockback") and empuje > 0.0:
-				target_player.apply_knockback(dir, empuje)
+			if target_player != null and target_player.has_method("apply_knockback") and s.knockback > 0.0:
+				target_player.apply_knockback(cur_dir, s.knockback)
 			for ef in _effects:
 				if collider is Area2D and ef.has_method("on_hit"):
-					ef.on_hit(null, collider, _player)
+					ef.on_hit(s, collider, _player)
 				elif ef.has_method("on_body_hit"):
-					ef.on_body_hit(null, collider, _player)
+					ef.on_body_hit(s, collider, _player)
+
+		points.append(hit_pos)
+
+		if collider is Area2D:
+			break
+		if s.bounces > 0:
+			s.bounces -= 1
+			cur_dir = cur_dir.bounce(hit_norm)
+			from_pos = hit_pos + hit_norm * 0.5
+		else:
+			break
 
 	var line := Line2D.new()
 	line.width = width
 	line.default_color = color
-	line.add_point(from_pos)
-	line.add_point(hit_pos)
+	line.points = points
 	get_tree().current_scene.add_child(line)
 
 	var tween := line.create_tween()

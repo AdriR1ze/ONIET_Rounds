@@ -27,9 +27,9 @@ func mostrar(ganador: int) -> void:
 func _revancha() -> void:
 	PauseManager.soltar(self)
 	RunManager.reiniciar()
-	get_tree().reload_current_scene()
+	Transition.recargar()
 
 
 func _ir_al_menu() -> void:
 	PauseManager.soltar(self)
-	get_tree().change_scene_to_file(MENU_PRINCIPAL)
+	Transition.cambiar_escena(MENU_PRINCIPAL)

@@ -2,11 +2,11 @@ class_name DemolitionEffect
 extends UpgradeEffect
 
 
-func on_body_hit(bullet: Node, body: Node, _player: Node) -> void:
+func on_body_hit(shot: Shot, body: Node, _player: Node) -> void:
 	if body is TileMapLayer:
-		_destroy_tiles(body as TileMapLayer, bullet.global_position, bullet.direction)
+		_destroy_tiles(body as TileMapLayer, shot.hit_position, shot.direction)
 	elif body.has_method("local_to_map") and body.has_method("erase_cell"):
-		_destroy_tiles(body, bullet.global_position, bullet.direction)
+		_destroy_tiles(body, shot.hit_position, shot.direction)
 
 
 func _destroy_tiles(layer: Node, world_pos: Vector2, dir: Vector2) -> void:

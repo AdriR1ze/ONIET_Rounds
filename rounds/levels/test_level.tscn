@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://ui/match_hud.tscn" id="14_hud"]
 [ext_resource type="PackedScene" path="res://ui/match_end.tscn" id="15_end"]
 [ext_resource type="PackedScene" path="res://ui/round_winner_banner.tscn" id="16_banner"]
+[ext_resource type="Script" path="res://effects/combat_camera.gd" id="17_camera"]
 
 [sub_resource type="Environment" id="Environment_glow"]
 background_mode = 3
@@ -53,3 +54,8 @@ visible = false
 visible = false
 
 [node name="RoundWinnerBanner" parent="." instance=ExtResource("16_banner")]
+
+[node name="Camera" type="Camera2D" parent="."]
+position = Vector2(640, 360)
+anchor_mode = 1
+script = ExtResource("17_camera")

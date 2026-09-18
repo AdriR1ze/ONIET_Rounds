@@ -69,7 +69,7 @@ func _iniciar_partida() -> void:
 	RunManager.set_nombres(_input_p1.text, _input_p2.text)
 	RunManager.configurar_partida(_valor(_rondas, OPCIONES_RONDAS), _valor(_vidas, OPCIONES_VIDAS))
 	RunManager.reiniciar()
-	get_tree().change_scene_to_file(NIVEL)
+	Transition.cambiar_escena(NIVEL)
 
 
 func _mostrar_indice() -> void:

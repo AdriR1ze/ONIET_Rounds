@@ -193,6 +193,16 @@ polygon = PackedVector2Array(0, -3, 22, -3, 22, 3, 0, 3)
 [node name="Muzzle" type="Marker2D" parent="WeaponComponent" unique_id=234082670]
 position = Vector2(24, 0)
 
+[node name="MuzzleFlash" type="Polygon2D" parent="WeaponComponent/Muzzle" unique_id=1147238562]
+visible = false
+color = Color(1.6, 1.2, 0.4, 1)
+polygon = PackedVector2Array(0, -7, 4, 0, 0, 7, -4, 0)
+
+[node name="MuzzleFlashTimer" type="Timer" parent="WeaponComponent/Muzzle" unique_id=1509184733]
+one_shot = true
+wait_time = 0.05
+autostart = false
+
 [node name="HurtboxComponent" type="Area2D" parent="." unique_id=983772338]
 collision_layer = 4
 collision_mask = 0

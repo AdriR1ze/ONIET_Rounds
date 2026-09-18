@@ -56,14 +56,14 @@ func _reiniciar() -> void:
 	visible = false
 	PauseManager.soltar(self)
 	RunManager.reiniciar()
-	get_tree().reload_current_scene()
+	Transition.recargar()
 
 
 func _ir_al_menu() -> void:
 	_activo = false
 	visible = false
 	PauseManager.soltar(self)
-	get_tree().change_scene_to_file(MENU_PRINCIPAL)
+	Transition.cambiar_escena(MENU_PRINCIPAL)
 
 
 func _salir() -> void:

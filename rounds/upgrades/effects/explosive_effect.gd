@@ -5,16 +5,16 @@ extends UpgradeEffect
 @export var damage: int = 15
 
 
-func on_hit(bullet: Node, _target: Node, player: Node) -> void:
-	if bullet == null:
+func on_hit(shot: Shot, _target: Node, player: Node) -> void:
+	if shot == null:
 		return
-	_explode(bullet.global_position, player)
+	_explode(shot.hit_position, player)
 
 
-func on_body_hit(bullet: Node, _body: Node, player: Node) -> void:
-	if bullet == null:
+func on_body_hit(shot: Shot, _body: Node, player: Node) -> void:
+	if shot == null:
 		return
-	_explode(bullet.global_position, player)
+	_explode(shot.hit_position, player)
 
 
 func _explode(pos: Vector2, player: Node) -> void:

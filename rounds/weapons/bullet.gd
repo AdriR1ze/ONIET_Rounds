@@ -23,6 +23,7 @@ var velocity: Vector2 = Vector2.ZERO
 var shooter: Node = null
 var player: Node = null
 var effects: Array = []
+var shot: Shot = null
 
 var _time_alive: float = 0.0
 var _hit_targets: Array = []
@@ -49,6 +50,27 @@ func _ready() -> void:
 		velocity = direction * speed
 	_initial_dir = direction
 	rotation = velocity.angle()
+
+	if shot == null:
+		shot = Shot.new()
+		shot.direction = direction
+		shot.damage = damage
+		shot.speed = speed
+		shot.lifetime = lifetime
+		shot.knockback = knockback
+		shot.pierce = pierce
+		shot.wall_pierce = wall_pierce
+		shot.bounces = bounces
+		shot.gravity = bullet_gravity
+		shot.drag = drag
+		shot.stun_duration = stun_duration
+		shot.ricochet_bonus = ricochet_bonus
+		shot.can_split = can_split
+		shot.is_glitch = is_glitch
+	if shot != null:
+		shot.visual = get_node_or_null("Visual") as CanvasItem
+		if shot.phantom and shot.visual != null:
+			shot.visual.modulate = Color(0.85, 0.5, 1.0, 0.85)
 
 	if not area_entered.is_connected(_on_area_entered):
 		area_entered.connect(_on_area_entered)
@@ -133,7 +155,7 @@ func _physics_process(delta: float) -> void:
 		var hit_pos: Vector2 = hit_world.get("position", next_pos)
 		var hit_norm: Vector2 = hit_world.get("normal", Vector2.UP)
 		if hit_norm.is_zero_approx():
-			hit_norm = _get_surface_normal(hit_collider)
+			hit_norm = _get_contact_info(hit_collider).get("normal", -direction)
 		_handle_body_collision(hit_collider, hit_pos, hit_norm)
 		if not is_instance_valid(self) or is_queued_for_deletion():
 			return
@@ -227,6 +249,10 @@ func spawn_child_bullet(
 	child._split_distance = _split_distance
 	child.is_glitch = allow_glitch
 	child.has_glitched = not allow_glitch
+	# 8. Datos del disparo (el resto de campos los hereda del padre)
+	child.shot = shot.copy()
+	child.shot.can_split = allow_split
+	child.shot.is_glitch = allow_glitch
 
 	var target_parent := get_parent()
 	if target_parent == null and is_inside_tree():
@@ -240,11 +266,10 @@ func _do_split() -> void:
 	if has_split or not can_split:
 		return
 	has_split = true
-	can_split = false
 
 	# Reducir proporcionalmente daño y escala en padre e hijos
 	scale *= 0.82
-	damage = maxi(int(round(damage * 0.45)), 1)
+	damage = maxi(int(round(damage * 0.30)), 1)
 
 	var angles := [deg_to_rad(-18.0), deg_to_rad(18.0)]
 	for ang in angles:
@@ -290,6 +315,15 @@ func _reproducir_sfx(nombre: String, volumen: float = 0.25) -> void:
 		get_tree().root.get_node("AudioManager").call("reproducir", nombre, volumen)
 
 
+func _sync_shot(pos: Vector2, normal: Vector2) -> void:
+	shot.direction = direction
+	shot.damage = damage
+	shot.bounces = bounces
+	shot.hit_position = pos
+	shot.hit_normal = normal
+	shot.visual = get_node_or_null("Visual") as CanvasItem
+
+
 func _handle_body_collision(body: Node, hit_pos: Vector2, hit_norm: Vector2) -> void:
 	if not is_instance_valid(self) or is_queued_for_deletion():
 		return
@@ -300,7 +334,8 @@ func _handle_body_collision(body: Node, hit_pos: Vector2, hit_norm: Vector2) -> 
 
 	for efecto in effects:
 		if efecto.has_method("on_body_hit"):
-			efecto.on_body_hit(self, body, player)
+			_sync_shot(hit_pos, hit_norm)
+			efecto.on_body_hit(shot, body, player)
 
 	# Balas Fantasma: atravesar paredes fluidamente sin teletransportes bruscos
 	if wall_pierce > 0:
@@ -319,52 +354,53 @@ func _handle_body_collision(body: Node, hit_pos: Vector2, hit_norm: Vector2) -> 
 		bounce_count += 1
 		for efecto in effects:
 			if efecto.has_method("on_bounce"):
-				efecto.on_bounce(self, bounce_count, player)
+				_sync_shot(hit_pos, hit_norm)
+				efecto.on_bounce(shot, bounce_count, player)
 
 		velocity = velocity.bounce(hit_norm) * 0.75
 		direction = velocity.normalized()
 		rotation = velocity.angle()
 		var effective_radius: float = 4.0 * maxf(scale.x, 1.0)
-		global_position = hit_pos + hit_norm * (effective_radius + 2.0)
+		global_position = hit_pos + hit_norm * (effective_radius + 0.5)
 		_trail_points.clear()
 
 		if can_split and not has_split:
-			_do_split()
+			_do_split.call_deferred()
 		return
 
 	global_position = hit_pos
 	queue_free()
 
 
-func _get_surface_normal(hit_body: Node) -> Vector2:
+func _get_contact_info(hit_body: Node) -> Dictionary:
 	var space_state := get_world_2d().direct_space_state
-	var ray_start := global_position - direction * 16.0
-	var ray_end := global_position + direction * 24.0
-	var query := PhysicsRayQueryParameters2D.create(ray_start, ray_end)
-	query.collision_mask = 1 | 16
-	query.collide_with_bodies = true
-	query.collide_with_areas = false
+	var params := PhysicsShapeQueryParameters2D.new()
+	var cs := get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if cs != null:
+		params.shape = cs.shape
+		params.transform = global_transform
+	params.motion = direction * 4.0
+	params.collision_mask = 1 | 16
+	params.collide_with_bodies = true
+	params.collide_with_areas = false
 	var excludes: Array[RID] = [get_rid()]
 	if shooter != null and shooter is CollisionObject2D:
 		excludes.append((shooter as CollisionObject2D).get_rid())
-	query.exclude = excludes
+	params.exclude = excludes
 
-	var res := space_state.intersect_ray(query)
-	if not res.is_empty() and res.has("normal"):
-		var n: Vector2 = res["normal"]
+	var rest := space_state.get_rest_info(params)
+	if not rest.is_empty():
+		var n: Vector2 = rest.get("normal", Vector2.ZERO)
 		if not n.is_zero_approx():
-			return n
+			return {"normal": n, "point": rest.get("point", global_position)}
 
-	# Fallback geométrico: si la bala desciende, la superficie es el suelo (Vector2.UP)
-	if absf(velocity.y) >= absf(velocity.x) * 0.35:
-		return Vector2.UP if velocity.y > 0.0 else Vector2.DOWN
-	return Vector2.LEFT if velocity.x > 0.0 else Vector2.RIGHT
+	return {"normal": -direction, "point": global_position}
 
 
 func _on_body_entered(body: Node) -> void:
 	if not _is_phasing_wall and not (body in _phasing_bodies):
-		var norm := _get_surface_normal(body)
-		_handle_body_collision(body, global_position, norm)
+		var info := _get_contact_info(body)
+		_handle_body_collision(body, info.get("point", global_position), info.get("normal", -direction))
 
 
 func _on_body_exited(body: Node) -> void:
@@ -418,7 +454,8 @@ func _on_area_entered(area: Area2D) -> void:
 	damage = hit_damage
 
 	for efecto in effects:
-		efecto.on_hit(self, area, player)
+		_sync_shot(global_position, -direction)
+		efecto.on_hit(shot, area, player)
 
 	area.take_hit(hit_damage, player)
 	if knockback > 0.0 and dueno != null and dueno.has_method("apply_knockback"):

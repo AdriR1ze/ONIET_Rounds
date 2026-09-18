@@ -133,6 +133,7 @@ func _detonate() -> void:
 	var audio := get_node_or_null("/root/AudioManager")
 	if audio != null and audio.has_method("reproducir"):
 		audio.reproducir("golpe", 0.05)
+	CombatCamera.shake_viewport(self, 7.0, 0.35)
 	queue_free()
 
 

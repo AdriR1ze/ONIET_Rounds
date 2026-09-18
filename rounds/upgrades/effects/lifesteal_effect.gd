@@ -3,6 +3,6 @@ extends UpgradeEffect
 
 @export var amount: int = 10
 
-func on_hit(_bullet: Node, _target: Node, player: Node) -> void:
+func on_hit(_shot: Shot, _target: Node, player: Node) -> void:
 	if player != null and player.has_method("heal"):
 		player.heal(amount)
