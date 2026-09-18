@@ -162,6 +162,8 @@ polygon = PackedVector2Array(5, -10, 9, -10, 9, -6, 5, -6)
 [node name="SkeletonSprite" type="AnimatedSprite2D" parent="Visual" unique_id=1982736451]
 visible = false
 texture_filter = 1
+position = Vector2(0, 6)
+scale = Vector2(1.6, 1.6)
 sprite_frames = ExtResource("9_skel")
 animation = &"idle"
 
