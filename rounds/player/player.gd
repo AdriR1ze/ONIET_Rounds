@@ -40,10 +40,15 @@ enum PlayerState {
 @onready var _corner_ray_left: RayCast2D = $CornerRayLeft
 @onready var _corner_ray_right: RayCast2D = $CornerRayRight
 @onready var _ground_ray: RayCast2D = $GroundRay
+@onready var _skeleton_sprite: AnimatedSprite2D = $Visual.get_node_or_null("SkeletonSprite")
+@onready var _body_mesh: Polygon2D = $Visual.get_node_or_null("Body")
+@onready var _beak_mesh: Polygon2D = $Visual.get_node_or_null("Beak")
+@onready var _eye_mesh: Polygon2D = $Visual.get_node_or_null("Eye")
 
 var facing: int = 1
 var can_control: bool = true
 var current_state: PlayerState = PlayerState.IDLE
+var tipo_personaje: String = "pato"
 
 var _effects: Array = []
 var _active_dots: Array = []
@@ -60,6 +65,7 @@ func _ready() -> void:
 	_spawn_position = global_position
 	add_to_group("player")
 	RunManager.registrar_jugador(self)
+	_configurar_personaje()
 	_update_visual_facing()
 
 
@@ -97,6 +103,49 @@ func _update_state() -> void:
 		current_state = PlayerState.WALKING
 	else:
 		current_state = PlayerState.IDLE
+	_update_character_visual()
+
+
+func _configurar_personaje() -> void:
+	tipo_personaje = RunManager.personaje_de(player_number)
+	if tipo_personaje == "esqueleto":
+		if _body_mesh != null:
+			_body_mesh.visible = false
+		if _beak_mesh != null:
+			_beak_mesh.visible = false
+		if _eye_mesh != null:
+			_eye_mesh.visible = false
+		if _skeleton_sprite != null:
+			_skeleton_sprite.visible = true
+			if player_number == 1:
+				_skeleton_sprite.modulate = Color(1.0, 0.94, 0.65, 1.0)
+			else:
+				_skeleton_sprite.modulate = Color(0.65, 0.94, 1.0, 1.0)
+			_skeleton_sprite.play("idle")
+	else:
+		if _body_mesh != null:
+			_body_mesh.visible = true
+		if _beak_mesh != null:
+			_beak_mesh.visible = true
+		if _eye_mesh != null:
+			_eye_mesh.visible = true
+		if _skeleton_sprite != null:
+			_skeleton_sprite.visible = false
+
+
+func _update_character_visual() -> void:
+	if tipo_personaje != "esqueleto" or _skeleton_sprite == null:
+		return
+	match current_state:
+		PlayerState.DEAD:
+			if _skeleton_sprite.animation != "dead":
+				_skeleton_sprite.play("dead")
+		PlayerState.WALKING:
+			if _skeleton_sprite.animation != "walk":
+				_skeleton_sprite.play("walk")
+		_:
+			if _skeleton_sprite.animation != "idle":
+				_skeleton_sprite.play("idle")
 
 
 func _update_jump_timers(delta: float) -> void:
@@ -324,6 +373,8 @@ func respawn() -> void:
 	$Visual.rotation = 0.0
 	$Visual.position = Vector2.ZERO
 	_body_animation.play("stand")
+	if tipo_personaje == "esqueleto" and _skeleton_sprite != null:
+		_skeleton_sprite.play("idle")
 	_update_visual_facing()
 	_health.reset()
 	var hurtbox_col := get_node_or_null("HurtboxComponent/CollisionShape2D") as CollisionShape2D

@@ -14,6 +14,7 @@ var rng := RandomNumberGenerator.new()
 
 var vidas: Dictionary = { 1: 5, 2: 5 }
 var nombres: Dictionary = { 1: "Jugador 1", 2: "Jugador 2" }
+var personajes: Dictionary = { 1: "pato", 2: "pato" }
 var partida_finalizada: bool = false
 var _jugadores: Dictionary = {}
 var _mejoras: Dictionary = {}
@@ -33,6 +34,14 @@ func set_nombres(p1: String, p2: String) -> void:
 	var n2 := p2.strip_edges()
 	nombres[1] = n1 if not n1.is_empty() else "Jugador 1"
 	nombres[2] = n2 if not n2.is_empty() else "Jugador 2"
+
+
+func set_personaje(player_number: int, id: String) -> void:
+	personajes[player_number] = id
+
+
+func personaje_de(player_number: int) -> String:
+	return personajes.get(player_number, "pato")
 
 
 func configurar_partida(rondas: int, vidas: int) -> void:

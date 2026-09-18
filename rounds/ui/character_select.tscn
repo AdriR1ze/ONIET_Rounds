@@ -1,0 +1,347 @@
+[gd_scene format=3 uid="uid://dmeg64y2t5ox4"]
+
+[ext_resource type="Script" path="res://ui/character_select.gd" id="1_select"]
+[ext_resource type="SpriteFrames" path="res://player/skeleton_frames.tres" id="2_skel"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_p1"]
+bg_color = Color(0.08, 0.09, 0.14, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.2, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_p2"]
+bg_color = Color(0.08, 0.09, 0.14, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.75, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[node name="CharacterSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_select")
+
+[node name="Fondo" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.05, 0.08, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 30
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Header" type="VBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Titulo" type="Label" parent="Margin/VBox/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 38
+text = "SELECCIÓN DE PERSONAJE"
+horizontal_alignment = 1
+
+[node name="Subtitulo" type="Label" parent="Margin/VBox/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 15
+text = "Elige a tu luchador para el duelo"
+horizontal_alignment = 1
+
+[node name="PanelJugadores" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 30
+
+[node name="P1Container" type="VBoxContainer" parent="Margin/VBox/PanelJugadores"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="HeaderP1" type="VBoxContainer" parent="Margin/VBox/PanelJugadores/P1Container"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="TagP1" type="Label" parent="Margin/VBox/PanelJugadores/P1Container/HeaderP1"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "JUGADOR 1"
+horizontal_alignment = 1
+
+[node name="NombreP1" type="Label" parent="Margin/VBox/PanelJugadores/P1Container/HeaderP1"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Jugador 1"
+horizontal_alignment = 1
+
+[node name="Cards" type="HBoxContainer" parent="Margin/VBox/PanelJugadores/P1Container"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="CardPato" type="PanelContainer" parent="Margin/VBox/PanelJugadores/P1Container/Cards"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_p1")
+
+[node name="VBox" type="VBoxContainer" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardPato"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="PreviewBox" type="Control" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardPato/VBox"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+
+[node name="DuckVisual" type="Node2D" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardPato/VBox/PreviewBox"]
+position = Vector2(115, 55)
+scale = Vector2(2, 2)
+
+[node name="Body" type="Polygon2D" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardPato/VBox/PreviewBox/DuckVisual"]
+color = Color(1, 0.85, 0.2, 1)
+polygon = PackedVector2Array(-12, -16, 12, -16, 12, 16, -12, 16)
+
+[node name="Beak" type="Polygon2D" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardPato/VBox/PreviewBox/DuckVisual"]
+color = Color(0.65, 0.55, 0.15, 1)
+polygon = PackedVector2Array(12, -4, 20, 0, 12, 4)
+
+[node name="Eye" type="Polygon2D" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardPato/VBox/PreviewBox/DuckVisual"]
+color = Color(0.1, 0.1, 0.12, 1)
+polygon = PackedVector2Array(5, -10, 9, -10, 9, -6, 5, -6)
+
+[node name="Nombre" type="Label" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardPato/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Pato Clásico"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardPato/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.72, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+text = "El duelista emplumado original."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="CardEsqueleto" type="PanelContainer" parent="Margin/VBox/PanelJugadores/P1Container/Cards"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_p1")
+
+[node name="VBox" type="VBoxContainer" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardEsqueleto"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="PreviewBox" type="Control" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardEsqueleto/VBox"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+
+[node name="SkelSpriteP1" type="AnimatedSprite2D" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardEsqueleto/VBox/PreviewBox"]
+texture_filter = 1
+position = Vector2(115, 55)
+scale = Vector2(2.5, 2.5)
+sprite_frames = ExtResource("2_skel")
+animation = &"walk"
+frame_progress = 0.5
+
+[node name="Nombre" type="Label" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardEsqueleto/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Esqueleto"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardEsqueleto/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.72, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+text = "Ágil, huesudo e implacable."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="EstadoP1" type="Label" parent="Margin/VBox/PanelJugadores/P1Container"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "[ A / D cambiar  •  W / Espacio confirmar ]"
+horizontal_alignment = 1
+
+[node name="BotonListoP1" type="Button" parent="Margin/VBox/PanelJugadores/P1Container"]
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "¡LISTO!"
+
+[node name="VS" type="CenterContainer" parent="Margin/VBox/PanelJugadores"]
+layout_mode = 2
+
+[node name="LabelVS" type="Label" parent="Margin/VBox/PanelJugadores/VS"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.38, 0.48, 1)
+theme_override_font_sizes/font_size = 28
+text = "VS"
+
+[node name="P2Container" type="VBoxContainer" parent="Margin/VBox/PanelJugadores"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="HeaderP2" type="VBoxContainer" parent="Margin/VBox/PanelJugadores/P2Container"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="TagP2" type="Label" parent="Margin/VBox/PanelJugadores/P2Container/HeaderP2"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.75, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "JUGADOR 2"
+horizontal_alignment = 1
+
+[node name="NombreP2" type="Label" parent="Margin/VBox/PanelJugadores/P2Container/HeaderP2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Jugador 2"
+horizontal_alignment = 1
+
+[node name="Cards" type="HBoxContainer" parent="Margin/VBox/PanelJugadores/P2Container"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="CardPato" type="PanelContainer" parent="Margin/VBox/PanelJugadores/P2Container/Cards"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_p2")
+
+[node name="VBox" type="VBoxContainer" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardPato"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="PreviewBox" type="Control" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardPato/VBox"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+
+[node name="DuckVisual" type="Node2D" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardPato/VBox/PreviewBox"]
+position = Vector2(115, 55)
+scale = Vector2(2, 2)
+
+[node name="Body" type="Polygon2D" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardPato/VBox/PreviewBox/DuckVisual"]
+color = Color(0.35, 0.75, 1, 1)
+polygon = PackedVector2Array(-12, -16, 12, -16, 12, 16, -12, 16)
+
+[node name="Beak" type="Polygon2D" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardPato/VBox/PreviewBox/DuckVisual"]
+color = Color(0.65, 0.55, 0.15, 1)
+polygon = PackedVector2Array(12, -4, 20, 0, 12, 4)
+
+[node name="Eye" type="Polygon2D" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardPato/VBox/PreviewBox/DuckVisual"]
+color = Color(0.1, 0.1, 0.12, 1)
+polygon = PackedVector2Array(5, -10, 9, -10, 9, -6, 5, -6)
+
+[node name="Nombre" type="Label" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardPato/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Pato Clásico"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardPato/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.72, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+text = "El duelista emplumado original."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="CardEsqueleto" type="PanelContainer" parent="Margin/VBox/PanelJugadores/P2Container/Cards"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_p2")
+
+[node name="VBox" type="VBoxContainer" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardEsqueleto"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="PreviewBox" type="Control" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardEsqueleto/VBox"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+
+[node name="SkelSpriteP2" type="AnimatedSprite2D" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardEsqueleto/VBox/PreviewBox"]
+texture_filter = 1
+position = Vector2(115, 55)
+scale = Vector2(2.5, 2.5)
+sprite_frames = ExtResource("2_skel")
+animation = &"walk"
+frame_progress = 0.5
+
+[node name="Nombre" type="Label" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardEsqueleto/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Esqueleto"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardEsqueleto/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.72, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+text = "Ágil, huesudo e implacable."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="EstadoP2" type="Label" parent="Margin/VBox/PanelJugadores/P2Container"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "[ ← / → cambiar  •  ↑ / Enter confirmar ]"
+horizontal_alignment = 1
+
+[node name="BotonListoP2" type="Button" parent="Margin/VBox/PanelJugadores/P2Container"]
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "¡LISTO!"
+
+[node name="Footer" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="BotonVolver" type="Button" parent="Margin/VBox/Footer"]
+custom_minimum_size = Vector2(140, 42)
+layout_mode = 2
+text = "Volver"
+
+[node name="BotonIniciar" type="Button" parent="Margin/VBox/Footer"]
+custom_minimum_size = Vector2(240, 42)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "COMENZAR PARTIDA"

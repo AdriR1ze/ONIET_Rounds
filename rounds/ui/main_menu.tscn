@@ -178,9 +178,9 @@ theme_override_constants/separation = 14
 alignment = 1
 
 [node name="Comenzar" type="Button" parent="ModalNombres/Centro/Marco/Margin/VBox/Botones"]
-custom_minimum_size = Vector2(160, 36)
+custom_minimum_size = Vector2(180, 36)
 layout_mode = 2
-text = "Iniciar Partida"
+text = "Elegir Personajes"
 
 [node name="Volver" type="Button" parent="ModalNombres/Centro/Marco/Margin/VBox/Botones"]
 custom_minimum_size = Vector2(120, 36)

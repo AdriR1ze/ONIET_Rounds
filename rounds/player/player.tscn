@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://0ycbvu1v1lrc" path="res://player/components/health_component.gd" id="5_health"]
 [ext_resource type="Script" uid="uid://c5jrbwt17go3d" path="res://player/components/player_input.gd" id="6_input"]
 [ext_resource type="Script" uid="uid://w3hi3xymg7fs" path="res://stats/stat_sheet.gd" id="8_stats"]
+[ext_resource type="SpriteFrames" path="res://player/skeleton_frames.tres" id="9_skel"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_stand"]
 size = Vector2(30, 41)
@@ -157,6 +158,12 @@ polygon = PackedVector2Array(12, -4, 20, 0, 12, 4)
 [node name="Eye" type="Polygon2D" parent="Visual" unique_id=1349842503]
 color = Color(0.1, 0.1, 0.12, 1)
 polygon = PackedVector2Array(5, -10, 9, -10, 9, -6, 5, -6)
+
+[node name="SkeletonSprite" type="AnimatedSprite2D" parent="Visual" unique_id=1982736451]
+visible = false
+texture_filter = 1
+sprite_frames = ExtResource("9_skel")
+animation = &"idle"
 
 [node name="StandShape" type="CollisionShape2D" parent="." unique_id=1561294504]
 shape = SubResource("RectangleShape2D_stand")
