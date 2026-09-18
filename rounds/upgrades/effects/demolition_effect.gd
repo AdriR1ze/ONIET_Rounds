@@ -29,6 +29,13 @@ func _destroy_tiles(layer: Node, world_pos: Vector2, dir: Vector2) -> void:
 
 
 func _erase(layer: Node, coords: Vector2i) -> void:
+	# Los bordes perimetrales del mapa (paredes, suelo y techo) son irrompibles
+	if coords.x <= 0 or coords.x >= 39 or coords.y <= 0 or coords.y >= 21:
+		return
+	if layer.has_meta("indestructible_coords"):
+		var no_romper: Array = layer.get_meta("indestructible_coords")
+		if coords in no_romper:
+			return
 	if layer is TileMapLayer:
 		layer.set_cell(coords, -1)
 	elif layer.has_method("erase_cell"):

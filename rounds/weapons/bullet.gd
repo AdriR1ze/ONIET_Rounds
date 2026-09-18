@@ -1,6 +1,6 @@
 extends Area2D
 
-const BULLET_SCENE: PackedScene = preload("res://weapons/bullet.tscn")
+static var _bullet_scene_res: PackedScene = null
 const MAX_TRAIL_POINTS := 8
 
 @export var speed: float = 1050.0
@@ -214,7 +214,9 @@ func spawn_child_bullet(
 	allow_split: bool = false,
 	allow_glitch: bool = false
 ) -> Node:
-	var child := BULLET_SCENE.instantiate()
+	if _bullet_scene_res == null:
+		_bullet_scene_res = load("res://weapons/bullet.tscn")
+	var child := _bullet_scene_res.instantiate()
 	child.global_position = global_position
 	# 1. Escala proporcional idéntica (mantiene Balas Grandes)
 	child.scale = scale
