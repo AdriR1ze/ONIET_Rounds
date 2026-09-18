@@ -1,18 +1,18 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://b4hd6bix1h7oy"]
 
-[ext_resource type="Script" path="res://weapons/bullet.gd" id="1_bullet"]
+[ext_resource type="Script" uid="uid://qk21o6fd6hh1" path="res://weapons/bullet.gd" id="1_bullet"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bullet"]
 radius = 4.0
 
-[node name="Bullet" type="Area2D"]
+[node name="Bullet" type="Area2D" unique_id=2114709615]
 collision_layer = 32
 collision_mask = 21
 script = ExtResource("1_bullet")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1607304708]
 shape = SubResource("CircleShape2D_bullet")
 
-[node name="Visual" type="Polygon2D" parent="."]
+[node name="Visual" type="Polygon2D" parent="." unique_id=1404317625]
 color = Color(1, 0.9, 0.35, 1)
 polygon = PackedVector2Array(-6, -3.5, 3, -3.5, 7, 0, 3, 3.5, -6, 3.5)

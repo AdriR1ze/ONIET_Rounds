@@ -3,14 +3,14 @@ extends Area2D
 const BULLET_SCENE: PackedScene = preload("res://weapons/bullet.tscn")
 const MAX_TRAIL_POINTS := 8
 
-@export var speed: float = 780.0
-@export var lifetime: float = 2.5
+@export var speed: float = 1050.0
+@export var lifetime: float = 1.5
 @export var damage: int = 25
 @export var pierce: int = 0
 @export var knockback: float = 0.0
-@export var bullet_gravity: float = 720.0
-@export var drag: float = 0.2
-@export var max_fall_speed: float = 1200.0
+@export var bullet_gravity: float = 1200.0
+@export var drag: float = 0.0
+@export var max_fall_speed: float = 2000.0
 @export var bounces: int = 0
 @export var splits: int = 0
 @export var wall_pierce: int = 0
@@ -88,10 +88,9 @@ func _physics_process(delta: float) -> void:
 	if drag > 0.0:
 		velocity -= velocity * (drag * delta)
 
-	# 2. Gravedad adaptativa: menor al disparar recto, mayor en parábola
-	var vert_ratio := clampf(absf(_initial_dir.y) / 0.55, 0.0, 1.0)
-	var gravity_factor := lerpf(0.20, 1.0, vert_ratio)
-	velocity.y += (bullet_gravity * gravity_factor) * delta
+	# 2. Gravedad según ángulo de disparo: tiro frontal más plano, arriba/abajo caída rápida
+	var grav_scale := lerpf(0.30, 1.0, absf(_initial_dir.y))
+	velocity.y += (bullet_gravity * grav_scale) * delta
 	if velocity.y > max_fall_speed:
 		velocity.y = max_fall_speed
 

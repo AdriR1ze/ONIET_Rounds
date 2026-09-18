@@ -89,12 +89,12 @@ func try_fire() -> bool:
 	var cantidad := _stat_entero(&"projectiles", 1)
 	var dispersion: float = _stat(&"spread", 0.0)
 	var dano := _stat_entero(&"damage", 25)
-	var velocidad: float = _stat(&"bullet_speed", 780.0)
-	var duracion: float = _stat(&"bullet_lifetime", 2.5)
+	var velocidad: float = _stat(&"bullet_speed", 1050.0)
+	var duracion: float = _stat(&"bullet_lifetime", 1.5)
 	var penetracion := _stat_entero(&"pierce", 0)
 	var empuje: float = _stat(&"knockback", 0.0)
-	var gravedad: float = _stat(&"bullet_gravity", 720.0)
-	var rozamiento: float = _stat(&"bullet_drag", 0.2)
+	var gravedad: float = _stat(&"bullet_gravity", 1200.0)
+	var rozamiento: float = _stat(&"bullet_drag", 0.0)
 
 	var is_quick := false
 	if _quickdraw_ready:

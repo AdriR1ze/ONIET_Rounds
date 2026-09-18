@@ -28,7 +28,8 @@ enum PlayerState {
 @export_group("Jump Game Feel")
 @export var coyote_time: float = 0.12
 @export var jump_buffer_time: float = 0.12
-@export var corner_correction_distance: float = 8.0
+@export var corner_correction_step: float = 2.0
+@export var corner_correction_max: float = 12.0
 
 @onready var _input: PlayerInput = $PlayerInput
 @onready var _weapon: WeaponComponent = $WeaponComponent
@@ -36,6 +37,9 @@ enum PlayerState {
 @onready var _stats: StatSheet = $StatSheet
 @onready var _body_animation: AnimationPlayer = $BodyAnimation
 @onready var _hit_flash: AnimationPlayer = $HitFlash
+@onready var _corner_ray_left: RayCast2D = $CornerRayLeft
+@onready var _corner_ray_right: RayCast2D = $CornerRayRight
+@onready var _ground_ray: RayCast2D = $GroundRay
 
 var facing: int = 1
 var can_control: bool = true
@@ -78,7 +82,7 @@ func _physics_process(delta: float) -> void:
 			_handle_aim()
 			_handle_actions()
 
-	_apply_corner_correction(delta)
+	_apply_corner_correction()
 	move_and_slide()
 
 
@@ -101,7 +105,8 @@ func _update_jump_timers(delta: float) -> void:
 		_jump_buffer_timer = 0.0
 		return
 
-	if is_on_floor():
+	_ground_ray.force_raycast_update()
+	if _ground_ray.is_colliding() and velocity.y >= 0.0:
 		_coyote_timer = coyote_time
 	else:
 		_coyote_timer = maxf(_coyote_timer - delta, 0.0)
@@ -110,60 +115,6 @@ func _update_jump_timers(delta: float) -> void:
 		_jump_buffer_timer = jump_buffer_time
 	else:
 		_jump_buffer_timer = maxf(_jump_buffer_timer - delta, 0.0)
-
-
-func _apply_corner_correction(delta: float) -> void:
-	if not can_control or current_state == PlayerState.DEAD or velocity.y >= 0.0:
-		return
-
-	var up_step := Vector2(0.0, minf(velocity.y * delta, -2.0))
-	if not test_move(global_transform, up_step):
-		return
-
-	var max_dist := int(corner_correction_distance)
-	var found_right := 0
-	var found_left := 0
-
-	# Buscar menor desplazamiento a la derecha
-	for i in range(1, max_dist + 1):
-		var step_x := float(i)
-		if not test_move(global_transform, Vector2(step_x, 0.0), null, 0.08, true):
-			var trans_right := global_transform
-			trans_right.origin.x += step_x
-			if not test_move(trans_right, up_step, null, 0.08, true):
-				found_right = i
-				break
-
-	# Buscar menor desplazamiento a la izquierda
-	for i in range(1, max_dist + 1):
-		var step_x := float(-i)
-		if not test_move(global_transform, Vector2(step_x, 0.0), null, 0.08, true):
-			var trans_left := global_transform
-			trans_left.origin.x += step_x
-			if not test_move(trans_left, up_step, null, 0.08, true):
-				found_left = i
-				break
-
-	var chosen_offset := 0.0
-	if found_right > 0 and found_left > 0:
-		if found_right < found_left:
-			chosen_offset = float(found_right)
-		elif found_left < found_right:
-			chosen_offset = float(-found_left)
-		else:
-			if velocity.x > 0.0:
-				chosen_offset = float(found_right)
-			elif velocity.x < 0.0:
-				chosen_offset = float(-found_left)
-			else:
-				chosen_offset = float(found_right * facing)
-	elif found_right > 0:
-		chosen_offset = float(found_right)
-	elif found_left > 0:
-		chosen_offset = float(-found_left)
-
-	if not is_zero_approx(chosen_offset):
-		global_position.x += chosen_offset
 
 
 func _apply_gravity(delta: float) -> void:
@@ -194,12 +145,35 @@ func _handle_jump() -> void:
 	if _input.is_lock_pressed():
 		return
 	if _jump_buffer_timer > 0.0 and _coyote_timer > 0.0:
+		velocity.y = _stats.get_stat(&"jump_velocity")
 		_jump_buffer_timer = 0.0
 		_coyote_timer = 0.0
-		velocity.y = _stats.get_stat(&"jump_velocity")
 		AudioManager.reproducir("salto", 0.05)
 	if _input.is_jump_just_released() and velocity.y < 0.0:
 		velocity.y *= 0.5
+
+
+func _apply_corner_correction() -> void:
+	if not can_control or current_state == PlayerState.DEAD or velocity.y >= 0.0:
+		return
+	var left_hit := _corner_ray_hits(_corner_ray_left)
+	var right_hit := _corner_ray_hits(_corner_ray_right)
+	if left_hit == right_hit:
+		return
+	var direction := 1.0 if left_hit else -1.0
+	var travelled := 0.0
+	while travelled < corner_correction_max:
+		global_position.x += direction * corner_correction_step
+		travelled += corner_correction_step
+		left_hit = _corner_ray_hits(_corner_ray_left)
+		right_hit = _corner_ray_hits(_corner_ray_right)
+		if not left_hit and not right_hit:
+			return
+
+
+func _corner_ray_hits(ray: RayCast2D) -> bool:
+	ray.force_raycast_update()
+	return ray.is_colliding()
 
 
 func _handle_aim() -> void:

@@ -13,9 +13,9 @@ height = 1
 [resource]
 shader = ExtResource("1_ow1gr")
 shader_parameter/palette = SubResource("GradientTexture2D_qc7yb")
-shader_parameter/cell_size = 80.0
-shader_parameter/jitter = 2.0
+shader_parameter/cell_size = 32.0
+shader_parameter/jitter = 0.4
 shader_parameter/skip_chance = 0.55
-shader_parameter/warp_amount = 1.5
+shader_parameter/warp_amount = 0.6
 shader_parameter/warp_scale = 1.0
 shader_parameter/color_speed = 0.6
