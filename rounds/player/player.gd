@@ -40,10 +40,19 @@ enum PlayerState {
 @onready var _corner_ray_left: RayCast2D = $CornerRayLeft
 @onready var _corner_ray_right: RayCast2D = $CornerRayRight
 @onready var _ground_ray: RayCast2D = $GroundRay
+@onready var _skeleton_sprite: AnimatedSprite2D = $Visual.get_node_or_null("SkeletonSprite")
+@onready var _body_mesh: Polygon2D = $Visual.get_node_or_null("Body")
+@onready var _wing_mesh: Polygon2D = $Visual.get_node_or_null("Wing")
+@onready var _beak_mesh: Polygon2D = $Visual.get_node_or_null("Beak")
+@onready var _eye_mesh: Polygon2D = $Visual.get_node_or_null("Eye")
+@onready var _pupil_mesh: Polygon2D = $Visual.get_node_or_null("Pupil")
+@onready var _feet_node: Node2D = $Visual.get_node_or_null("Feet")
+@onready var _floating_hp: Node2D = get_node_or_null("FloatingHealthBar")
 
 var facing: int = 1
 var can_control: bool = true
 var current_state: PlayerState = PlayerState.IDLE
+var tipo_personaje: String = "pato"
 
 var _effects: Array = []
 var _active_dots: Array = []
@@ -62,7 +71,11 @@ func _ready() -> void:
 	_spawn_position = global_position
 	add_to_group("player")
 	RunManager.registrar_jugador(self)
+	_configurar_personaje()
 	_update_visual_facing()
+	if _floating_hp != null:
+		_floating_hp.setup(player_number, _health.health, _health.max_health)
+		_health.health_changed.connect(_floating_hp.update_health)
 
 
 func _physics_process(delta: float) -> void:
@@ -99,6 +112,74 @@ func _update_state() -> void:
 		current_state = PlayerState.WALKING
 	else:
 		current_state = PlayerState.IDLE
+	_update_character_visual()
+
+
+func _set_duck_parts_visible(v: bool) -> void:
+	if _body_mesh != null: _body_mesh.visible = v
+	if _wing_mesh != null: _wing_mesh.visible = v
+	if _beak_mesh != null: _beak_mesh.visible = v
+	if _eye_mesh != null: _eye_mesh.visible = v
+	if _pupil_mesh != null: _pupil_mesh.visible = v
+	if _feet_node != null: _feet_node.visible = v
+
+
+func _configurar_personaje() -> void:
+	tipo_personaje = RunManager.personaje_de(player_number)
+	if tipo_personaje == "esqueleto":
+		_set_duck_parts_visible(false)
+		if _skeleton_sprite != null:
+			_skeleton_sprite.visible = true
+			_skeleton_sprite.modulate = Color.WHITE
+			var mat := ShaderMaterial.new()
+			mat.shader = preload("res://player/skeleton_palette.gdshader")
+			if player_number == 1:
+				mat.set_shader_parameter("color_highlight", Color(1.0, 0.95, 0.25, 1.0))
+				mat.set_shader_parameter("color_midtone", Color(1.0, 0.85, 0.15, 1.0))
+				mat.set_shader_parameter("color_shadow", Color(0.65, 0.48, 0.08, 1.0))
+			else:
+				mat.set_shader_parameter("color_highlight", Color(0.80, 0.98, 1.0, 1.0))
+				mat.set_shader_parameter("color_midtone", Color(0.35, 0.78, 1.0, 1.0))
+				mat.set_shader_parameter("color_shadow", Color(0.08, 0.20, 0.38, 1.0))
+			_skeleton_sprite.material = mat
+			_skeleton_sprite.play("idle")
+		_body_animation.play("stand")
+	else:
+		_set_duck_parts_visible(true)
+		if _wing_mesh != null:
+			if player_number == 1:
+				_wing_mesh.color = Color(0.85, 0.68, 0.1, 1.0)
+			else:
+				_wing_mesh.color = Color(0.2, 0.58, 0.85, 1.0)
+		if _skeleton_sprite != null:
+			_skeleton_sprite.visible = false
+		_body_animation.play("duck_idle")
+
+
+func _update_character_visual() -> void:
+	if tipo_personaje == "esqueleto":
+		if _skeleton_sprite == null:
+			return
+		match current_state:
+			PlayerState.DEAD:
+				if _skeleton_sprite.animation != "dead":
+					_skeleton_sprite.play("dead")
+			PlayerState.WALKING:
+				if _skeleton_sprite.animation != "walk":
+					_skeleton_sprite.play("walk")
+			_:
+				if _skeleton_sprite.animation != "idle":
+					_skeleton_sprite.play("idle")
+	else:
+		match current_state:
+			PlayerState.DEAD:
+				_body_animation.stop()
+			PlayerState.WALKING:
+				if _body_animation.current_animation != "duck_walk":
+					_body_animation.play("duck_walk")
+			_:
+				if _body_animation.current_animation != "duck_idle":
+					_body_animation.play("duck_idle")
 
 
 func _update_jump_timers(delta: float) -> void:
@@ -202,7 +283,7 @@ func _handle_actions() -> void:
 
 func _update_visual_facing() -> void:
 	$Visual.scale.x = absf($Visual.scale.x) * facing
-	_weapon.position.x = 4.0 * facing
+	_weapon.position = Vector2(4.0 * facing, 9.0)
 
 
 func _start_ragdoll() -> void:
@@ -308,6 +389,9 @@ func _on_died() -> void:
 	_ragdoll_timer = 0.0
 	_body_animation.stop()
 
+	if _floating_hp != null:
+		_floating_hp.update_health(0, _health.max_health)
+
 	# Impulso de caída al suelo
 	velocity.x *= 0.3
 	velocity.y = maxf(velocity.y, 140.0)
@@ -368,7 +452,12 @@ func respawn() -> void:
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	$Visual.rotation = 0.0
 	$Visual.position = Vector2.ZERO
-	_body_animation.play("stand")
+	if tipo_personaje == "esqueleto":
+		_body_animation.play("stand")
+		if _skeleton_sprite != null:
+			_skeleton_sprite.play("idle")
+	else:
+		_body_animation.play("duck_idle")
 	_update_visual_facing()
 	_health.reset()
 	var hurtbox_col := get_node_or_null("HurtboxComponent/CollisionShape2D") as CollisionShape2D
@@ -376,6 +465,10 @@ func respawn() -> void:
 		hurtbox_col.set_deferred("disabled", false)
 	if _weapon != null and _weapon.has_method("reset_cooldown"):
 		_weapon.reset_cooldown(0.35)
+	if _weapon != null and _weapon.has_method("reset_ammo"):
+		_weapon.reset_ammo()
+	if _floating_hp != null:
+		_floating_hp.setup(player_number, _health.health, _health.max_health)
 
 
 func aplicar_mejoras(upgrades: Array) -> void:
@@ -390,6 +483,8 @@ func aplicar_mejoras(upgrades: Array) -> void:
 			efecto.on_apply(self, 1)
 	_health.max_health = maxi(_stats.get_entero(&"max_health"), 1)
 	_health.reset()
+	if _floating_hp != null:
+		_floating_hp.setup(player_number, _health.health, _health.max_health)
 	_weapon.configurar(_stats, self, _effects)
 
 

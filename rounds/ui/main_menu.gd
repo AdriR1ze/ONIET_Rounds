@@ -1,6 +1,7 @@
 extends Control
 
 const NIVEL := "res://levels/test_level.tscn"
+const ESCENA_PERSONAJES := "res://ui/character_select.tscn"
 const OPCIONES_RONDAS := [1, 2, 3, 5, 7]
 const OPCIONES_VIDAS := [1, 2, 3, 4, 5]
 
@@ -69,7 +70,7 @@ func _iniciar_partida() -> void:
 	RunManager.set_nombres(_input_p1.text, _input_p2.text)
 	RunManager.configurar_partida(_valor(_rondas, OPCIONES_RONDAS), _valor(_vidas, OPCIONES_VIDAS))
 	RunManager.reiniciar()
-	Transition.cambiar_escena(NIVEL)
+	Transition.cambiar_escena(ESCENA_PERSONAJES)
 
 
 func _mostrar_indice() -> void:

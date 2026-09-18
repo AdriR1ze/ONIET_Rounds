@@ -78,11 +78,29 @@ func start_reload() -> void:
 	reload_started.emit()
 
 
+func get_reload_progress() -> float:
+	if not is_reloading or reload_time <= 0.0:
+		return 1.0
+	return clampf(1.0 - (_reload_timer / reload_time), 0.0, 1.0)
+
+
+func reset_ammo() -> void:
+	is_reloading = false
+	_reload_timer = 0.0
+	current_ammo = max_ammo
+	ammo_changed.emit(current_ammo, max_ammo)
+	reload_completed.emit()
+
+
 func set_aim(direction: Vector2) -> void:
 	if direction.is_zero_approx():
 		return
 	aim_direction = direction.normalized()
 	rotation = aim_direction.angle()
+	if absf(rotation) > PI * 0.5:
+		scale.y = -1.0
+	else:
+		scale.y = 1.0
 
 
 func can_fire() -> bool:
