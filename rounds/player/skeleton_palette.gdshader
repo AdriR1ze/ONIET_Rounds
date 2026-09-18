@@ -1,9 +1,9 @@
 shader_type canvas_item;
 
 uniform bool enabled = true;
-uniform vec4 color_highlight : source_color = vec4(0.97, 0.93, 0.62, 1.0);
-uniform vec4 color_midtone : source_color = vec4(0.90, 0.82, 0.42, 1.0);
-uniform vec4 color_shadow : source_color = vec4(0.40, 0.33, 0.16, 1.0);
+uniform vec4 color_highlight : source_color = vec4(1.0, 0.95, 0.25, 1.0);
+uniform vec4 color_midtone : source_color = vec4(1.0, 0.85, 0.15, 1.0);
+uniform vec4 color_shadow : source_color = vec4(0.65, 0.48, 0.08, 1.0);
 
 void fragment() {
 	vec4 tex = texture(TEXTURE, UV);

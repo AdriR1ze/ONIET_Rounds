@@ -2,6 +2,21 @@
 
 [ext_resource type="Script" path="res://ui/character_select.gd" id="1_select"]
 [ext_resource type="SpriteFrames" path="res://player/skeleton_frames.tres" id="2_skel"]
+[ext_resource type="Shader" path="res://player/skeleton_palette.gdshader" id="3_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_p1_skel"]
+shader = ExtResource("3_shader")
+shader_parameter/enabled = true
+shader_parameter/color_highlight = Color(1, 0.95, 0.25, 1)
+shader_parameter/color_midtone = Color(1, 0.85, 0.15, 1)
+shader_parameter/color_shadow = Color(0.65, 0.48, 0.08, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_p2_skel"]
+shader = ExtResource("3_shader")
+shader_parameter/enabled = true
+shader_parameter/color_highlight = Color(0.8, 0.98, 1, 1)
+shader_parameter/color_midtone = Color(0.35, 0.78, 1, 1)
+shader_parameter/color_shadow = Color(0.08, 0.2, 0.38, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_p1"]
 bg_color = Color(0.08, 0.09, 0.14, 0.9)
@@ -185,6 +200,7 @@ custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
 
 [node name="SkelSpriteP1" type="AnimatedSprite2D" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardEsqueleto/VBox/PreviewBox"]
+material = SubResource("ShaderMaterial_p1_skel")
 texture_filter = 1
 position = Vector2(115, 58)
 scale = Vector2(4.2, 4.2)
@@ -329,6 +345,7 @@ custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
 
 [node name="SkelSpriteP2" type="AnimatedSprite2D" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardEsqueleto/VBox/PreviewBox"]
+material = SubResource("ShaderMaterial_p2_skel")
 texture_filter = 1
 position = Vector2(115, 58)
 scale = Vector2(4.2, 4.2)

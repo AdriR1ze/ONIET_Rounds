@@ -8,6 +8,14 @@
 [ext_resource type="Script" uid="uid://c5jrbwt17go3d" path="res://player/components/player_input.gd" id="6_input"]
 [ext_resource type="Script" uid="uid://w3hi3xymg7fs" path="res://stats/stat_sheet.gd" id="8_stats"]
 [ext_resource type="SpriteFrames" path="res://player/skeleton_frames.tres" id="9_skel"]
+[ext_resource type="Shader" path="res://player/skeleton_palette.gdshader" id="10_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_skel"]
+shader = ExtResource("10_shader")
+shader_parameter/enabled = true
+shader_parameter/color_highlight = Color(1, 0.95, 0.25, 1)
+shader_parameter/color_midtone = Color(1, 0.85, 0.15, 1)
+shader_parameter/color_shadow = Color(0.65, 0.48, 0.08, 1)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_stand"]
 size = Vector2(30, 41)
@@ -334,6 +342,7 @@ color = Color(0.92, 0.45, 0.08, 1)
 polygon = PackedVector2Array(1, 14, 6, 14, 9, 17, 2, 17)
 
 [node name="SkeletonSprite" type="AnimatedSprite2D" parent="Visual" unique_id=1982736451]
+material = SubResource("ShaderMaterial_skel")
 visible = false
 texture_filter = 1
 position = Vector2(0, 5)
