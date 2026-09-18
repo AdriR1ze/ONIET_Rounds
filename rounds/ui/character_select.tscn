@@ -185,7 +185,6 @@ custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
 
 [node name="SkelSpriteP1" type="AnimatedSprite2D" parent="Margin/VBox/PanelJugadores/P1Container/Cards/CardEsqueleto/VBox/PreviewBox"]
-modulate = Color(1.25, 1.05, 0.25, 1)
 texture_filter = 1
 position = Vector2(115, 60)
 scale = Vector2(3.6, 3.6)
@@ -330,7 +329,6 @@ custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
 
 [node name="SkelSpriteP2" type="AnimatedSprite2D" parent="Margin/VBox/PanelJugadores/P2Container/Cards/CardEsqueleto/VBox/PreviewBox"]
-modulate = Color(0.35, 0.85, 1.3, 1)
 texture_filter = 1
 position = Vector2(115, 60)
 scale = Vector2(3.6, 3.6)

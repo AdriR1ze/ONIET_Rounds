@@ -124,10 +124,18 @@ func _configurar_personaje() -> void:
 		_set_duck_parts_visible(false)
 		if _skeleton_sprite != null:
 			_skeleton_sprite.visible = true
+			_skeleton_sprite.modulate = Color.WHITE
+			var mat := ShaderMaterial.new()
+			mat.shader = preload("res://player/skeleton_palette.gdshader")
 			if player_number == 1:
-				_skeleton_sprite.modulate = Color(1.25, 1.05, 0.25, 1.0)
+				mat.set_shader_parameter("color_highlight", Color(1.0, 1.0, 0.45, 1.0))
+				mat.set_shader_parameter("color_midtone", Color(1.0, 0.85, 0.20, 1.0))
+				mat.set_shader_parameter("color_shadow", Color(0.40, 0.30, 0.05, 1.0))
 			else:
-				_skeleton_sprite.modulate = Color(0.35, 0.85, 1.3, 1.0)
+				mat.set_shader_parameter("color_highlight", Color(0.80, 0.98, 1.0, 1.0))
+				mat.set_shader_parameter("color_midtone", Color(0.35, 0.78, 1.0, 1.0))
+				mat.set_shader_parameter("color_shadow", Color(0.08, 0.20, 0.38, 1.0))
+			_skeleton_sprite.material = mat
 			_skeleton_sprite.play("idle")
 		_body_animation.play("stand")
 	else:
