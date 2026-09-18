@@ -9,6 +9,8 @@ func on_hit(shot: Shot, _target: Node, player: Node) -> void:
 
 
 func on_body_hit(shot: Shot, _body: Node, player: Node) -> void:
+	if shot.bounces > 0:
+		return
 	_spawn_cloud(shot.hit_position, player)
 
 
@@ -19,4 +21,4 @@ func _spawn_cloud(pos: Vector2, player: Node) -> void:
 	var cloud: Node = CLOUD_SCENE.instantiate()
 	cloud.set("global_position", pos)
 	cloud.set("source_player", player)
-	tree.current_scene.add_child(cloud)
+	tree.current_scene.add_child.call_deferred(cloud)

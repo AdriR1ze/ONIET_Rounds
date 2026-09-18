@@ -2,6 +2,7 @@ extends Area2D
 
 const BULLET_SCENE: PackedScene = preload("res://weapons/bullet.tscn")
 const MAX_TRAIL_POINTS := 8
+const BORDER_PROBE := 96.0
 
 @export var speed: float = 1050.0
 @export var lifetime: float = 1.5
@@ -324,6 +325,44 @@ func _sync_shot(pos: Vector2, normal: Vector2) -> void:
 	shot.visual = get_node_or_null("Visual") as CanvasItem
 
 
+## Indica si el impacto cae en el borde de la arena: mira si el punto de golpe
+## está a menos de BORDER_PROBE del perímetro del rect visible de la cámara activa.
+func _is_border_hit(hit_pos: Vector2) -> bool:
+	var camera := get_viewport().get_camera_2d()
+	var visible_rect := get_viewport().get_visible_rect()
+	if camera != null:
+		var visible_size := get_viewport().get_visible_rect().size / camera.zoom
+		visible_rect = Rect2(camera.get_screen_center_position() - visible_size * 0.5, visible_size)
+	if not visible_rect.has_point(hit_pos):
+		return true
+	return (
+		hit_pos.x - visible_rect.position.x < BORDER_PROBE
+		or visible_rect.end.x - hit_pos.x < BORDER_PROBE
+		or hit_pos.y - visible_rect.position.y < BORDER_PROBE
+		or visible_rect.end.y - hit_pos.y < BORDER_PROBE
+	)
+
+
+## Rebote reutilizable: consume un rebote, refleja la velocidad y reposiciona.
+func _bounce_off(hit_pos: Vector2, hit_norm: Vector2) -> void:
+	bounces -= 1
+	bounce_count += 1
+	for efecto in effects:
+		if efecto.has_method("on_bounce"):
+			_sync_shot(hit_pos, hit_norm)
+			efecto.on_bounce(shot, bounce_count, player)
+
+	velocity = velocity.bounce(hit_norm) * 0.75
+	direction = velocity.normalized()
+	rotation = velocity.angle()
+	var effective_radius: float = 4.0 * maxf(scale.x, 1.0)
+	global_position = hit_pos + hit_norm * (effective_radius + 0.5)
+	_trail_points.clear()
+
+	if can_split and not has_split:
+		_do_split.call_deferred()
+
+
 func _handle_body_collision(body: Node, hit_pos: Vector2, hit_norm: Vector2) -> void:
 	if not is_instance_valid(self) or is_queued_for_deletion():
 		return
@@ -336,6 +375,15 @@ func _handle_body_collision(body: Node, hit_pos: Vector2, hit_norm: Vector2) -> 
 		if efecto.has_method("on_body_hit"):
 			_sync_shot(hit_pos, hit_norm)
 			efecto.on_body_hit(shot, body, player)
+
+	# Borde de la arena: nunca gasta Balas Fantasma; rebota o se destruye.
+	if _is_border_hit(hit_pos):
+		if bounces > 0:
+			_bounce_off(hit_pos, hit_norm)
+		else:
+			global_position = hit_pos
+			queue_free()
+		return
 
 	# Balas Fantasma: atravesar paredes fluidamente sin teletransportes bruscos
 	if wall_pierce > 0:
@@ -350,22 +398,7 @@ func _handle_body_collision(body: Node, hit_pos: Vector2, hit_norm: Vector2) -> 
 
 	# Rebote en superficies sólidas
 	if bounces > 0:
-		bounces -= 1
-		bounce_count += 1
-		for efecto in effects:
-			if efecto.has_method("on_bounce"):
-				_sync_shot(hit_pos, hit_norm)
-				efecto.on_bounce(shot, bounce_count, player)
-
-		velocity = velocity.bounce(hit_norm) * 0.75
-		direction = velocity.normalized()
-		rotation = velocity.angle()
-		var effective_radius: float = 4.0 * maxf(scale.x, 1.0)
-		global_position = hit_pos + hit_norm * (effective_radius + 0.5)
-		_trail_points.clear()
-
-		if can_split and not has_split:
-			_do_split.call_deferred()
+		_bounce_off(hit_pos, hit_norm)
 		return
 
 	global_position = hit_pos
