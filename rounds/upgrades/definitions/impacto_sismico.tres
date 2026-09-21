@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_fd8rc"]
+[ext_resource type="Script" path="res://upgrades/effects/impacto_sismico_effect.gd" id="2_73bu7"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_krh11"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_chftr"]
+
+[sub_resource type="Resource" id="Resource_kpj0a"]
+script = ExtResource("2_73bu7")
+
+[sub_resource type="Resource" id="Resource_b24go"]
+script = ExtResource("4_chftr")
+stat = &"damage"
+op = 1
+value = 0.8
+
+[resource]
+script = ExtResource("3_krh11")
+id = &"impacto_sismico"
+titulo = "Impacto Sísmico"
+subtitulo = "Empuje demoledor y aturdimiento contundente"
+nivel = 3
+descripcion = "Tus proyectiles empujan fuertemente (+550 fuerza) y aturden 0.35 s al objetivo impactado."
+rareza = 1
+tema = &"sismico"
+ventajas = Array[String](["Empuje masivo (+550) y aturde 0.35s"])
+desventajas = Array[String](["-20% Daño de bala"])
+mecanicas = Array[String](["Empuje masivo y aturdimiento contundente"])
+stats = Array[ExtResource("4_chftr")]([SubResource("Resource_b24go")])
+efectos = Array[ExtResource("1_fd8rc")]([SubResource("Resource_kpj0a")])

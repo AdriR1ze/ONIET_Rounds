@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_jw7l8"]
+[ext_resource type="Script" path="res://upgrades/effects/propulsion_effect.gd" id="2_2ix4u"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_jxl1n"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_tyo7r"]
+
+[sub_resource type="Resource" id="Resource_cqy52"]
+script = ExtResource("2_2ix4u")
+
+[sub_resource type="Resource" id="Resource_sow3m"]
+script = ExtResource("4_tyo7r")
+stat = &"damage"
+op = 1
+value = 0.9
+
+[resource]
+script = ExtResource("3_jxl1n")
+id = &"propulsion"
+titulo = "Propulsión"
+subtitulo = "Retroceso masivo y cargador infinito"
+nivel = 2
+descripcion = "Cada disparo genera un retroceso colosal (Rocket Jump extremo) y tus proyectiles no consumen munición del cargador."
+rareza = 1
+tema = &"rapido"
+ventajas = Array[String](["Retroceso colosal hacia atrás (Rocket Jump extremo)", "Cargador infinito (nunca te quedás sin balas)"])
+desventajas = Array[String](["-10% Daño de bala"])
+mecanicas = Array[String](["Retroceso cinético masivo y munición infinita"])
+stats = Array[ExtResource("4_tyo7r")]([SubResource("Resource_sow3m")])
+efectos = Array[ExtResource("1_jw7l8")]([SubResource("Resource_cqy52")])

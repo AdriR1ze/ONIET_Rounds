@@ -76,6 +76,20 @@ func _draw() -> void:
 			_draw_fantasma(c)
 		&"demolicion":
 			_draw_demolicion(c)
+		&"sismico":
+			_draw_sismico(c)
+		&"armadura":
+			_draw_armadura(c)
+		&"gravedad":
+			_draw_gravedad(c)
+		&"totem":
+			_draw_totem(c)
+		&"barrera":
+			_draw_barrera(c)
+		&"iman":
+			_draw_iman(c)
+		&"sangre":
+			_draw_sangre(c)
 		_:
 			_draw_default(c)
 
@@ -284,7 +298,91 @@ func _draw_demolicion(c: Vector2) -> void:
 	draw_line(c + Vector2(4, -2), c + Vector2(-8, 14), Color(1.0, 0.8, 0.3, 1.0), 2.0)
 
 
+func _draw_sismico(c: Vector2) -> void:
+	var pulse := 0.85 + 0.15 * sin(_time * 6.0)
+	var col := Color(1.0, 0.6, 0.2, 0.85)
+	for i in 3:
+		var r := (10.0 + float(i) * 10.0) * pulse
+		draw_arc(c, r, 0, TAU, 24, Color(col.r, col.g, col.b, 0.7 - float(i) * 0.2), 2.0)
+	draw_circle(c, 5.0, Color(1.0, 0.8, 0.3, 1.0))
+
+
+func _draw_armadura(c: Vector2) -> void:
+	var shield_pts := PackedVector2Array([
+		c + Vector2(0, -22), c + Vector2(18, -14), c + Vector2(16, 6),
+		c + Vector2(0, 24), c + Vector2(-16, 6), c + Vector2(-18, -14)
+	])
+	draw_colored_polygon(shield_pts, Color(0.2, 0.3, 0.45, 0.85))
+	draw_polyline(shield_pts, Color(0.4, 0.8, 1.0, 0.95), 2.0)
+	draw_line(c + Vector2(0, -18), c + Vector2(0, 18), Color(0.6, 0.9, 1.0, 0.6), 1.5)
+
+
+func _draw_gravedad(c: Vector2) -> void:
+	var pulse := fmod(_time * 1.8, 1.0)
+	var col_void := Color(0.55, 0.2, 0.9, 0.8)
+	draw_circle(c, 10.0, Color(0.05, 0.02, 0.1, 0.95))
+	draw_circle(c, 4.0, Color(0.7, 0.4, 1.0, 0.9))
+	for i in 3:
+		var r := 12.0 + fmod(pulse + float(i) * 0.33, 1.0) * 22.0
+		var alpha := 1.0 - (r / 34.0)
+		draw_arc(c, r, 0, TAU, 24, Color(col_void.r, col_void.g, col_void.b, alpha * 0.7), 1.5)
+
+
+func _draw_totem(c: Vector2) -> void:
+	var totem_col := Color(0.2, 0.85, 0.4, 0.9)
+	var post_pts := PackedVector2Array([
+		c + Vector2(-6, 20), c + Vector2(6, 20), c + Vector2(4, -8), c + Vector2(-4, -8)
+	])
+	draw_colored_polygon(post_pts, Color(0.3, 0.4, 0.35, 0.9))
+	# Cristal flotante
+	var y_off := sin(_time * 3.0) * 3.0
+	var crys_pts := PackedVector2Array([
+		c + Vector2(0, -22 + y_off), c + Vector2(7, -14 + y_off),
+		c + Vector2(0, -6 + y_off), c + Vector2(-7, -14 + y_off)
+	])
+	draw_colored_polygon(crys_pts, totem_col)
+	draw_polyline(crys_pts, Color.WHITE, 1.5)
+
+
+func _draw_barrera(c: Vector2) -> void:
+	var col := Color(0.2, 0.75, 1.0, 0.85)
+	# Hexágono de barrera
+	var hex := PackedVector2Array()
+	for a in 6:
+		var ang := float(a) * TAU / 6.0 + PI / 6.0
+		hex.append(c + Vector2(cos(ang), sin(ang)) * 22.0)
+	hex.append(hex[0])
+	draw_polyline(hex, col, 2.0)
+	draw_circle(c, 6.0, Color(col.r, col.g, col.b, 0.5))
+
+
+func _draw_iman(c: Vector2) -> void:
+	# Herradura magnética
+	var p_left := c + Vector2(-16, -14)
+	var p_right := c + Vector2(16, -14)
+	var col_u := Color(0.85, 0.2, 0.25, 0.9)
+	var col_s := Color(0.2, 0.45, 0.95, 0.9)
+	draw_arc(c + Vector2(0, 4), 16.0, 0, PI, 16, Color(0.6, 0.65, 0.7, 0.9), 5.0)
+	draw_line(p_left + Vector2(0, 6), p_left + Vector2(0, 18), col_u, 5.0)
+	draw_line(p_right + Vector2(0, 6), p_right + Vector2(0, 18), col_s, 5.0)
+	# Líneas de campo
+	var pulse := fmod(_time * 2.0, 1.0)
+	draw_arc(c + Vector2(0, -10), 10.0 + pulse * 14.0, PI * 0.2, PI * 0.8, 12, Color(1.0, 1.0, 0.4, (1.0 - pulse) * 0.7), 1.5)
+
+
+func _draw_sangre(c: Vector2) -> void:
+	var pulse := 0.85 + 0.15 * sin(_time * 4.0)
+	var col := Color(0.85, 0.08, 0.15, 0.9)
+	draw_circle(c, 18.0 * pulse, Color(col.r, col.g, col.b, 0.25))
+	var drop_pts := PackedVector2Array([
+		c + Vector2(0, -18), c + Vector2(14, 4), c + Vector2(0, 18), c + Vector2(-14, 4)
+	])
+	draw_colored_polygon(drop_pts, col)
+	draw_circle(c + Vector2(-3, 2), 4.0, Color(1.0, 0.4, 0.4, 0.8))
+
+
 func _draw_default(c: Vector2) -> void:
 	draw_circle(c, 18.0, Color(border_color.r, border_color.g, border_color.b, 0.25))
 	draw_arc(c, 22.0, 0, TAU, 32, border_color, 1.5)
 	draw_circle(c, 4.0, border_color)
+

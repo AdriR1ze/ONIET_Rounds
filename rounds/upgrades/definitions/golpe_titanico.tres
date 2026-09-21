@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_4boil"]
+[ext_resource type="Script" path="res://upgrades/effects/golpe_titanico_effect.gd" id="2_3e6cx"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_axoh0"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_cfvoi"]
+
+[sub_resource type="Resource" id="Resource_rw43f"]
+script = ExtResource("2_3e6cx")
+
+[resource]
+script = ExtResource("3_axoh0")
+id = &"golpe_titanico"
+titulo = "Golpe Titánico"
+subtitulo = "Tus disparos son reemplazados por un golpe masivo"
+nivel = 3
+descripcion = "Reemplaza tus proyectiles por un golpe cuerpo a cuerpo devastador cuyo daño equivale al 35% de tu vida máxima más empuje contundente."
+rareza = 1
+tema = &"sismico"
+ventajas = Array[String](["Reemplaza balas por golpe melee devastador", "Daño escala con tu salud máxima (35% max HP)"])
+desventajas = Array[String](["Rango limitado a cuerpo a cuerpo"])
+mecanicas = Array[String](["Ataque cuerpo a cuerpo devastador"])
+efectos = Array[ExtResource("1_4boil")]([SubResource("Resource_rw43f")])

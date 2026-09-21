@@ -66,6 +66,51 @@ var _spawn_position: Vector2
 var _hit_stop_remaining: float = 0.0
 var _hit_stop_active: bool = false
 
+# Modificadores de físicas dinámicos (auras / campos)
+var gravity_scale: float = 1.0
+var jump_force_multiplier: float = 1.0
+
+# Armadura y Mitigación
+var _adaptive_armor_stacks: int = 0
+var _adaptive_armor_timer: float = 0.0
+var _harvest_armor_stacks: int = 0
+var _harvest_armor_timer: float = 0.0
+var _charge_armor: float = 0.0
+var _running_time: float = 0.0
+var _charge_hit_cooldown: float = 0.0
+
+# Regeneración (Segunda Piel)
+var _second_skin_timer: float = 0.0
+var _second_skin_tick_timer: float = 0.0
+
+# Ralentización (Bala Anclante / Aura)
+var _slow_factor: float = 1.0
+var _slow_timer: float = 0.0
+
+# Corazón de Titanio
+var has_titanium_heart: bool = false
+var _titanium_heart_ready: bool = true
+var _titanium_heart_cooldown: float = 0.0
+
+# Deuda de Sangre
+var has_blood_debt: bool = false
+var _in_blood_debt: bool = false
+var _blood_debt_timer: float = 0.0
+var _blood_debt_healed: int = 0
+var _blood_debt_cooldown: float = 0.0
+
+# Sepultador (empuje contra pared)
+var _sepultador_timer: float = 0.0
+var _sepultador_damage: int = 0
+var _last_sepultador_source: Node = null
+
+# Barrera (Muro Vivo)
+var active_barrier: Node2D = null
+var _still_timer: float = 0.0
+
+# Propulsión (Rocket Jump y munición)
+var has_propulsion: bool = false
+
 
 func _ready() -> void:
 	if player_number > RunManager.cantidad_jugadores:
@@ -83,9 +128,12 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	gravity_scale = 1.0
+	jump_force_multiplier = 1.0
 	_update_stun(delta)
 	_update_dots(delta)
 	_update_ragdoll(delta)
+	_update_buffs(delta)
 	_update_state()
 	_apply_gravity(delta)
 	_update_jump_timers(delta)
@@ -103,6 +151,7 @@ func _physics_process(delta: float) -> void:
 
 	_apply_corner_correction()
 	move_and_slide()
+	_check_sepultador_collision()
 
 
 func _update_state() -> void:
@@ -199,7 +248,7 @@ func _update_jump_timers(delta: float) -> void:
 
 func _apply_gravity(delta: float) -> void:
 	if not is_on_floor():
-		velocity.y = minf(velocity.y + gravity * delta, max_fall_speed)
+		velocity.y = minf(velocity.y + (gravity * gravity_scale) * delta, max_fall_speed)
 	elif velocity.y > 0.0:
 		velocity.y = 0.0
 
@@ -209,7 +258,7 @@ func _handle_horizontal(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 		return
 	var direction := _input.move_axis()
-	var speed := _stats.get_stat(&"move_speed")
+	var speed := _stats.get_stat(&"move_speed") * get_speed_multiplier()
 	if absf(velocity.x) > speed and (is_zero_approx(direction) or signi(velocity.x) != signi(direction)):
 		var decel := friction * 0.4 if is_on_floor() else friction * 0.15
 		velocity.x = move_toward(velocity.x, direction * speed, decel * delta)
@@ -225,7 +274,7 @@ func _handle_jump() -> void:
 	if _input.is_lock_pressed():
 		return
 	if _jump_buffer_timer > 0.0 and _coyote_timer > 0.0:
-		velocity.y = _stats.get_stat(&"jump_velocity")
+		velocity.y = _stats.get_stat(&"jump_velocity") * jump_force_multiplier
 		_jump_buffer_timer = 0.0
 		_coyote_timer = 0.0
 		AudioManager.reproducir("salto", 0.05)
@@ -315,13 +364,19 @@ func can_parry() -> bool:
 
 func on_parry(bullet: Node) -> void:
 	parried_bullet.emit(bullet)
+	for ef in _effects:
+		if ef.has_method("on_parry"):
+			ef.on_parry(bullet, self)
 	print("Player %d: Parried!" % player_number)
 
 
-func _on_damaged(_amount: int, _source: Node) -> void:
+func _on_damaged(amount: int, source: Node) -> void:
 	AudioManager.reproducir("golpe", 0.1)
 	_hit_flash.play("hit")
 	CombatCamera.shake_viewport(self, 4.0, 0.2)
+	for ef in _effects:
+		if ef.has_method("on_damaged"):
+			ef.on_damaged(amount, source, self)
 	if is_alive():
 		_hit_stop(0.04)
 
@@ -446,6 +501,32 @@ func respawn() -> void:
 	_toxic_cloud_count = 0
 	_poison_flash_timer = 0.0
 	_active_dots.clear()
+	gravity_scale = 1.0
+	jump_force_multiplier = 1.0
+	_adaptive_armor_stacks = 0
+	_adaptive_armor_timer = 0.0
+	_harvest_armor_stacks = 0
+	_harvest_armor_timer = 0.0
+	_charge_armor = 0.0
+	_running_time = 0.0
+	_charge_hit_cooldown = 0.0
+	_second_skin_timer = 0.0
+	_second_skin_tick_timer = 0.0
+	_slow_factor = 1.0
+	_slow_timer = 0.0
+	_titanium_heart_ready = true
+	_titanium_heart_cooldown = 0.0
+	_in_blood_debt = false
+	_blood_debt_timer = 0.0
+	_blood_debt_healed = 0
+	_blood_debt_cooldown = 0.0
+	_sepultador_timer = 0.0
+	_sepultador_damage = 0
+	_last_sepultador_source = null
+	has_propulsion = false
+	if is_instance_valid(active_barrier):
+		active_barrier.queue_free()
+		active_barrier = null
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	$Visual.rotation = 0.0
 	$Visual.position = Vector2.ZERO
@@ -471,26 +552,214 @@ func respawn() -> void:
 func aplicar_mejoras(upgrades: Array) -> void:
 	_effects.clear()
 	_stats.limpiar()
+	has_titanium_heart = false
+	has_blood_debt = false
+	has_propulsion = false
+	if is_instance_valid(active_barrier):
+		active_barrier.queue_free()
+		active_barrier = null
+
 	for def in upgrades:
 		for mod in def.stats:
 			_stats.agregar_modificador(mod)
 	for def in upgrades:
 		for efecto in def.efectos:
-			_effects.append(efecto)
-			efecto.on_apply(self, 1)
+			var ef_inst: UpgradeEffect = efecto.duplicate(true)
+			_effects.append(ef_inst)
+			ef_inst.on_apply(self, 1)
 	_health.max_health = maxi(_stats.get_entero(&"max_health"), 1)
 	_health.reset()
 	if _floating_hp != null:
 		_floating_hp.setup(player_number, _health.health, _health.max_health)
 	_weapon.configurar(_stats, self, _effects)
+	if not _weapon.reload_started.is_connected(_on_weapon_reload_started):
+		_weapon.reload_started.connect(_on_weapon_reload_started)
+
+
+func _on_weapon_reload_started() -> void:
+	for ef in _effects:
+		if ef.has_method("on_reload_started"):
+			ef.on_reload_started(self)
 
 
 func hurt(amount: int, source: Node = null) -> void:
-	_health.apply_damage(amount, source)
+	if not is_alive():
+		return
+
+	# Intercepción por Barrera de Muro Vivo
+	if is_instance_valid(active_barrier) and active_barrier.has_method("absorb_hit"):
+		if active_barrier.absorb_hit():
+			return
+
+	# Mitigación por armadura (Piel Adaptativa, Cosecha, Carga Blindada)
+	var armor_red := get_armor_reduction()
+	var final_amount: int = maxi(int(round(float(amount) * (1.0 - armor_red))), 1)
+
+	# Corazón de Titanio: no puede bajarte de 25% max HP si está listo
+	if has_titanium_heart and _titanium_heart_ready:
+		var floor_hp := int(ceil(float(_health.max_health) * 0.25))
+		if _health.health > floor_hp and (_health.health - final_amount) < floor_hp:
+			final_amount = _health.health - floor_hp
+			_titanium_heart_ready = false
+			_titanium_heart_cooldown = 12.0
+			CombatCamera.shake_viewport(self, 3.0, 0.15)
+			AudioManager.reproducir("golpe", 0.15)
+
+	# Deuda de Sangre: sobrevive en deuda por 5 segundos si el daño es letal
+	if has_blood_debt:
+		if _health.health - final_amount <= 0:
+			if not _in_blood_debt and _blood_debt_cooldown <= 0.0:
+				_in_blood_debt = true
+				_blood_debt_timer = 5.0
+				_blood_debt_healed = 0
+				final_amount = maxi(_health.health - 1, 0)
+			elif _in_blood_debt:
+				final_amount = maxi(_health.health - 1, 0)
+
+	_health.apply_damage(final_amount, source)
 
 
 func heal(amount: int) -> void:
+	if not is_alive():
+		return
+	var prev_hp := _health.health
 	_health.heal(amount)
+	var healed := _health.health - prev_hp
+	if healed > 0:
+		if _in_blood_debt:
+			_blood_debt_healed += healed
+		for ef in _effects:
+			if ef.has_method("on_healed"):
+				ef.on_healed(healed, self)
+
+
+func get_armor_reduction() -> float:
+	var total: float = 0.0
+	if _adaptive_armor_stacks > 0:
+		total += float(_adaptive_armor_stacks) * 0.08
+	if _harvest_armor_stacks > 0:
+		total += float(_harvest_armor_stacks) * 0.05
+	total += _charge_armor
+	return clampf(total, 0.0, 0.75)
+
+
+func get_speed_multiplier() -> float:
+	var mult: float = 1.0
+	if _slow_timer > 0.0:
+		mult *= _slow_factor
+	if has_effect_id("ira_sangre") and _health.health <= int(float(_health.max_health) * 0.5):
+		mult *= 1.15
+	return mult
+
+
+func get_damage_multiplier() -> float:
+	var mult: float = 1.0
+	if has_effect_id("ira_sangre") and _health.health <= int(float(_health.max_health) * 0.5):
+		mult *= 1.25
+	return mult
+
+
+func has_effect_id(effect_id: String) -> bool:
+	for ef in _effects:
+		if ef.get("effect_id") == effect_id:
+			return true
+	return false
+
+
+func apply_recoil(impulse: Vector2) -> void:
+	if current_state == PlayerState.DEAD:
+		return
+	# Si el retroceso impulsa hacia arriba, cancelamos la inercia de caída previa
+	if impulse.y < -50.0 and velocity.y > 0.0:
+		velocity.y = 0.0
+	velocity += impulse
+
+
+func apply_slow(factor: float, duration: float) -> void:
+	if current_state == PlayerState.DEAD:
+		return
+	_slow_factor = minf(_slow_factor, factor)
+	_slow_timer = maxf(_slow_timer, duration)
+
+
+func mark_sepultador(source: Node, bullet_dmg: int, duration: float = 0.6) -> void:
+	_last_sepultador_source = source
+	_sepultador_damage = bullet_dmg
+	_sepultador_timer = duration
+
+
+func _check_sepultador_collision() -> void:
+	if _sepultador_timer <= 0.0 or current_state == PlayerState.DEAD:
+		return
+	if is_on_wall() and absf(velocity.x) > 30.0:
+		var bonus_dmg := maxi(int(round(float(_sepultador_damage) * 0.50)), 1)
+		hurt(bonus_dmg, _last_sepultador_source)
+		stun(0.40)
+		CombatCamera.shake_viewport(self, 5.0, 0.2)
+		AudioManager.reproducir("golpe", 0.15)
+		_sepultador_timer = 0.0
+		_last_sepultador_source = null
+
+
+func _update_buffs(delta: float) -> void:
+	# Armadura Adaptativa
+	if _adaptive_armor_timer > 0.0:
+		_adaptive_armor_timer -= delta
+		if _adaptive_armor_timer <= 0.0:
+			_adaptive_armor_stacks = 0
+
+	# Cosecha de Balas
+	if _harvest_armor_timer > 0.0:
+		_harvest_armor_timer -= delta
+		if _harvest_armor_timer <= 0.0:
+			_harvest_armor_stacks = 0
+
+	# Regeneración (Segunda Piel)
+	if _second_skin_timer > 0.0:
+		_second_skin_timer -= delta
+		_second_skin_tick_timer -= delta
+		if _second_skin_tick_timer <= 0.0:
+			_second_skin_tick_timer = 0.5
+			heal(2)
+
+	# Ralentización
+	if _slow_timer > 0.0:
+		_slow_timer -= delta
+		if _slow_timer <= 0.0:
+			_slow_factor = 1.0
+
+	# Corazón de Titanio
+	if _titanium_heart_cooldown > 0.0:
+		_titanium_heart_cooldown -= delta
+		if _titanium_heart_cooldown <= 0.0:
+			_titanium_heart_ready = true
+
+	# Deuda de Sangre
+	if _blood_debt_cooldown > 0.0:
+		_blood_debt_cooldown -= delta
+	if _in_blood_debt:
+		_blood_debt_timer -= delta
+		if _blood_debt_timer <= 0.0:
+			_in_blood_debt = false
+			if _blood_debt_healed < 1:
+				_health.apply_damage(_health.health, null)
+			else:
+				_blood_debt_cooldown = 10.0
+
+	# Sepultador
+	if _sepultador_timer > 0.0:
+		_sepultador_timer -= delta
+		if _sepultador_timer <= 0.0:
+			_last_sepultador_source = null
+
+	# Cooldown de Carga Blindada
+	if _charge_hit_cooldown > 0.0:
+		_charge_hit_cooldown -= delta
+
+	# Notificar a los efectos activos
+	for ef in _effects:
+		if ef.has_method("on_process"):
+			ef.on_process(delta, self)
 
 
 func apply_dot(damage_per_tick: float, ticks_count: int = 3, source: Node = null) -> void:
@@ -553,9 +822,14 @@ func _update_dots(delta: float) -> void:
 		i -= 1
 
 	if _stun_timer <= 0.0 and current_state != PlayerState.DEAD:
-		if _poison_flash_timer > 0.0:
+		if _in_blood_debt:
+			var pulse := 0.7 + 0.3 * sin(float(Time.get_ticks_msec()) * 0.012)
+			modulate = Color(1.8 * pulse, 0.2, 0.2, 1.0)
+		elif _poison_flash_timer > 0.0:
 			modulate = Color(0.4, 2.2, 0.4, 1.0)
 		elif is_poisoned or _toxic_cloud_count > 0:
 			modulate = Color(0.55, 1.25, 0.55, 1.0)
+		elif has_effect_id("ira_sangre") and _health.health <= int(float(_health.max_health) * 0.5):
+			modulate = Color(1.35, 0.8, 0.8, 1.0)
 		elif modulate != Color(1.0, 1.0, 1.0, 1.0):
 			modulate = Color(1.0, 1.0, 1.0, 1.0)

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_n4a5p"]
+[ext_resource type="Script" path="res://upgrades/effects/magnetismo_effect.gd" id="2_ps35d"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_fkmv8"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_65ymu"]
+
+[sub_resource type="Resource" id="Resource_548l5"]
+script = ExtResource("2_ps35d")
+
+[sub_resource type="Resource" id="Resource_prb6y"]
+script = ExtResource("4_65ymu")
+stat = &"fire_rate"
+op = 1
+value = 0.9
+
+[resource]
+script = ExtResource("3_fkmv8")
+id = &"magnetismo"
+titulo = "Magnetismo"
+subtitulo = "Atrae las balas enemigas hacia vos"
+nivel = 3
+descripcion = "Genera un campo magnético que desvía y atrae las balas enemigas hacia tu posición, facilitando realizar parries."
+rareza = 1
+tema = &"iman"
+ventajas = Array[String](["Atrae balas enemigas en un radio de 160px"])
+desventajas = Array[String](["-10% Cadencia de tiro"])
+mecanicas = Array[String](["Campo de atracción magnética de proyectiles"])
+stats = Array[ExtResource("4_65ymu")]([SubResource("Resource_prb6y")])
+efectos = Array[ExtResource("1_n4a5p")]([SubResource("Resource_548l5")])

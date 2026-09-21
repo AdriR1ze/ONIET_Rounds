@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_awuyx"]
+[ext_resource type="Script" path="res://upgrades/effects/corazon_titanio_effect.gd" id="2_s8igt"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_7r8in"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_2mqxr"]
+
+[sub_resource type="Resource" id="Resource_qmf2g"]
+script = ExtResource("2_s8igt")
+
+[sub_resource type="Resource" id="Resource_t3wjf"]
+script = ExtResource("4_2mqxr")
+stat = &"move_speed"
+op = 1
+value = 0.9
+
+[resource]
+script = ExtResource("3_7r8in")
+id = &"corazon_titanio"
+titulo = "Corazón de Titanio"
+subtitulo = "Umbral inquebrantable de supervivencia"
+nivel = 5
+descripcion = "Ningún impacto individual puede reducir tu salud por debajo del 25% de tu vida máxima (enfriamiento de 12 s)."
+rareza = 3
+tema = &"armadura"
+ventajas = Array[String](["Un golpe no puede bajarte de 25% vida"])
+desventajas = Array[String](["-10% Velocidad de movimiento", "Enfriamiento de 12s tras activarse"])
+mecanicas = Array[String](["Umbral de supervivencia de titanio"])
+stats = Array[ExtResource("4_2mqxr")]([SubResource("Resource_t3wjf")])
+efectos = Array[ExtResource("1_awuyx")]([SubResource("Resource_qmf2g")])

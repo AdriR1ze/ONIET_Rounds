@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_wxi63"]
+[ext_resource type="Script" path="res://upgrades/effects/zona_gravedad_effect.gd" id="2_xtomt"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_wx5t4"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_l7lc6"]
+
+[sub_resource type="Resource" id="Resource_oflxy"]
+script = ExtResource("2_xtomt")
+
+[sub_resource type="Resource" id="Resource_emso8"]
+script = ExtResource("4_l7lc6")
+stat = &"move_speed"
+op = 1
+value = 0.9
+
+[resource]
+script = ExtResource("3_wx5t4")
+id = &"zona_gravedad"
+titulo = "Zona de Gravedad"
+subtitulo = "Aura de gravedad aumentada para tus rivales"
+nivel = 4
+descripcion = "Los rivales cercanos (<130px) caen más rápido (+85% gravedad) y casi no pueden despegar del suelo (-55% fuerza de salto)."
+rareza = 2
+tema = &"gravedad"
+ventajas = Array[String](["Rivales cerca caen más rápido y casi no pueden saltar"])
+desventajas = Array[String](["-10% Velocidad propia"])
+mecanicas = Array[String](["Aura de gravedad aumentada"])
+stats = Array[ExtResource("4_l7lc6")]([SubResource("Resource_emso8")])
+efectos = Array[ExtResource("1_wxi63")]([SubResource("Resource_oflxy")])

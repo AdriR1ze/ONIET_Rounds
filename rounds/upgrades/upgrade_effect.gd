@@ -32,3 +32,23 @@ func on_crit(_bullet: Node, _player: Node) -> void:
 
 func on_shoot(_bullet: Node, _player: Node) -> void:
 	pass
+
+
+func on_parry(_bullet: Node, _player: Node) -> void:
+	pass
+
+
+func on_damaged(_amount: int, _source: Node, _player: Node) -> void:
+	pass
+
+
+func on_healed(_amount: int, _player: Node) -> void:
+	pass
+
+
+func on_process(_delta: float, _player: Node) -> void:
+	pass
+
+
+func on_reload_started(_player: Node) -> void:
+	pass

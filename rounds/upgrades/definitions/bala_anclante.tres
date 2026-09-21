@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_7ycwd"]
+[ext_resource type="Script" path="res://upgrades/effects/bala_anclante_effect.gd" id="2_1tnbs"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_j47hg"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_1b5h8"]
+
+[sub_resource type="Resource" id="Resource_0xcsc"]
+script = ExtResource("2_1tnbs")
+
+[sub_resource type="Resource" id="Resource_8a736"]
+script = ExtResource("4_1b5h8")
+stat = &"damage"
+op = 1
+value = 0.9
+
+[resource]
+script = ExtResource("3_j47hg")
+id = &"bala_anclante"
+titulo = "Bala Anclante"
+subtitulo = "Campo de anclaje que ralentiza en área"
+nivel = 3
+descripcion = "Al impactar, genera un campo de anclaje de 85px que reduce la velocidad de movimiento de los rivales un 50% por 1.5 s."
+rareza = 1
+tema = &"gravedad"
+ventajas = Array[String](["Ralentiza al 50% en área durante 1.5s"])
+desventajas = Array[String](["-10% Daño de bala"])
+mecanicas = Array[String](["Zona de anclaje y ralentización"])
+stats = Array[ExtResource("4_1b5h8")]([SubResource("Resource_8a736")])
+efectos = Array[ExtResource("1_7ycwd")]([SubResource("Resource_0xcsc")])

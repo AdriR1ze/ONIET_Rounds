@@ -45,7 +45,7 @@ func configurar(stats: StatSheet, player: Node, effects: Array) -> void:
 	_stats = stats
 	_player = player
 	_effects = effects
-	max_ammo = _stat_entero(&"max_ammo", 3)
+	max_ammo = maxi(_stat_entero(&"max_ammo", 3), 1)
 	reload_time = _stat(&"reload_time", 1.2)
 	current_ammo = max_ammo
 	is_reloading = false
@@ -119,6 +119,8 @@ func try_fire() -> bool:
 	var cantidad := _stat_entero(&"projectiles", 1)
 	var dispersion: float = _stat(&"spread", 0.0)
 	var dano := _stat_entero(&"damage", 25)
+	if _player != null and _player.has_method("get_damage_multiplier"):
+		dano = int(round(float(dano) * _player.get_damage_multiplier()))
 	var velocidad: float = _stat(&"bullet_speed", 1050.0)
 	var duracion: float = _stat(&"bullet_lifetime", 1.5)
 	var penetracion := _stat_entero(&"pierce", 0)
@@ -142,7 +144,9 @@ func try_fire() -> bool:
 	var base_angle := aim_direction.angle()
 	var centro := (cantidad - 1) / 2.0
 
-	if _has_laser_sight():
+	if _has_melee_strike():
+		_fire_melee_strike(is_roulette)
+	elif _has_laser_sight():
 		var rebotes := _stat_entero(&"bounces", 0)
 		var penetracion_pared := _stat_entero(&"wall_pierce", 0)
 		var s := Shot.new()
@@ -214,10 +218,14 @@ func try_fire() -> bool:
 					spawn_pos.y = max_allowed_y
 			bala.global_position = spawn_pos
 
-	current_ammo -= 1
-	ammo_changed.emit(current_ammo, max_ammo)
-	if current_ammo <= 0:
-		start_reload()
+	if not _has_infinite_ammo():
+		current_ammo -= 1
+		ammo_changed.emit(current_ammo, max_ammo)
+		if current_ammo <= 0:
+			start_reload()
+	else:
+		current_ammo = max_ammo
+		ammo_changed.emit(current_ammo, max_ammo)
 
 	_cooldown = 1.0 / maxf(_stat(&"fire_rate", 5.0), 0.1)
 	if is_roulette:
@@ -361,3 +369,94 @@ func _has_russian_roulette() -> bool:
 		if ef.get("is_russian_roulette") == true:
 			return true
 	return false
+
+
+func _has_infinite_ammo() -> bool:
+	if _player != null and "has_propulsion" in _player and _player.has_propulsion:
+		return true
+	for ef in _effects:
+		if ef.get("infinite_ammo") == true:
+			return true
+	return false
+
+
+func _has_melee_strike() -> bool:
+	for ef in _effects:
+		if ef.get("is_melee") == true:
+			return true
+	return false
+
+
+func _fire_melee_strike(is_roulette: bool = false) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.current_scene == null:
+		return
+
+	var max_hp: float = 100.0
+	if _player != null and "_health" in _player and _player._health != null:
+		max_hp = float(_player._health.max_health)
+
+	var pct: float = 0.35
+	for ef in _effects:
+		if ef.get("is_melee") == true and "damage_pct_of_max_health" in ef:
+			pct = float(ef.damage_pct_of_max_health)
+
+	var dano: int = maxi(int(round(max_hp * pct)), 12)
+	if _player != null and _player.has_method("get_damage_multiplier"):
+		dano = int(round(float(dano) * _player.get_damage_multiplier()))
+	if is_roulette:
+		dano *= 4
+
+	var empuje: float = 520.0 + _stat(&"knockback", 0.0)
+	var from_pos: Vector2 = muzzle.global_position
+	var range_dist: float = 65.0
+
+	var s := Shot.new()
+	s.direction = aim_direction
+	s.damage = dano
+	s.knockback = empuje
+	s.hit_position = from_pos + aim_direction * (range_dist * 0.5)
+
+	for efecto in _effects:
+		efecto.on_fire(s, _player)
+
+	# Efecto visual: Arco de impacto melee frontal
+	var slash := Line2D.new()
+	slash.width = 8.0 if is_roulette else 5.5
+	slash.default_color = Color(1.8, 0.4, 0.2, 1.0) if is_roulette else Color(1.0, 0.85, 0.25, 0.95)
+	var pts := PackedVector2Array()
+	var base_ang := aim_direction.angle()
+	for a in 11:
+		var offset_ang := deg_to_rad(-55.0 + float(a) * 11.0)
+		pts.append(from_pos + Vector2.RIGHT.rotated(base_ang + offset_ang) * range_dist)
+	slash.points = pts
+	tree.current_scene.add_child(slash)
+	var tw := slash.create_tween()
+	tw.tween_property(slash, "modulate:a", 0.0, 0.16)
+	tw.tween_callback(slash.queue_free)
+
+	# Detección de impacto contra rivales
+	var hit_any: bool = false
+	for p in tree.get_nodes_in_group("player"):
+		if p != null and is_instance_valid(p) and p != _player and p is Node2D:
+			var p2d := p as Node2D
+			var diff := p2d.global_position - from_pos
+			var dist := diff.length()
+			if dist <= range_dist + 16.0:
+				var angle_diff := absf(aim_direction.angle_to(diff))
+				if angle_diff < deg_to_rad(65.0) or dist < 28.0:
+					hit_any = true
+					if p.has_method("hurt"):
+						p.hurt(dano, _player)
+					if p.has_method("apply_knockback"):
+						p.apply_knockback(aim_direction, empuje)
+					for efecto in _effects:
+						if efecto.has_method("on_hit"):
+							efecto.on_hit(s, p, _player)
+
+	if hit_any:
+		CombatCamera.shake_viewport(self, 4.5, 0.18)
+		AudioManager.reproducir("golpe", 0.16)
+	else:
+		AudioManager.reproducir("disparo", 0.08)
+

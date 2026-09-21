@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_7mmw6"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="2_ldskh"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="3_tov2n"]
+
+[sub_resource type="Resource" id="Resource_1t740"]
+script = ExtResource("3_tov2n")
+stat = &"max_health"
+value = 40.0
+
+[sub_resource type="Resource" id="Resource_uh7b8"]
+script = ExtResource("3_tov2n")
+stat = &"move_speed"
+op = 1
+value = 0.92
+
+[resource]
+script = ExtResource("2_ldskh")
+id = &"vitalidad_solida"
+titulo = "Vitalidad Sólida"
+subtitulo = "Salud base plana, no porcentual"
+descripcion = "Aumenta tu salud máxima base en +40 puntos directos (no porcentual). Ligeramente más lento al moverte."
+ventajas = Array[String](["+40 Salud base máxima (plana)"])
+desventajas = Array[String](["-8% Velocidad de movimiento"])
+mecanicas = Array[String](["Incremento de salud base no porcentual"])
+stats = Array[ExtResource("3_tov2n")]([SubResource("Resource_1t740"), SubResource("Resource_uh7b8")])

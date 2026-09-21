@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_f56pu"]
+[ext_resource type="Script" path="res://upgrades/effects/sacrificio_compartido_effect.gd" id="2_71o1b"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_crvuh"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_bltr8"]
+
+[sub_resource type="Resource" id="Resource_vrwrw"]
+script = ExtResource("2_71o1b")
+
+[sub_resource type="Resource" id="Resource_74v6i"]
+script = ExtResource("4_bltr8")
+stat = &"max_health"
+op = 1
+value = 0.9
+
+[resource]
+script = ExtResource("3_crvuh")
+id = &"sacrificio_compartido"
+titulo = "Sacrificio Compartido"
+subtitulo = "Tu sanación hiere a los rivales cercanos"
+nivel = 3
+descripcion = "Cada vez que recuperas vida, los rivales a menos de 140px sufren daño igual a la mitad de la cantidad curada."
+rareza = 1
+tema = &"sangre"
+ventajas = Array[String](["Al curarte, rivales cercanos reciben 50% de lo curado"])
+desventajas = Array[String](["-10% Salud máxima"])
+mecanicas = Array[String](["Daño reactivo por curación en área"])
+stats = Array[ExtResource("4_bltr8")]([SubResource("Resource_74v6i")])
+efectos = Array[ExtResource("1_f56pu")]([SubResource("Resource_vrwrw")])

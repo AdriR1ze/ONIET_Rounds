@@ -17,6 +17,27 @@ const RussianRouletteEffect = preload("res://upgrades/effects/russian_roulette_e
 const GlitchEffect = preload("res://upgrades/effects/glitch_effect.gd")
 const BulletTimeEffect = preload("res://upgrades/effects/bullet_time_effect.gd")
 
+const ContragolpeSismicoEffect = preload("res://upgrades/effects/contragolpe_sismico_effect.gd")
+const CosechaBalasEffect = preload("res://upgrades/effects/cosecha_balas_effect.gd")
+const PielAdaptativaEffect = preload("res://upgrades/effects/piel_adaptativa_effect.gd")
+const CorazonTitanioEffect = preload("res://upgrades/effects/corazon_titanio_effect.gd")
+const IraSangreEffect = preload("res://upgrades/effects/ira_sangre_effect.gd")
+const SegundaPielEffect = preload("res://upgrades/effects/segunda_piel_effect.gd")
+const ImpactoSismicoEffect = preload("res://upgrades/effects/impacto_sismico_effect.gd")
+const OndaChoqueEffect = preload("res://upgrades/effects/onda_choque_effect.gd")
+const BalaAnclanteEffect = preload("res://upgrades/effects/bala_anclante_effect.gd")
+const PropulsionEffect = preload("res://upgrades/effects/propulsion_effect.gd")
+const SepultadorEffect = preload("res://upgrades/effects/sepultador_effect.gd")
+const PerforadoraVitalEffect = preload("res://upgrades/effects/perforadora_vital_effect.gd")
+const MagnetismoEffect = preload("res://upgrades/effects/magnetismo_effect.gd")
+const DeudaSangreEffect = preload("res://upgrades/effects/deuda_sangre_effect.gd")
+const SacrificioCompartidoEffect = preload("res://upgrades/effects/sacrificio_compartido_effect.gd")
+const ZonaGravedadEffect = preload("res://upgrades/effects/zona_gravedad_effect.gd")
+const NexoVidaEffect = preload("res://upgrades/effects/nexo_vida_effect.gd")
+const CargaBlindadaEffect = preload("res://upgrades/effects/carga_blindada_effect.gd")
+const MuroVivoEffect = preload("res://upgrades/effects/muro_vivo_effect.gd")
+const GolpeTitanicoEffect = preload("res://upgrades/effects/golpe_titanico_effect.gd")
+
 
 func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(RUTA)
@@ -316,3 +337,253 @@ func _generar() -> void:
 		["-10% Daño de impacto", "-10% Cadencia de tiro"],
 		["Más resistencia a cambio de ofensiva"],
 		&"default")
+
+	# 20. Contragolpe Sísmico: Nivel 3 (Rara)
+	_crear(&"contragolpe_sismico", "Contragolpe Sísmico", "Explosión masiva al parrear", 3,
+		"Al parrear una bala, detonas una explosión radial alrededor de tu personaje que inflige 15% de tu vida máxima y empuja.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90)],
+		[ContragolpeSismicoEffect.new()],
+		["Explosión de 15% vida máx al parrear"],
+		["-10% Daño de disparo"],
+		["Contragolpe explosivo en área al hacer parry"],
+		&"sismico")
+
+	# 21. Cosecha de Balas: Nivel 4 (Épica)
+	_crear(&"cosecha_balas", "Cosecha de Balas", "Sustento y blindaje al parrear", 4,
+		"Cada bala parreada te cura 5 de vida y otorga un +5% de armadura temporal (acumula hasta 3 veces).",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"max_health", StatModifier.Op.MULT, 0.90)],
+		[CosechaBalasEffect.new()],
+		["+5 Vida y +5% Armadura por parry (stack 3)"],
+		["-10% Salud máxima"],
+		["Acumula armadura y cura al parrear"],
+		&"armadura")
+
+	# 22. Piel Adaptativa: Nivel 3 (Rara)
+	_crear(&"piel_adaptativa", "Piel Adaptativa", "Te endureces con cada impacto recibido", 3,
+		"Cada golpe recibido te otorga +8% de armadura durante 4 segundos (acumula hasta 3 veces).",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90)],
+		[PielAdaptativaEffect.new()],
+		["+8% Armadura por 4s al recibir golpe (stack 3)"],
+		["-10% Daño"],
+		["Armadura reactiva acumulativa"],
+		&"armadura")
+
+	# 23. Corazón de Titanio: Nivel 5 (Legendaria)
+	_crear(&"corazon_titanio", "Corazón de Titanio", "Umbral inquebrantable de supervivencia", 5,
+		"Ningún impacto individual puede reducir tu salud por debajo del 25% de tu vida máxima (enfriamiento de 12 s).",
+		UpgradeDefinition.Rareza.LEGENDARIA, 1.0, 1,
+		[_mod(&"move_speed", StatModifier.Op.MULT, 0.90)],
+		[CorazonTitanioEffect.new()],
+		["Un golpe no puede bajarte de 25% vida"],
+		["-10% Velocidad de movimiento", "Enfriamiento de 12s tras activarse"],
+		["Umbral de supervivencia de titanio"],
+		&"armadura")
+
+	# 24. Ira de Sangre: Nivel 4 (Épica)
+	_crear(&"ira_sangre", "Ira de Sangre", "Furia desatada al borde del colapso", 4,
+		"Mientras te encuentres por debajo del 50% de tu salud máxima, ganas +25% de daño y +15% de velocidad de movimiento.",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"max_health", StatModifier.Op.MULT, 0.90)],
+		[IraSangreEffect.new()],
+		["Bajo 50% vida: +25% daño y +15% velocidad"],
+		["-10% Salud máxima"],
+		["Furia sanguinaria condicional"],
+		&"sangre")
+
+	# 25. Segunda Piel: Nivel 4 (Épica)
+	_crear(&"segunda_piel", "Segunda Piel", "Regeneración reactiva al sufrir daño", 4,
+		"Al recibir un golpe de daño, tu cuerpo regenera inmediatamente +4 vida por segundo durante 3 segundos.",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"max_health", StatModifier.Op.MULT, 0.85)],
+		[SegundaPielEffect.new()],
+		["Al recibir daño: +4 vida/s durante 3s (12 HP)"],
+		["-15% Salud máxima"],
+		["Regeneración reactiva en combate"],
+		&"vampirico")
+
+	# 26. Impacto Sísmico: Nivel 3 (Rara)
+	_crear(&"impacto_sismico", "Impacto Sísmico", "Empuje demoledor y aturdimiento contundente", 3,
+		"Tus proyectiles empujan fuertemente (+550 fuerza) y aturden 0.35 s al objetivo impactado.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.80)],
+		[ImpactoSismicoEffect.new()],
+		["Empuje masivo (+550) y aturde 0.35s"],
+		["-20% Daño de bala"],
+		["Empuje masivo y aturdimiento contundente"],
+		&"sismico")
+
+	# 27. Onda de Choque: Nivel 3 (Rara)
+	_crear(&"onda_choque", "Onda de Choque", "Expansión física radial en cada impacto", 3,
+		"Al impactar a un rival o una superficie sólida, libera una onda expansiva de 90px que empuja a todos los rivales.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.85)],
+		[OndaChoqueEffect.new()],
+		["Onda expansiva de empuje en área (radio 90px)"],
+		["-15% Daño de bala"],
+		["Onda de choque al impactar"],
+		&"sismico")
+
+	# 28. Bala Anclante: Nivel 3 (Rara)
+	_crear(&"bala_anclante", "Bala Anclante", "Campo de anclaje que ralentiza en área", 3,
+		"Al impactar, genera un campo de anclaje de 85px que reduce la velocidad de movimiento de los rivales un 50% por 1.5 s.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90)],
+		[BalaAnclanteEffect.new()],
+		["Ralentiza al 50% en área durante 1.5s"],
+		["-10% Daño de bala"],
+		["Zona de anclaje y ralentización"],
+		&"gravedad")
+
+	# 29. Propulsión: Nivel 2 (Rara)
+	_crear(&"propulsion", "Propulsión", "Retroceso masivo y cargador infinito", 2,
+		"Cada disparo genera un retroceso colosal (Rocket Jump extremo) y tus proyectiles no consumen munición del cargador.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90)],
+		[PropulsionEffect.new()],
+		["Retroceso colosal hacia atrás (Rocket Jump extremo)", "Cargador infinito (nunca te quedás sin balas)"],
+		["-10% Daño de bala"],
+		["Retroceso cinético masivo y munición infinita"],
+		&"rapido")
+
+
+	# 30. Sepultador: Nivel 4 (Épica)
+	_crear(&"sepultador", "Sepultador", "Estrellar rivales contra paredes es letal", 4,
+		"Si una de tus balas empuja a un oponente y este se estrella contra un muro o superficie, sufre +50% de daño extra y queda aturdido 0.4s.",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.85)],
+		[SepultadorEffect.new()],
+		["Al empujar al rival contra la pared: +50% daño y stun"],
+		["-15% Daño inicial"],
+		["Impacto destructivo contra muros"],
+		&"demolicion")
+
+	# 31. Perforadora Vital: Nivel 3 (Rara)
+	_crear(&"perforadora_vital", "Perforadora Vital", "Sangrado letal basado en salud máxima", 3,
+		"Las balas aplican sangrado porcentual: 3 ticks que drenan un 4% de la salud máxima del rival cada uno (12% daño total).",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90)],
+		[PerforadoraVitalEffect.new()],
+		["Sangrado porcentual: 4% vida máx por tick (3 ticks)"],
+		["-10% Daño directo de bala"],
+		["Sangrado (DOT) basado en vida máxima rival"],
+		&"sangre")
+
+	# 32. Magnetismo: Nivel 3 (Rara)
+	_crear(&"magnetismo", "Magnetismo", "Atrae las balas enemigas hacia vos", 3,
+		"Genera un campo magnético que desvía y atrae las balas enemigas hacia tu posición, facilitando realizar parries.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"fire_rate", StatModifier.Op.MULT, 0.90)],
+		[MagnetismoEffect.new()],
+		["Atrae balas enemigas en un radio de 160px"],
+		["-10% Cadencia de tiro"],
+		["Campo de atracción magnética de proyectiles"],
+		&"iman")
+
+	# 33. Deuda de Sangre: Nivel 4 (Épica)
+	_crear(&"deuda_sangre", "Deuda de Sangre", "5 segundos de gracia para evitar la muerte", 4,
+		"Al sufrir daño letal, no mueres de inmediato: entras en Deuda de Sangre por 5 segundos a 1 HP. Si logras curarte sobrevives; si no, mueres (10s de cooldown).",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90)],
+		[DeudaSangreEffect.new()],
+		["5s de gracia al recibir daño letal para curarte"],
+		["-10% Daño de bala", "Mueres si no te curas en 5s (10s cooldown)"],
+		["Estado de deuda de sangre y supervivencia"],
+		&"sangre")
+
+	# 34. Sacrificio Compartido: Nivel 3 (Rara)
+	_crear(&"sacrificio_compartido", "Sacrificio Compartido", "Tu sanación hiere a los rivales cercanos", 3,
+		"Cada vez que recuperas vida, los rivales a menos de 140px sufren daño igual a la mitad de la cantidad curada.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"max_health", StatModifier.Op.MULT, 0.90)],
+		[SacrificioCompartidoEffect.new()],
+		["Al curarte, rivales cercanos reciben 50% de lo curado"],
+		["-10% Salud máxima"],
+		["Daño reactivo por curación en área"],
+		&"sangre")
+
+	# 35. Zona de Gravedad: Nivel 4 (Épica)
+	_crear(&"zona_gravedad", "Zona de Gravedad", "Aura de gravedad aumentada para tus rivales", 4,
+		"Los rivales cercanos (<130px) caen más rápido (+85% gravedad) y casi no pueden despegar del suelo (-55% fuerza de salto).",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"move_speed", StatModifier.Op.MULT, 0.90)],
+		[ZonaGravedadEffect.new()],
+		["Rivales cerca caen más rápido y casi no pueden saltar"],
+		["-10% Velocidad propia"],
+		["Aura de gravedad aumentada"],
+		&"gravedad")
+
+	# 36. Nexo de Vida: Nivel 4 (Épica)
+	_crear(&"nexo_vida", "Nexo de Vida", "Tótem sanador al iniciar recarga", 4,
+		"Al iniciar una recarga, plantas un tótem de vida a tus pies que cura en pulsos durante 3 segundos (+8 vida/s).",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.85)],
+		[NexoVidaEffect.new()],
+		["Planta un tótem que cura en área durante 3s (+8 HP/s)"],
+		["-15% Daño de bala"],
+		["Invocación de tótem curativo al recargar"],
+		&"totem")
+
+	# 37. Carga Blindada: Nivel 3 (Rara)
+	_crear(&"carga_blindada", "Carga Blindada", "Blindaje en sprint y embestida demoledora", 3,
+		"Correr de forma continua acumula hasta +25% de armadura. Chocar contra un rival le inflige 20 de daño y gran empuje.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90)],
+		[CargaBlindadaEffect.new()],
+		["Correr acumula +25% armadura; chocar daña y empuja"],
+		["-10% Daño de disparo"],
+		["Embestida cinética y armadura en carrera"],
+		&"armadura")
+
+	# 38. Muro Vivo: Nivel 4 (Épica)
+	_crear(&"muro_vivo", "Muro Vivo", "Barrera protectora al quedarte quieto", 4,
+		"Al permanecer quieto durante 0.75 segundos, proyectas una barrera energética que absorbe hasta 2 disparos enemigos.",
+		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
+		[_mod(&"damage", StatModifier.Op.MULT, 0.85)],
+		[MuroVivoEffect.new()],
+		["Quieto 0.75s: barrera que bloquea hasta 2 balas"],
+		["-15% Daño de disparo"],
+		["Barrera energética desplegable"],
+		&"barrera")
+
+	# 39. Vitalidad Sólida: Nivel 1 (Común)
+	_crear(&"vitalidad_solida", "Vitalidad Sólida", "Salud base plana, no porcentual", 1,
+		"Aumenta tu salud máxima base en +40 puntos directos (no porcentual). Ligeramente más lento al moverte.",
+		UpgradeDefinition.Rareza.COMUN, 1.0, 1,
+		[
+			_mod(&"max_health", StatModifier.Op.ADD, 40.0),
+			_mod(&"move_speed", StatModifier.Op.MULT, 0.92)
+		],
+		[],
+		["+40 Salud base máxima (plana)"],
+		["-8% Velocidad de movimiento"],
+		["Incremento de salud base no porcentual"],
+		&"default")
+
+	# 40. Corazón Extra: Nivel 2 (Rara)
+	_crear(&"corazon_extra", "Corazón Extra", "Tanque colosal a cambio de capacidad", 2,
+		"Aumenta tu salud máxima base en +70 puntos directos. Reduce en 1 la capacidad de munición de tu cargador.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[
+			_mod(&"max_health", StatModifier.Op.ADD, 70.0),
+			_mod(&"max_ammo", StatModifier.Op.ADD, -1.0)
+		],
+		[],
+		["+70 Salud base máxima (plana)"],
+		["-1 Capacidad de cargador"],
+		["Salud masiva a cambio de munición"],
+		&"default")
+
+	# 41. Golpe Titánico: Nivel 3 (Rara)
+	_crear(&"golpe_titanico", "Golpe Titánico", "Tus disparos son reemplazados por un golpe masivo", 3,
+		"Reemplaza tus proyectiles por un golpe cuerpo a cuerpo devastador cuyo daño equivale al 35% de tu vida máxima más empuje contundente.",
+		UpgradeDefinition.Rareza.RARA, 1.0, 1,
+		[],
+		[GolpeTitanicoEffect.new()],
+		["Reemplaza balas por golpe melee devastador", "Daño escala con tu salud máxima (35% max HP)"],
+		["Rango limitado a cuerpo a cuerpo"],
+		["Ataque cuerpo a cuerpo devastador"],
+		&"sismico")
+

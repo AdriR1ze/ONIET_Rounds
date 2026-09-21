@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_k7c3b"]
+[ext_resource type="Script" path="res://upgrades/effects/segunda_piel_effect.gd" id="2_pyb1r"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_8jyvk"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_1edhk"]
+
+[sub_resource type="Resource" id="Resource_r4or4"]
+script = ExtResource("2_pyb1r")
+
+[sub_resource type="Resource" id="Resource_8o3jg"]
+script = ExtResource("4_1edhk")
+stat = &"max_health"
+op = 1
+value = 0.85
+
+[resource]
+script = ExtResource("3_8jyvk")
+id = &"segunda_piel"
+titulo = "Segunda Piel"
+subtitulo = "Regeneración reactiva al sufrir daño"
+nivel = 4
+descripcion = "Al recibir un golpe de daño, tu cuerpo regenera inmediatamente +4 vida por segundo durante 3 segundos."
+rareza = 2
+tema = &"vampirico"
+ventajas = Array[String](["Al recibir daño: +4 vida/s durante 3s (12 HP)"])
+desventajas = Array[String](["-15% Salud máxima"])
+mecanicas = Array[String](["Regeneración reactiva en combate"])
+stats = Array[ExtResource("4_1edhk")]([SubResource("Resource_8o3jg")])
+efectos = Array[ExtResource("1_k7c3b")]([SubResource("Resource_r4or4")])

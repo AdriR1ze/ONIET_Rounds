@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_jxm6b"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="2_wit1v"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="3_stqhf"]
+
+[sub_resource type="Resource" id="Resource_jm7h4"]
+script = ExtResource("3_stqhf")
+stat = &"max_health"
+value = 70.0
+
+[sub_resource type="Resource" id="Resource_ggf6e"]
+script = ExtResource("3_stqhf")
+stat = &"max_ammo"
+value = -1.0
+
+[resource]
+script = ExtResource("2_wit1v")
+id = &"corazon_extra"
+titulo = "Corazón Extra"
+subtitulo = "Tanque colosal a cambio de capacidad"
+nivel = 2
+descripcion = "Aumenta tu salud máxima base en +70 puntos directos. Reduce en 1 la capacidad de munición de tu cargador."
+rareza = 1
+ventajas = Array[String](["+70 Salud base máxima (plana)"])
+desventajas = Array[String](["-1 Capacidad de cargador"])
+mecanicas = Array[String](["Salud masiva a cambio de munición"])
+stats = Array[ExtResource("3_stqhf")]([SubResource("Resource_jm7h4"), SubResource("Resource_ggf6e")])

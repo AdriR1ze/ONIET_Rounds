@@ -443,6 +443,6 @@ autoplay = &"stand"
 [node name="HitFlash" type="AnimationPlayer" parent="." unique_id=1685867087]
 libraries/ = SubResource("AnimationLibrary_hit")
 
-[connection signal="hurt" from="HurtboxComponent" to="HealthComponent" method="apply_damage"]
+[connection signal="hurt" from="HurtboxComponent" to="." method="hurt"]
 [connection signal="damaged" from="HealthComponent" to="." method="_on_damaged"]
 [connection signal="died" from="HealthComponent" to="." method="_on_died"]
