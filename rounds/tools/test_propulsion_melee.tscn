@@ -1,6 +1,0 @@
-[gd_scene format=3 uid="uid://test_prop_scene"]
-
-[ext_resource type="Script" path="res://tools/test_propulsion_melee.gd" id="1_test"]
-
-[node name="TestPropMelee" type="Node"]
-script = ExtResource("1_test")
