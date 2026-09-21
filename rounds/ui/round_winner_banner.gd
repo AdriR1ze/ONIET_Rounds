@@ -2,9 +2,6 @@ extends CanvasLayer
 
 signal terminado
 
-const COLOR_P1 := Color(1.0, 0.88, 0.25, 1.0)
-const COLOR_P2 := Color(0.3, 0.85, 1.0, 1.0)
-
 @onready var _panel: CenterContainer = $Centro
 @onready var _texto_ganador: Label = $Centro/Marco/Margin/VBox/TextoGanador
 @onready var _subtexto: Label = $Centro/Marco/Margin/VBox/Subtexto
@@ -40,7 +37,7 @@ func _configurar_particulas() -> void:
 
 func mostrar_ganador(ganador: int) -> void:
 	var nombre: String = RunManager.nombre_jugador(ganador)
-	var color_ganador: Color = COLOR_P1 if ganador == 1 else COLOR_P2
+	var color_ganador: Color = RunManager.color_jugador(ganador)
 
 	_texto_ganador.text = "¡%s GANÓ LA RONDA!" % nombre.to_upper()
 	_texto_ganador.modulate = color_ganador

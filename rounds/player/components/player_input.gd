@@ -15,6 +15,16 @@ func move_axis() -> float:
 
 
 func aim() -> Vector2:
+	# Stick derecho: apuntado analogico libre (si el dispositivo lo tiene).
+	if InputMap.has_action(_action("aim_left")):
+		var stick := Input.get_vector(
+			_action("aim_left"), _action("aim_right"),
+			_action("aim_up"), _action("aim_down")
+		)
+		if stick.length_squared() > 0.0:
+			return stick
+
+	# Fallback digital (teclado / D-pad): 8 direcciones.
 	var left := Input.is_action_pressed(_action("left"))
 	var right := Input.is_action_pressed(_action("right"))
 	var up := Input.is_action_pressed(_action("up"))

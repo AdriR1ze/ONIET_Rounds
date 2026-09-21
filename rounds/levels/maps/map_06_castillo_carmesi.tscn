@@ -18,11 +18,12 @@ size = Vector2(20, 26)
 size = Vector2(160, 24)
 
 [sub_resource type="CircleShape2D" id="shape_6"]
+
 [sub_resource type="RectangleShape2D" id="DeadZone_side"]
 size = Vector2(240, 1200)
 
 [sub_resource type="RectangleShape2D" id="DeadZone_bottom"]
-size = Vector2(2200, 240)
+size = Vector2(1280, 80)
 
 radius = 45
 
@@ -33,6 +34,12 @@ position = Vector2(400, 350)
 
 [node name="SpawnP2" type="Marker2D" parent="."]
 position = Vector2(880, 350)
+
+[node name="SpawnP3" type="Marker2D" parent="."]
+position = Vector2(510, 350)
+
+[node name="SpawnP4" type="Marker2D" parent="."]
+position = Vector2(770, 350)
 
 [node name="BaseL" type="StaticBody2D" parent="."]
 position = Vector2(220, 620)
@@ -261,5 +268,5 @@ position = Vector2(1400, 360)
 shape = SubResource("DeadZone_side")
 
 [node name="Bottom" type="CollisionShape2D" parent="DeadZone"]
-position = Vector2(640, 850)
+position = Vector2(640, 760)
 shape = SubResource("DeadZone_bottom")

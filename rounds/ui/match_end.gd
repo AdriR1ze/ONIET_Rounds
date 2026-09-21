@@ -16,9 +16,12 @@ func _ready() -> void:
 
 func mostrar(ganador: int) -> void:
 	_titulo.text = "¡Ganó %s!" % RunManager.nombre_jugador(ganador)
-	var n1 := RunManager.nombre_jugador(1)
-	var n2 := RunManager.nombre_jugador(2)
-	_marcador.text = "%s  %d  -  %d  %s" % [n1, RunManager.marcador_de(1), RunManager.marcador_de(2), n2]
+	_titulo.modulate = RunManager.color_jugador(ganador)
+	var partes := PackedStringArray()
+	for i in RunManager.cantidad_jugadores:
+		var numero := i + 1
+		partes.append("%s %d" % [RunManager.nombre_jugador(numero), RunManager.marcador_de(numero)])
+	_marcador.text = "    ".join(partes)
 	visible = true
 	PauseManager.tomar(self)
 	_boton_revancha.grab_focus()

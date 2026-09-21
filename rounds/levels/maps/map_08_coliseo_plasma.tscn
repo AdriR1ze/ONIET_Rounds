@@ -21,13 +21,14 @@ radius = 50
 size = Vector2(90, 20)
 
 [sub_resource type="RectangleShape2D" id="shape_7"]
+
 [sub_resource type="RectangleShape2D" id="DeadZone_side"]
 size = Vector2(240, 1200)
 
 [sub_resource type="RectangleShape2D" id="DeadZone_bottom"]
-size = Vector2(2200, 240)
+size = Vector2(1280, 80)
 
-size = Vector2(480, 24)
+size = Vector2(1280, 80)
 
 [node name="MapColiseoPlasma" type="Node2D"]
 
@@ -36,6 +37,12 @@ position = Vector2(240, 560)
 
 [node name="SpawnP2" type="Marker2D" parent="."]
 position = Vector2(1040, 560)
+
+[node name="SpawnP3" type="Marker2D" parent="."]
+position = Vector2(350, 560)
+
+[node name="SpawnP4" type="Marker2D" parent="."]
+position = Vector2(930, 560)
 
 [node name="Grada1L" type="StaticBody2D" parent="."]
 position = Vector2(220, 600)
@@ -216,5 +223,5 @@ position = Vector2(1400, 360)
 shape = SubResource("DeadZone_side")
 
 [node name="Bottom" type="CollisionShape2D" parent="DeadZone"]
-position = Vector2(640, 850)
+position = Vector2(640, 760)
 shape = SubResource("DeadZone_bottom")

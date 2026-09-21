@@ -15,13 +15,14 @@ size = Vector2(260, 24)
 size = Vector2(24, 80)
 
 [sub_resource type="RectangleShape2D" id="shape_5"]
+
 [sub_resource type="RectangleShape2D" id="DeadZone_side"]
 size = Vector2(240, 1200)
 
 [sub_resource type="RectangleShape2D" id="DeadZone_bottom"]
-size = Vector2(2200, 240)
+size = Vector2(1280, 80)
 
-size = Vector2(120, 80)
+size = Vector2(1280, 80)
 
 [node name="MapNucleoFlotante" type="Node2D"]
 
@@ -30,6 +31,12 @@ position = Vector2(200, 580)
 
 [node name="SpawnP2" type="Marker2D" parent="."]
 position = Vector2(1080, 580)
+
+[node name="SpawnP3" type="Marker2D" parent="."]
+position = Vector2(310, 580)
+
+[node name="SpawnP4" type="Marker2D" parent="."]
+position = Vector2(970, 580)
 
 [node name="PisoBajoL" type="StaticBody2D" parent="."]
 position = Vector2(260, 620)
@@ -194,5 +201,5 @@ position = Vector2(1400, 360)
 shape = SubResource("DeadZone_side")
 
 [node name="Bottom" type="CollisionShape2D" parent="DeadZone"]
-position = Vector2(640, 850)
+position = Vector2(640, 760)
 shape = SubResource("DeadZone_bottom")

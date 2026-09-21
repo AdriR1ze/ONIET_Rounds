@@ -2,8 +2,8 @@ extends Node
 
 const RUTA := "user://settings.cfg"
 const BUSES := ["Master", "Music", "SFX"]
-const JUGADORES := [1, 2]
-const SUFIJOS := ["left", "right", "up", "down", "jump", "strafe", "ragdoll", "grab", "fire", "quack"]
+const JUGADORES := [1, 2, 3, 4]
+const SUFIJOS := ["left", "right", "up", "down", "jump", "strafe", "ragdoll", "grab", "fire", "lock", "quack"]
 const ETIQUETAS := {
 	"left": "Izquierda",
 	"right": "Derecha",
@@ -14,6 +14,7 @@ const ETIQUETAS := {
 	"ragdoll": "Trompezar",
 	"grab": "Agarrar",
 	"fire": "Disparar",
+	"lock": "Bloquear",
 	"quack": "Graznar",
 }
 const DEFAULT_JOY := {
@@ -22,13 +23,35 @@ const DEFAULT_JOY := {
 	"up": {"t": "joy_axis", "axis": 1, "value": -1.0},
 	"down": {"t": "joy_axis", "axis": 1, "value": 1.0},
 	"jump": {"t": "joy_button", "button": 0},
-	"fire": {"t": "joy_button", "button": 2},
-	"grab": {"t": "joy_button", "button": 3},
-	"strafe": {"t": "joy_button", "button": 10},
-	"ragdoll": {"t": "joy_button", "button": 4},
-	"quack": {"t": "joy_button", "button": 5},
+	"fire": {"t": "joy_axis", "axis": 5, "value": 1.0},
+	"grab": {"t": "joy_button", "button": 2},
+	"ragdoll": {"t": "joy_button", "button": 1},
+	"quack": {"t": "joy_button", "button": 3},
+	"strafe": {"t": "joy_button", "button": 9},
+	"lock": {"t": "joy_axis", "axis": 4, "value": 1.0},
 }
+# Apuntado analogico con el stick derecho (no aparece en la pantalla de remapeo
+# porque es un eje, no una tecla; se crea automaticamente por jugador).
+const AIM_EJES := {
+	"aim_left": {"axis": 2, "value": -1.0},
+	"aim_right": {"axis": 2, "value": 1.0},
+	"aim_up": {"axis": 3, "value": -1.0},
+	"aim_down": {"axis": 3, "value": 1.0},
+}
+const DEADZONE_ANALOGO := 0.2
+const SUFIJOS_ANALOGOS := ["left", "right", "up", "down"]
 const ACCIONES_PROTEGIDAS := ["pause", "ui_cancel"]
+# Teclas por defecto para los jugadores 3 y 4 (los 1 y 2 se definen en project.godot).
+const DEFAULT_P3 := {
+	"left": KEY_KP_4, "right": KEY_KP_6, "up": KEY_KP_8, "down": KEY_KP_5,
+	"jump": KEY_KP_8, "strafe": KEY_KP_0, "ragdoll": KEY_KP_7, "grab": KEY_KP_9,
+	"fire": KEY_KP_ADD, "lock": KEY_KP_SUBTRACT,
+}
+const DEFAULT_P4 := {
+	"left": KEY_F, "right": KEY_H, "up": KEY_T, "down": KEY_G,
+	"jump": KEY_T, "strafe": KEY_X, "ragdoll": KEY_Z, "grab": KEY_E,
+	"fire": KEY_Y, "lock": KEY_N,
+}
 
 enum ModoPantalla {
 	PANTALLA_COMPLETA,
@@ -50,6 +73,7 @@ var _remaps: Dictionary = {}
 func _ready() -> void:
 	_crear_buses()
 	_asegurar_acciones_globales()
+	_asegurar_acciones_jugadores()
 	_capturar_defaults()
 	cargar()
 	aplicar_todo()
@@ -73,6 +97,25 @@ func _asegurar_acciones_globales() -> void:
 	start.device = -1
 	start.button_index = JOY_BUTTON_START
 	InputMap.action_add_event("pause", start)
+
+
+func _asegurar_acciones_jugadores() -> void:
+	_crear_defaults_jugador(3, DEFAULT_P3)
+	_crear_defaults_jugador(4, DEFAULT_P4)
+
+
+func _crear_defaults_jugador(numero: int, mapa: Dictionary) -> void:
+	for sufijo in SUFIJOS:
+		var accion := "p%d_%s" % [numero, sufijo]
+		if InputMap.has_action(accion):
+			continue
+		InputMap.add_action(accion)
+		var code := int(mapa.get(sufijo, 0))
+		if code == 0:
+			continue
+		var tecla := InputEventKey.new()
+		tecla.physical_keycode = code
+		InputMap.action_add_event(accion, tecla)
 
 
 func _crear_buses() -> void:
@@ -229,6 +272,8 @@ func aplicar_controles() -> void:
 			if not InputMap.has_action(accion):
 				InputMap.add_action(accion)
 			InputMap.action_erase_events(accion)
+			if sufijo in SUFIJOS_ANALOGOS:
+				InputMap.action_set_deadzone(accion, DEADZONE_ANALOGO)
 			if _remaps.has(accion):
 				_agregar_evento(accion, _remaps[accion])
 				continue
@@ -239,6 +284,22 @@ func aplicar_controles() -> void:
 				var con_device := jd.duplicate()
 				con_device["device"] = jugador - 1
 				_agregar_evento(accion, con_device)
+		_aplicar_aim(jugador)
+
+
+func _aplicar_aim(jugador: int) -> void:
+	for sufijo in AIM_EJES:
+		var accion := "p%d_%s" % [jugador, sufijo]
+		if not InputMap.has_action(accion):
+			InputMap.add_action(accion, DEADZONE_ANALOGO)
+		else:
+			InputMap.action_set_deadzone(accion, DEADZONE_ANALOGO)
+		InputMap.action_erase_events(accion)
+		var eje := InputEventJoypadMotion.new()
+		eje.device = jugador - 1
+		eje.axis = AIM_EJES[sufijo]["axis"]
+		eje.axis_value = AIM_EJES[sufijo]["value"]
+		InputMap.action_add_event(accion, eje)
 
 
 func binding_de(accion: String) -> Dictionary:

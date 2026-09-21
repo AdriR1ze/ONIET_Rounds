@@ -68,6 +68,10 @@ var _hit_stop_active: bool = false
 
 
 func _ready() -> void:
+	if player_number > RunManager.cantidad_jugadores:
+		remove_from_group("player")
+		queue_free()
+		return
 	_spawn_position = global_position
 	add_to_group("player")
 	RunManager.registrar_jugador(self)
@@ -131,26 +135,19 @@ func _configurar_personaje() -> void:
 		if _skeleton_sprite != null:
 			_skeleton_sprite.visible = true
 			_skeleton_sprite.modulate = Color.WHITE
+			var paleta := RunManager.paleta_esqueleto(player_number)
 			var mat := ShaderMaterial.new()
 			mat.shader = preload("res://player/skeleton_palette.gdshader")
-			if player_number == 1:
-				mat.set_shader_parameter("color_highlight", Color(1.0, 0.95, 0.25, 1.0))
-				mat.set_shader_parameter("color_midtone", Color(1.0, 0.85, 0.15, 1.0))
-				mat.set_shader_parameter("color_shadow", Color(0.65, 0.48, 0.08, 1.0))
-			else:
-				mat.set_shader_parameter("color_highlight", Color(0.80, 0.98, 1.0, 1.0))
-				mat.set_shader_parameter("color_midtone", Color(0.35, 0.78, 1.0, 1.0))
-				mat.set_shader_parameter("color_shadow", Color(0.08, 0.20, 0.38, 1.0))
+			mat.set_shader_parameter("color_highlight", paleta[0])
+			mat.set_shader_parameter("color_midtone", paleta[1])
+			mat.set_shader_parameter("color_shadow", paleta[2])
 			_skeleton_sprite.material = mat
 			_skeleton_sprite.play("idle")
 		_body_animation.play("stand")
 	else:
 		_set_duck_parts_visible(true)
 		if _wing_mesh != null:
-			if player_number == 1:
-				_wing_mesh.color = Color(0.85, 0.68, 0.1, 1.0)
-			else:
-				_wing_mesh.color = Color(0.2, 0.58, 0.85, 1.0)
+			_wing_mesh.color = RunManager.color_jugador(player_number).darkened(0.2)
 		if _skeleton_sprite != null:
 			_skeleton_sprite.visible = false
 		_body_animation.play("duck_idle")

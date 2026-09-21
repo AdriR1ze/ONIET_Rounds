@@ -1,19 +1,10 @@
 extends CanvasLayer
 
-const COLOR_P1 := Color(1.0, 0.85, 0.2, 1.0) # Amarillo Jugador 1
-const COLOR_P1_GLOW := Color(1.0, 0.9, 0.3, 0.4)
-const COLOR_P2 := Color(0.35, 0.78, 1.0, 1.0) # Azul/Cyan Jugador 2
-const COLOR_P2_GLOW := Color(0.4, 0.85, 1.0, 0.4)
-
 const COLOR_EMPTY := Color(0.1, 0.12, 0.16, 0.55)
 const COLOR_EMPTY_BORDER := Color(0.28, 0.32, 0.4, 0.4)
 
 @onready var _ronda: Label = $CenterBadge/HBox/Ronda
 @onready var _marcador: Label = $CenterBadge/HBox/Marcador
-@onready var _p1_nombre: Label = $P1Corner/VBox/P1Name
-@onready var _p1_vidas: HBoxContainer = $P1Corner/VBox/P1Lives
-@onready var _p2_nombre: Label = $P2Corner/VBox/P2Name
-@onready var _p2_vidas: HBoxContainer = $P2Corner/VBox/P2Lives
 
 # Puntos del corazon estilizado (18x20)
 const HEART_POINTS := [
@@ -30,8 +21,12 @@ const HEART_POINTS := [
 	Vector2(9.0, 4.5)
 ]
 
+var _nombres: Dictionary = {}
+var _vidas: Dictionary = {}
+
 
 func _ready() -> void:
+	_construir_esquinas()
 	_actualizar_hud()
 	if RunManager.has_signal("vidas_cambiadas"):
 		RunManager.vidas_cambiadas.connect(_actualizar_hud)
@@ -45,30 +40,83 @@ func _process(_delta: float) -> void:
 	_actualizar_hud()
 
 
+func _construir_esquinas() -> void:
+	for hijo in get_children():
+		if hijo is MarginContainer:
+			remove_child(hijo)
+			hijo.queue_free()
+	_nombres.clear()
+	_vidas.clear()
+	for i in RunManager.cantidad_jugadores:
+		var numero := i + 1
+		var esquina := _crear_esquina(numero)
+		add_child(esquina)
+
+
+func _crear_esquina(numero: int) -> MarginContainer:
+	var color := RunManager.color_jugador(numero)
+	var izquierda := numero % 2 == 1
+	var arriba := numero <= 2
+
+	var esquina := MarginContainer.new()
+	if arriba:
+		esquina.set_anchors_preset(Control.PRESET_TOP_LEFT if izquierda else Control.PRESET_TOP_RIGHT)
+	else:
+		esquina.set_anchors_preset(Control.PRESET_BOTTOM_LEFT if izquierda else Control.PRESET_BOTTOM_RIGHT)
+	if izquierda:
+		esquina.offset_left = 32.0
+		esquina.offset_right = 260.0
+	else:
+		esquina.offset_left = -292.0
+		esquina.offset_right = -32.0
+	if arriba:
+		esquina.offset_top = 22.0
+		esquina.offset_bottom = 80.0
+	else:
+		esquina.offset_top = -80.0
+		esquina.offset_bottom = -22.0
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+
+	var nombre := Label.new()
+	nombre.add_theme_font_size_override("font_size", 18)
+	nombre.add_theme_color_override("font_color", color)
+	nombre.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	nombre.add_theme_constant_override("shadow_offset_x", 1)
+	nombre.add_theme_constant_override("shadow_offset_y", 1)
+	nombre.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if izquierda else HORIZONTAL_ALIGNMENT_RIGHT
+	vbox.add_child(nombre)
+	_nombres[numero] = nombre
+
+	var vidas := HBoxContainer.new()
+	vidas.add_theme_constant_override("separation", 8)
+	vidas.alignment = BoxContainer.ALIGNMENT_BEGIN if izquierda else BoxContainer.ALIGNMENT_END
+	vbox.add_child(vidas)
+	_vidas[numero] = vidas
+
+	esquina.add_child(vbox)
+	return esquina
+
+
 func _actualizar_hud() -> void:
 	if _ronda != null:
 		_ronda.text = "RONDA %d" % maxi(RunManager.ronda, 1)
 
-	var p1_score: int = RunManager.marcador_de(1)
-	var p2_score: int = RunManager.marcador_de(2)
-	if _marcador != null:
-		_marcador.text = "%d  -  %d" % [p1_score, p2_score]
-
-	var n1 := RunManager.nombre_jugador(1)
-	var n2 := RunManager.nombre_jugador(2)
-	if _p1_nombre != null:
-		_p1_nombre.text = n1
-	if _p2_nombre != null:
-		_p2_nombre.text = n2
-
-	var v1: int = RunManager.vidas_de(1)
-	var v2: int = RunManager.vidas_de(2)
 	var total_vidas: int = RunManager.vidas_por_ronda
 	if total_vidas <= 0:
 		total_vidas = 5
 
-	_actualizar_vidas_container(_p1_vidas, v1, total_vidas, 1)
-	_actualizar_vidas_container(_p2_vidas, v2, total_vidas, 2)
+	var puntajes: Array = []
+	for i in RunManager.cantidad_jugadores:
+		var numero := i + 1
+		if _nombres.has(numero):
+			_nombres[numero].text = RunManager.nombre_jugador(numero)
+		if _vidas.has(numero):
+			_actualizar_vidas_container(_vidas[numero], RunManager.vidas_de(numero), total_vidas, numero)
+		puntajes.append(str(RunManager.marcador_de(numero)))
+	if _marcador != null:
+		_marcador.text = "  -  ".join(puntajes)
 
 
 func _actualizar_vidas_container(contenedor: HBoxContainer, vidas_actuales: int, total: int, player_num: int) -> void:
@@ -108,18 +156,13 @@ func _dibujar_pip(pip: Control) -> void:
 	var pts := PackedVector2Array(HEART_POINTS)
 
 	if activa:
-		var col_base := COLOR_P1 if player_num == 1 else COLOR_P2
-		var col_glow := COLOR_P1_GLOW if player_num == 1 else COLOR_P2_GLOW
+		var col_base := RunManager.color_jugador(player_num)
+		var col_glow := Color(col_base.r, col_base.g, col_base.b, 0.4)
 
-		# Resplandor sutil
 		pip.draw_colored_polygon(pts, col_glow)
-		# Relleno principal
 		pip.draw_colored_polygon(pts, col_base)
-		# Borde luminoso
 		pip.draw_polyline(pts, Color(1.0, 1.0, 1.0, 0.75), 1.2, true)
-		# Brillo interior
 		pip.draw_circle(Vector2(5.5, 4.5), 1.2, Color(1.0, 1.0, 1.0, 0.85))
 	else:
-		# Vida perdida: ranura oscura translucida
 		pip.draw_colored_polygon(pts, COLOR_EMPTY)
 		pip.draw_polyline(pts, COLOR_EMPTY_BORDER, 1.0, true)

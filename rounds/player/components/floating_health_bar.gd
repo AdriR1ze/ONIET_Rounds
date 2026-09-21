@@ -24,10 +24,7 @@ func _ready() -> void:
 
 
 func setup(player_number: int, current: int, maximum: int) -> void:
-	if player_number == 1:
-		fill_color = Color(1.0, 0.85, 0.2, 1.0)
-	else:
-		fill_color = Color(0.35, 0.75, 1.0, 1.0)
+	fill_color = RunManager.color_jugador(player_number)
 	max_hp = float(maximum)
 	current_hp = float(current)
 	display_hp = current_hp

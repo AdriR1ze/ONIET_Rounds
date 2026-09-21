@@ -10,7 +10,21 @@ signal partida_terminada(ganador: int)
 var ronda: int = 0
 var rondas_para_ganar: int = 5
 var vidas_por_ronda: int = 5
+var cantidad_jugadores: int = 2
 var rng := RandomNumberGenerator.new()
+
+const COLORES_JUGADOR := {
+	1: Color(1.0, 0.85, 0.2, 1.0),
+	2: Color(0.35, 0.75, 1.0, 1.0),
+	3: Color(0.45, 0.95, 0.45, 1.0),
+	4: Color(1.0, 0.45, 0.8, 1.0),
+}
+const PALETAS_ESQUELETO := {
+	1: [Color(1.0, 0.95, 0.25, 1.0), Color(1.0, 0.85, 0.15, 1.0), Color(0.65, 0.48, 0.08, 1.0)],
+	2: [Color(0.80, 0.98, 1.0, 1.0), Color(0.35, 0.78, 1.0, 1.0), Color(0.08, 0.20, 0.38, 1.0)],
+	3: [Color(0.85, 1.0, 0.80, 1.0), Color(0.45, 0.95, 0.45, 1.0), Color(0.10, 0.40, 0.12, 1.0)],
+	4: [Color(1.0, 0.85, 0.95, 1.0), Color(1.0, 0.45, 0.80, 1.0), Color(0.45, 0.10, 0.30, 1.0)],
+}
 
 var vidas: Dictionary = { 1: 5, 2: 5 }
 var nombres: Dictionary = { 1: "Jugador 1", 2: "Jugador 2" }
@@ -25,15 +39,28 @@ func _ready() -> void:
 	rng.randomize()
 
 
+func color_jugador(numero: int) -> Color:
+	return COLORES_JUGADOR.get(numero, COLORES_JUGADOR[1])
+
+
+func paleta_esqueleto(numero: int) -> Array:
+	return PALETAS_ESQUELETO.get(numero, PALETAS_ESQUELETO[1])
+
+
+func set_cantidad_jugadores(cantidad: int) -> void:
+	cantidad_jugadores = clampi(cantidad, 2, 4)
+	_inicializar_jugadores()
+
+
 func nombre_jugador(numero: int) -> String:
 	return nombres.get(numero, "Jugador %d" % numero)
 
 
-func set_nombres(p1: String, p2: String) -> void:
-	var n1 := p1.strip_edges()
-	var n2 := p2.strip_edges()
-	nombres[1] = n1 if not n1.is_empty() else "Jugador 1"
-	nombres[2] = n2 if not n2.is_empty() else "Jugador 2"
+func set_nombres(lista: Array) -> void:
+	for i in cantidad_jugadores:
+		var numero := i + 1
+		var n := String(lista[i]).strip_edges() if i < lista.size() else ""
+		nombres[numero] = n if not n.is_empty() else "Jugador %d" % numero
 
 
 func set_personaje(player_number: int, id: String) -> void:
@@ -55,7 +82,7 @@ func registrar_jugador(player: Node) -> void:
 	if not _mejoras.has(numero):
 		_mejoras[numero] = []
 	if not vidas.has(numero):
-		vidas[numero] = 5
+		vidas[numero] = vidas_por_ronda
 	_recalcular(numero)
 
 
@@ -63,13 +90,21 @@ func jugadores() -> Array:
 	return _jugadores.values()
 
 
+func jugadores_activos() -> Array:
+	var lista: Array = []
+	for numero in _jugadores:
+		if vidas_de(numero) > 0:
+			lista.append(_jugadores[numero])
+	return lista
+
+
 func vidas_de(player_number: int) -> int:
-	return vidas.get(player_number, 5)
+	return vidas.get(player_number, vidas_por_ronda)
 
 
 func nivel_desbloqueado(player_number: int) -> int:
 	var vidas_actuales: int = vidas_de(player_number)
-	var vidas_perdidas: int = 5 - vidas_actuales
+	var vidas_perdidas: int = maxi(vidas_por_ronda - vidas_actuales, 0)
 	return clampi(1 + vidas_perdidas, 1, 5)
 
 
@@ -80,9 +115,9 @@ func perder_vida(player_number: int) -> void:
 	actual = maxi(actual - 1, 0)
 	vidas[player_number] = actual
 	vidas_cambiadas.emit()
-	if actual == 0:
+	var ganador: int = ganador_partida()
+	if ganador != 0:
 		partida_finalizada = true
-		var ganador: int = 2 if player_number == 1 else 1
 		partida_terminada.emit(ganador)
 		print("FIN DE PARTIDA! Ganador: Jugador %d" % ganador)
 
@@ -127,12 +162,11 @@ func marcador() -> Dictionary:
 
 
 func iniciar_partida() -> void:
-	_marcador.clear()
-	vidas = { 1: 5, 2: 5 }
 	partida_finalizada = false
+	_marcador.clear()
+	_inicializar_jugadores()
 	for numero in _jugadores:
 		_marcador[numero] = 0
-		vidas[numero] = 5
 	marcador_cambiado.emit()
 	vidas_cambiadas.emit()
 
@@ -143,19 +177,11 @@ func iniciar_ronda(numero: int) -> void:
 	vidas_cambiadas.emit()
 
 
-func ganador_de_ronda(perdedor: int) -> int:
-	for numero in _jugadores:
-		if numero != perdedor:
-			return numero
-	return 0
-
-
 func terminar_ronda(ganador: int) -> void:
-	_marcador[ganador] = marcador_de(ganador) + 1
-	marcador_cambiado.emit()
+	if ganador > 0:
+		_marcador[ganador] = marcador_de(ganador) + 1
+		marcador_cambiado.emit()
 	ronda_terminada.emit(ronda, ganador)
-	if partida_ganada():
-		partida_terminada.emit(ganador)
 
 
 func partida_ganada() -> bool:
@@ -163,13 +189,12 @@ func partida_ganada() -> bool:
 
 
 func ganador_partida() -> int:
-	if partida_finalizada:
-		for numero in vidas:
-			if vidas[numero] > 0:
-				return numero
-	for numero in vidas:
-		if vidas[numero] <= 0:
-			return 2 if numero == 1 else 1
+	var vivos: Array = []
+	for numero in _jugadores:
+		if vidas_de(numero) > 0:
+			vivos.append(numero)
+	if vivos.size() == 1:
+		return vivos[0]
 	return 0
 
 
@@ -177,9 +202,18 @@ func reiniciar() -> void:
 	_jugadores.clear()
 	_mejoras.clear()
 	_marcador.clear()
-	vidas = { 1: 5, 2: 5 }
 	partida_finalizada = false
 	ronda = 0
+	_inicializar_jugadores()
+
+
+func _inicializar_jugadores() -> void:
+	for numero in range(1, cantidad_jugadores + 1):
+		vidas[numero] = vidas_por_ronda
+		if not nombres.has(numero):
+			nombres[numero] = "Jugador %d" % numero
+		if not personajes.has(numero):
+			personajes[numero] = "pato"
 
 
 func _cumple_requisitos(player_number: int, def: UpgradeDefinition) -> bool:

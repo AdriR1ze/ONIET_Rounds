@@ -10,6 +10,13 @@ var _ronda_activa: bool = false
 var _mapa_actual: Node2D = null
 var _mapa_info_actual: Dictionary = {}
 
+const SPAWNS_FALLBACK := {
+	1: Vector2(480, 600),
+	2: Vector2(800, 600),
+	3: Vector2(320, 600),
+	4: Vector2(960, 600),
+}
+
 
 func _ready() -> void:
 	if pantalla_mejoras == null and get_parent() != null:
@@ -36,21 +43,27 @@ func _ready() -> void:
 func _on_jugador_muerto(jugador: Node) -> void:
 	if not _ronda_activa or _procesando:
 		return
+	var numero: int = jugador.player_number
+	RunManager.perder_vida(numero)
+
+	# Free-for-all: la ronda sigue mientras haya más de un jugador vivo.
+	var vivos := _jugadores_vivos()
+	if vivos.size() > 1:
+		return
+
 	_procesando = true
 	_ronda_activa = false
 	_limpiar_proyectiles()
 
-	var numero: int = jugador.player_number
-	RunManager.perder_vida(numero)
-	var ganador: int = RunManager.ganador_de_ronda(numero)
+	var ganador: int = vivos[0].player_number if vivos.size() == 1 else 0
 	RunManager.terminar_ronda(ganador)
 
-	if banner_ganador != null and banner_ganador.has_method("mostrar_ganador"):
+	if banner_ganador != null and ganador > 0 and banner_ganador.has_method("mostrar_ganador"):
 		await banner_ganador.mostrar_ganador(ganador)
 
 	if RunManager.partida_ganada():
 		if pantalla_fin != null and pantalla_fin.has_method("mostrar"):
-			pantalla_fin.mostrar(ganador)
+			pantalla_fin.mostrar(RunManager.ganador_partida())
 		_procesando = false
 		return
 
@@ -62,7 +75,9 @@ func _on_jugador_muerto(jugador: Node) -> void:
 		cargar_nuevo_mapa()
 
 	for jug in RunManager.jugadores():
-		if is_instance_valid(jug) and jug.has_method("respawn"):
+		if not is_instance_valid(jug):
+			continue
+		if RunManager.vidas_de(jug.player_number) > 0 and jug.has_method("respawn"):
 			jug.respawn()
 	var proxima_ronda: int = RunManager.ronda + 1
 	RunManager.iniciar_ronda(proxima_ronda)
@@ -70,6 +85,14 @@ func _on_jugador_muerto(jugador: Node) -> void:
 		await banner_intro.mostrar_intro(proxima_ronda, _mapa_info_actual)
 	_ronda_activa = true
 	_procesando = false
+
+
+func _jugadores_vivos() -> Array:
+	var lista: Array = []
+	for jug in RunManager.jugadores():
+		if is_instance_valid(jug) and RunManager.vidas_de(jug.player_number) > 0 and jug.is_alive():
+			lista.append(jug)
+	return lista
 
 
 func cargar_nuevo_mapa() -> void:
@@ -97,17 +120,14 @@ func cargar_nuevo_mapa() -> void:
 	_mapa_actual = escena_mapa.instantiate() as Node2D
 	map_container.add_child(_mapa_actual)
 
-	var sp1 := _mapa_actual.get_node_or_null("SpawnP1") as Marker2D
-	var sp2 := _mapa_actual.get_node_or_null("SpawnP2") as Marker2D
-
 	for jug in RunManager.jugadores():
 		if not is_instance_valid(jug):
 			continue
-		var spawn_pos := Vector2(480, 600)
-		if jug.player_number == 1 and sp1 != null:
-			spawn_pos = sp1.global_position
-		elif jug.player_number == 2 and sp2 != null:
-			spawn_pos = sp2.global_position
+		var numero: int = jug.player_number
+		if RunManager.vidas_de(numero) <= 0:
+			continue
+		var marker := _mapa_actual.get_node_or_null("SpawnP%d" % numero) as Marker2D
+		var spawn_pos: Vector2 = marker.global_position if marker != null else SPAWNS_FALLBACK.get(numero, Vector2(640, 600))
 
 		jug.set("_spawn_position", spawn_pos)
 		jug.global_position = spawn_pos

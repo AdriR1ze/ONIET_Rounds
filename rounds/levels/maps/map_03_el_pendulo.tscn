@@ -1,4 +1,5 @@
 [gd_scene format=3]
+
 [ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
 
 [sub_resource type="RectangleShape2D" id="shape_1"]
@@ -12,11 +13,12 @@ radius = 22
 height = 90
 
 [sub_resource type="CapsuleShape2D" id="shape_4"]
+
 [sub_resource type="RectangleShape2D" id="DeadZone_side"]
 size = Vector2(240, 1200)
 
 [sub_resource type="RectangleShape2D" id="DeadZone_bottom"]
-size = Vector2(2200, 240)
+size = Vector2(1280, 80)
 
 radius = 24
 height = 100
@@ -28,6 +30,12 @@ position = Vector2(340, 560)
 
 [node name="SpawnP2" type="Marker2D" parent="."]
 position = Vector2(940, 560)
+
+[node name="SpawnP3" type="Marker2D" parent="."]
+position = Vector2(450, 560)
+
+[node name="SpawnP4" type="Marker2D" parent="."]
+position = Vector2(830, 560)
 
 [node name="BaseSuelo" type="StaticBody2D" parent="."]
 position = Vector2(640, 600)
@@ -176,5 +184,5 @@ position = Vector2(1400, 360)
 shape = SubResource("DeadZone_side")
 
 [node name="Bottom" type="CollisionShape2D" parent="DeadZone"]
-position = Vector2(640, 850)
+position = Vector2(640, 760)
 shape = SubResource("DeadZone_bottom")

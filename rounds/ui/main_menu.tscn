@@ -50,6 +50,18 @@ text = "ONIET"
 layout_mode = 2
 theme_override_constants/separation = 6
 
+[node name="Jugadores" type="HBoxContainer" parent="Centro/Menu/Config"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Etiqueta" type="Label" parent="Centro/Menu/Config/Jugadores"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Jugadores"
+
+[node name="Valor" type="OptionButton" parent="Centro/Menu/Config/Jugadores"]
+layout_mode = 2
+
 [node name="Rondas" type="HBoxContainer" parent="Centro/Menu/Config"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -230,6 +242,8 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Jugador 1   WASD mover/apuntar   W saltar   V disparar   C agarrar   Q trompezar   E graznar   B strafe
 Jugador 2   Flechas mover/apuntar   Arriba saltar   , disparar   L agarrar   I trompezar   O graznar   K strafe
+Jugador 3   Numpad 4/6/8/5 mover   Numpad 8 saltar   Numpad + disparar   Numpad 9 agarrar   Numpad 7 trompezar   Numpad 0 strafe
+Jugador 4   T/F/G/H mover   T saltar   Y disparar   E agarrar   Z trompezar   X strafe
 R reiniciar      Esc pausa"
 
 [node name="Volver" type="Button" parent="Controles/Centro/Marco/Margin/VBox"]

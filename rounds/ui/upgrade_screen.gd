@@ -1,6 +1,8 @@
 extends CanvasLayer
+class_name UpgradeScreen
 
 signal cerrado
+signal fase_completa
 
 const CARD_SCENE := preload("res://ui/upgrade_card.tscn")
 const OPCIONES_POR_JUGADOR := 3
@@ -26,6 +28,9 @@ var _cartas: Dictionary = {}
 var _status_labels: Dictionary = {}
 var _floating_tags: Array[PanelContainer] = []
 
+var _grupos: Array = []
+var _esperando_fase := false
+
 
 func _ready() -> void:
 	visible = false
@@ -37,11 +42,52 @@ func abrir() -> void:
 	_activo = true
 	visible = true
 	PauseManager.tomar(self)
-	_construir()
+	_grupos = _construir_grupos()
+	_ejecutar_fases()
 	await cerrado
 
 
-func _construir() -> void:
+# Separa a los jugadores en dos tandas: los 2 primeros (1 y 2) y los otros 2
+# (3 y 4). Los que no estan en partida (eliminados o inexistentes) no aparecen.
+static func agrupar(activos: Array) -> Array:
+	var por_numero := {}
+	for jugador in activos:
+		por_numero[jugador.player_number] = jugador
+	var grupo_a: Array = []
+	var grupo_b: Array = []
+	for numero in [1, 2]:
+		if por_numero.has(numero):
+			grupo_a.append(por_numero[numero])
+	for numero in [3, 4]:
+		if por_numero.has(numero):
+			grupo_b.append(por_numero[numero])
+	var grupos: Array = []
+	if not grupo_a.is_empty():
+		grupos.append(grupo_a)
+	if not grupo_b.is_empty():
+		grupos.append(grupo_b)
+	return grupos
+
+
+func _construir_grupos() -> Array:
+	return agrupar(RunManager.jugadores_activos())
+
+
+func _ejecutar_fases() -> void:
+	if _grupos.is_empty():
+		_cerrar()
+		return
+	for i in _grupos.size():
+		if i > 0:
+			await _transicion(_grupos[i])
+		_mostrar_grupo(_grupos[i])
+		_esperando_fase = true
+		await fase_completa
+	await get_tree().create_timer(0.35, true, false, true).timeout
+	_cerrar()
+
+
+func _mostrar_grupo(grupo: Array) -> void:
 	for hijo in _contenedor.get_children():
 		_contenedor.remove_child(hijo)
 		hijo.queue_free()
@@ -51,7 +97,7 @@ func _construir() -> void:
 	_confirmados.clear()
 	_status_labels.clear()
 	_floating_tags.clear()
-	_jugadores = RunManager.jugadores()
+	_jugadores = grupo
 
 	for i in _jugadores.size():
 		var jugador = _jugadores[i]
@@ -68,11 +114,27 @@ func _construir() -> void:
 
 	_actualizar_seleccion()
 	_titulo.text = "ELIGE UNA MEJORA"
+	_contenedor.modulate.a = 0.0
+	var tween := create_tween()
+	tween.tween_property(_contenedor, "modulate:a", 1.0, 0.3)
+
+
+func _transicion(proximo_grupo: Array) -> void:
+	_esperando_fase = false
+	var nombres := PackedStringArray()
+	for jugador in proximo_grupo:
+		nombres.append(RunManager.nombre_jugador(jugador.player_number))
+	_titulo.text = "TURNO DE %s" % " Y ".join(nombres).to_upper()
+	var tween := create_tween()
+	tween.tween_property(_contenedor, "modulate:a", 0.0, 0.25)
+	await tween.finished
+	await get_tree().create_timer(0.35, true, false, true).timeout
+
 
 
 func _crear_panel(numero: int) -> void:
-	var color_acento: Color = Color(0.25, 0.85, 1.0) if numero == 1 else Color(1.0, 0.55, 0.25)
-	var color_fondo: Color = Color(0.03, 0.06, 0.10, 0.88) if numero == 1 else Color(0.10, 0.05, 0.03, 0.88)
+	var color_acento: Color = RunManager.color_jugador(numero)
+	var color_fondo: Color = Color(color_acento.r * 0.12, color_acento.g * 0.12, color_acento.b * 0.12, 0.9)
 
 	var panel_marco := PanelContainer.new()
 	panel_marco.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -113,7 +175,7 @@ func _crear_panel(numero: int) -> void:
 	var corazones := ""
 	for i in 5:
 		corazones += "♥" if i < vidas_count else "♡"
-	var controles_hint: String = "[ A / D ]  Elegir: [ V ]" if numero == 1 else "[ ← / → ]  Elegir: [ , ]"
+	var controles_hint: String = "Moverse para elegir · Disparar para confirmar"
 
 	var info_sub := Label.new()
 	info_sub.text = "%s  •  Nivel máx %d  •  %s" % [corazones, max_nivel, controles_hint]
@@ -372,7 +434,7 @@ func _crear_divisor_central() -> void:
 
 
 func _process(_delta: float) -> void:
-	if not _activo:
+	if not _activo or not _esperando_fase:
 		return
 	for jugador in _jugadores:
 		var numero: int = jugador.player_number
@@ -410,22 +472,19 @@ func _confirmar(numero: int) -> void:
 		lbl.modulate = Color(0.35, 1.0, 0.5, 1.0)
 
 	if _todos_confirmados():
-		call_deferred("_cerrar_con_delay")
-
-
-func _cerrar_con_delay() -> void:
-	await get_tree().create_timer(0.22, true, false, true).timeout
-	_cerrar()
+		_esperando_fase = false
+		fase_completa.emit()
 
 
 func _cerrar() -> void:
 	_activo = false
+	_esperando_fase = false
 	visible = false
 	for tag in _floating_tags:
 		if is_instance_valid(tag):
 			tag.visible = false
-	Input.action_release("p1_fire")
-	Input.action_release("p2_fire")
+	for i in RunManager.cantidad_jugadores:
+		Input.action_release("p%d_fire" % (i + 1))
 	PauseManager.soltar(self)
 	cerrado.emit()
 

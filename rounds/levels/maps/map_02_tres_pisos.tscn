@@ -1,14 +1,14 @@
 [gd_scene format=4]
 
 [ext_resource type="TileSet" path="res://effects/neon_tileset.tres" id="1_y3rru"]
+
 [ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
 
 [sub_resource type="RectangleShape2D" id="DeadZone_side"]
 size = Vector2(240, 1200)
 
 [sub_resource type="RectangleShape2D" id="DeadZone_bottom"]
-size = Vector2(2200, 240)
-
+size = Vector2(1280, 80)
 
 [node name="MapTresPisos" type="Node2D" unique_id=268225557]
 
@@ -22,6 +22,12 @@ position = Vector2(240, 520)
 [node name="SpawnP2" type="Marker2D" parent="." unique_id=456582360]
 position = Vector2(1040, 520)
 
+[node name="SpawnP3" type="Marker2D" parent="."]
+position = Vector2(350, 520)
+
+[node name="SpawnP4" type="Marker2D" parent="."]
+position = Vector2(930, 520)
+
 [node name="DeadZone" type="Area2D" parent="."]
 script = ExtResource("2_haz")
 
@@ -34,5 +40,5 @@ position = Vector2(1400, 360)
 shape = SubResource("DeadZone_side")
 
 [node name="Bottom" type="CollisionShape2D" parent="DeadZone"]
-position = Vector2(640, 850)
+position = Vector2(640, 760)
 shape = SubResource("DeadZone_bottom")

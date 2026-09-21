@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://ct0w1skavdyfe" path="res://levels/test_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://player/player_1.tscn" id="2_p1"]
 [ext_resource type="PackedScene" path="res://player/player_2.tscn" id="3_p2"]
+[ext_resource type="PackedScene" path="res://player/player_3.tscn" id="19_p3"]
+[ext_resource type="PackedScene" path="res://player/player_4.tscn" id="20_p4"]
 [ext_resource type="PackedScene" path="res://ui/upgrade_screen.tscn" id="9_screen"]
 [ext_resource type="Script" uid="uid://ivdjn1t4pjc3" path="res://run/run_controller.gd" id="10_run"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="13_pause"]
@@ -44,6 +46,12 @@ position = Vector2(480, 600)
 
 [node name="Player2" parent="." unique_id=1488856975 instance=ExtResource("3_p2")]
 position = Vector2(800, 600)
+
+[node name="Player3" parent="." instance=ExtResource("19_p3")]
+position = Vector2(320, 600)
+
+[node name="Player4" parent="." instance=ExtResource("20_p4")]
+position = Vector2(960, 600)
 
 [node name="UpgradeScreen" parent="." unique_id=1518481688 instance=ExtResource("9_screen")]
 visible = false
