@@ -3,15 +3,14 @@
 [ext_resource type="Script" uid="uid://ct0w1skavdyfe" path="res://levels/test_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://player/player_1.tscn" id="2_p1"]
 [ext_resource type="PackedScene" path="res://player/player_2.tscn" id="3_p2"]
-[ext_resource type="PackedScene" path="res://world/ground.tscn" id="4_ground"]
 [ext_resource type="PackedScene" path="res://ui/upgrade_screen.tscn" id="9_screen"]
 [ext_resource type="Script" uid="uid://ivdjn1t4pjc3" path="res://run/run_controller.gd" id="10_run"]
-[ext_resource type="PackedScene" path="res://effects/neon_tilemap.tscn" id="12_tilemap"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="13_pause"]
 [ext_resource type="PackedScene" path="res://ui/match_hud.tscn" id="14_hud"]
 [ext_resource type="PackedScene" path="res://ui/match_end.tscn" id="15_end"]
 [ext_resource type="PackedScene" path="res://ui/round_winner_banner.tscn" id="16_banner"]
 [ext_resource type="Script" path="res://effects/combat_camera.gd" id="17_camera"]
+[ext_resource type="PackedScene" path="res://ui/map_intro_banner.tscn" id="18_intro"]
 
 [sub_resource type="Environment" id="Environment_glow"]
 background_mode = 3
@@ -21,17 +20,39 @@ glow_blend_mode = 0
 glow_hdr_threshold = 0.8
 glow_hdr_scale = 1.0
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vbounds"]
+size = Vector2(40, 900)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hbounds"]
+size = Vector2(1400, 40)
+
 [node name="TestLevel" type="Node2D" unique_id=1689345500]
 script = ExtResource("1_level")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1191904550]
 environment = SubResource("Environment_glow")
 
-[node name="Ground" parent="." unique_id=1007988154 instance=ExtResource("4_ground")]
-position = Vector2(640, 680)
+[node name="ScreenBoundaries" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
 
-[node name="NeonTileMap" parent="." unique_id=1511501224 instance=ExtResource("12_tilemap")]
-tile_map_data = PackedByteArray("AAAAAAAAAAAAAAAAAAAnAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAnAAEAAAAAAAAAAAAAAAIAAAAAAAAAAAAnAAIAAAAAAAAAAAAAAAMAAAAAAAAAAAAnAAMAAAAAAAAAAAAAAAQAAAAAAAAAAAAnAAQAAAAAAAAAAAAAAAUAAAAAAAAAAAAnAAUAAAAAAAAAAAAAAAYAAAAAAAAAAAAnAAYAAAAAAAAAAAAAAAcAAAAAAAAAAAAnAAcAAAAAAAAAAAAAAAgAAAAAAAAAAAAnAAgAAAAAAAAAAAAAAAkAAAAAAAAAAAAnAAkAAAAAAAAAAAAAAAoAAAAAAAAAAAAnAAoAAAAAAAAAAAAAAAsAAAAAAAAAAAAnAAsAAAAAAAAAAAAAAAwAAAAAAAAAAAAnAAwAAAAAAAAAAAAAAA0AAAAAAAAAAAAnAA0AAAAAAAAAAAAAAA4AAAAAAAAAAAAnAA4AAAAAAAAAAAAAAA8AAAAAAAAAAAAnAA8AAAAAAAAAAAAAABAAAAAAAAAAAAAnABAAAAAAAAAAAAAAABEAAAAAAAAAAAAnABEAAAAAAAAAAAAAABIAAAAAAAAAAAAnABIAAAAAAAAAAAAAABMAAAAAAAAAAAAnABMAAAAAAAAAAAAAABQAAAAAAAAAAAAnABQAAAAAAAAAAAAAABUAAAAAAAAAAAAnABUAAAAAAAAAAAAAABYAAAAAAAAAAAAnABYAAAAAAAAAAAAGAA8AAAAAAAAAAAAHAA8AAAAAAAAAAAAIAA8AAAAAAAAAAAAJAA8AAAAAAAAAAAAKAA8AAAAAAAAAAAALAA8AAAAAAAAAAAAMAA8AAAAAAAAAAAANAA8AAAAAAAAAAAAaAA8AAAAAAAAAAAAbAA8AAAAAAAAAAAAcAA8AAAAAAAAAAAAdAA8AAAAAAAAAAAAeAA8AAAAAAAAAAAAfAA8AAAAAAAAAAAAgAA8AAAAAAAAAAAAhAA8AAAAAAAAAAAAQAAsAAAAAAAAAAAARAAsAAAAAAAAAAAASAAsAAAAAAAAAAAATAAsAAAAAAAAAAAAUAAsAAAAAAAAAAAAVAAsAAAAAAAAAAAAWAAsAAAAAAAAAAAAXAAsAAAAAAAAAAAAFAAgA//////////8EAAgA//////////8EAAkA//////////8EAAoA//////////8FAAoA//////////8FAAsA//////////8GAAsA//////////8GAAoA//////////8GAAkA//////////8GAAgA//////////8FAAkA//////////8EAAsA//////////8IAAgA//////////8JAAgA//////////8KAAgA//////////8KAAkA//////////8KAAoA//////////8KAAsA//////////8JAAsA//////////8IAAsA//////////8IAAoA//////////8IAAkA//////////8JAAkA//////////8JAAoA//////////8GAAcA//////////8GAAYA//////////8GAAUA//////////8GAAQA//////////8GAAMA//////////8HAAIA//////////8IAAMA//////////8IAAQA//////////8IAAUA//////////8IAAYA//////////8IAAcA//////////8HAAMA//////////8HAAQA//////////8HAAUA//////////8HAAYA//////////8HAAcA//////////8IAAIA//////////8GAAIA//////////8GAAEA//////////8HAAEA//////////8IAAEA//////////8HAAAA//////////8=")
+[node name="BoundLeft" type="CollisionShape2D" parent="ScreenBoundaries"]
+position = Vector2(-20, 360)
+shape = SubResource("RectangleShape2D_vbounds")
+
+[node name="BoundRight" type="CollisionShape2D" parent="ScreenBoundaries"]
+position = Vector2(1300, 360)
+shape = SubResource("RectangleShape2D_vbounds")
+
+[node name="BoundTop" type="CollisionShape2D" parent="ScreenBoundaries"]
+position = Vector2(640, -20)
+shape = SubResource("RectangleShape2D_hbounds")
+
+[node name="BoundBottom" type="CollisionShape2D" parent="ScreenBoundaries"]
+position = Vector2(640, 740)
+shape = SubResource("RectangleShape2D_hbounds")
+
+[node name="MapContainer" type="Node2D" parent="." unique_id=1511501224]
 
 [node name="Player1" parent="." unique_id=493393470 instance=ExtResource("2_p1")]
 position = Vector2(480, 600)
@@ -54,6 +75,8 @@ visible = false
 visible = false
 
 [node name="RoundWinnerBanner" parent="." instance=ExtResource("16_banner")]
+
+[node name="MapIntroBanner" parent="." instance=ExtResource("18_intro")]
 
 [node name="Camera" type="Camera2D" parent="."]
 position = Vector2(640, 360)

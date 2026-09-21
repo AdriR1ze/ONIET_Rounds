@@ -1,0 +1,98 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
+
+[sub_resource type="RectangleShape2D" id="shape_1"]
+size = Vector2(280, 320)
+
+[sub_resource type="RectangleShape2D" id="shape_2"]
+size = Vector2(560, 28)
+
+[sub_resource type="RectangleShape2D" id="shape_3"]
+size = Vector2(240, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_4"]
+size = Vector2(120, 22)
+
+[sub_resource type="RectangleShape2D" id="shape_5"]
+size = Vector2(180, 28)
+
+[node name="MapElAbismo" type="Node2D"]
+
+[node name="SpawnP1" type="Marker2D" parent="."]
+position = Vector2(200, 330)
+
+[node name="SpawnP2" type="Marker2D" parent="."]
+position = Vector2(1080, 330)
+
+[node name="BastionL" type="StaticBody2D" parent="."]
+position = Vector2(200, 510)
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.95, 0.4, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BastionL"]
+shape = SubResource("shape_1")
+
+[node name="BastionR" type="StaticBody2D" parent="."]
+position = Vector2(1080, 510)
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.95, 0.4, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BastionR"]
+shape = SubResource("shape_1")
+
+[node name="TechoPuente" type="StaticBody2D" parent="."]
+position = Vector2(640, 160)
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.95, 0.4, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="TechoPuente"]
+shape = SubResource("shape_2")
+
+[node name="PasoCentroAlto" type="StaticBody2D" parent="."]
+position = Vector2(640, 350)
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.95, 0.4, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="PasoCentroAlto"]
+shape = SubResource("shape_3")
+
+[node name="PasoMedioL" type="StaticBody2D" parent="."]
+position = Vector2(470, 450)
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.95, 0.4, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="PasoMedioL"]
+shape = SubResource("shape_4")
+
+[node name="PasoMedioR" type="StaticBody2D" parent="."]
+position = Vector2(810, 450)
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.95, 0.4, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="PasoMedioR"]
+shape = SubResource("shape_4")
+
+[node name="PasoBajoL" type="StaticBody2D" parent="."]
+position = Vector2(500, 550)
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.95, 0.4, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="PasoBajoL"]
+shape = SubResource("shape_4")
+
+[node name="PasoBajoR" type="StaticBody2D" parent="."]
+position = Vector2(780, 550)
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.95, 0.4, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="PasoBajoR"]
+shape = SubResource("shape_4")
+
+[node name="FondoCentro" type="StaticBody2D" parent="."]
+position = Vector2(640, 640)
+script = ExtResource("1_geom")
+border_color = Color(0.2, 0.95, 0.4, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="FondoCentro"]
+shape = SubResource("shape_5")

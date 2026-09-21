@@ -1,0 +1,163 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
+
+[sub_resource type="RectangleShape2D" id="shape_1"]
+size = Vector2(960, 32)
+
+[sub_resource type="RectangleShape2D" id="shape_2"]
+size = Vector2(100, 290)
+
+[sub_resource type="RectangleShape2D" id="shape_3"]
+size = Vector2(20, 30)
+
+[sub_resource type="RectangleShape2D" id="shape_4"]
+size = Vector2(130, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_5"]
+size = Vector2(120, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_6"]
+size = Vector2(110, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_7"]
+size = Vector2(150, 28)
+
+[sub_resource type="RectangleShape2D" id="shape_8"]
+size = Vector2(20, 24)
+
+[node name="MapLaPiramide" type="Node2D"]
+
+[node name="SpawnP1" type="Marker2D" parent="."]
+position = Vector2(300, 600)
+
+[node name="SpawnP2" type="Marker2D" parent="."]
+position = Vector2(980, 600)
+
+[node name="SueloPrincipal" type="StaticBody2D" parent="."]
+position = Vector2(640, 640)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="SueloPrincipal"]
+shape = SubResource("shape_1")
+
+[node name="TorreFlancoL" type="StaticBody2D" parent="."]
+position = Vector2(120, 480)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="TorreFlancoL"]
+shape = SubResource("shape_2")
+
+[node name="AlmenaTorreL" type="StaticBody2D" parent="."]
+position = Vector2(80, 320)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaTorreL"]
+shape = SubResource("shape_3")
+
+[node name="AlmenaTorreL2" type="StaticBody2D" parent="."]
+position = Vector2(160, 320)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaTorreL2"]
+shape = SubResource("shape_3")
+
+[node name="TorreFlancoR" type="StaticBody2D" parent="."]
+position = Vector2(1160, 480)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="TorreFlancoR"]
+shape = SubResource("shape_2")
+
+[node name="AlmenaTorreR" type="StaticBody2D" parent="."]
+position = Vector2(1120, 320)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaTorreR"]
+shape = SubResource("shape_3")
+
+[node name="AlmenaTorreR2" type="StaticBody2D" parent="."]
+position = Vector2(1200, 320)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaTorreR2"]
+shape = SubResource("shape_3")
+
+[node name="Paso1L" type="StaticBody2D" parent="."]
+position = Vector2(380, 540)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="Paso1L"]
+shape = SubResource("shape_4")
+
+[node name="Paso1R" type="StaticBody2D" parent="."]
+position = Vector2(900, 540)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="Paso1R"]
+shape = SubResource("shape_4")
+
+[node name="Paso2L" type="StaticBody2D" parent="."]
+position = Vector2(470, 440)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="Paso2L"]
+shape = SubResource("shape_5")
+
+[node name="Paso2R" type="StaticBody2D" parent="."]
+position = Vector2(810, 440)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="Paso2R"]
+shape = SubResource("shape_5")
+
+[node name="Paso3L" type="StaticBody2D" parent="."]
+position = Vector2(550, 340)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="Paso3L"]
+shape = SubResource("shape_6")
+
+[node name="Paso3R" type="StaticBody2D" parent="."]
+position = Vector2(730, 340)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="Paso3R"]
+shape = SubResource("shape_6")
+
+[node name="TorreCorona" type="StaticBody2D" parent="."]
+position = Vector2(640, 240)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="TorreCorona"]
+shape = SubResource("shape_7")
+
+[node name="AlmenaCoronaL" type="StaticBody2D" parent="."]
+position = Vector2(580, 215)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaCoronaL"]
+shape = SubResource("shape_8")
+
+[node name="AlmenaCoronaR" type="StaticBody2D" parent="."]
+position = Vector2(700, 215)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.82, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaCoronaR"]
+shape = SubResource("shape_8")

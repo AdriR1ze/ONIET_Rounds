@@ -1,0 +1,141 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
+[ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
+
+[sub_resource type="RectangleShape2D" id="shape_1"]
+size = Vector2(280, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_2"]
+size = Vector2(180, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_3"]
+size = Vector2(140, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_4"]
+size = Vector2(20, 26)
+
+[sub_resource type="RectangleShape2D" id="shape_5"]
+size = Vector2(160, 24)
+
+[sub_resource type="CircleShape2D" id="shape_6"]
+radius = 45
+
+[node name="MapCastilloCarmesi" type="Node2D"]
+
+[node name="SpawnP1" type="Marker2D" parent="."]
+position = Vector2(400, 350)
+
+[node name="SpawnP2" type="Marker2D" parent="."]
+position = Vector2(880, 350)
+
+[node name="BaseL" type="StaticBody2D" parent="."]
+position = Vector2(220, 620)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BaseL"]
+shape = SubResource("shape_1")
+
+[node name="BaseR" type="StaticBody2D" parent="."]
+position = Vector2(1060, 620)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BaseR"]
+shape = SubResource("shape_1")
+
+[node name="AlmenaBajaL" type="StaticBody2D" parent="."]
+position = Vector2(280, 510)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaBajaL"]
+shape = SubResource("shape_2")
+
+[node name="AlmenaBajaR" type="StaticBody2D" parent="."]
+position = Vector2(1000, 510)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaBajaR"]
+shape = SubResource("shape_2")
+
+[node name="AlmenaMediaL" type="StaticBody2D" parent="."]
+position = Vector2(420, 390)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaMediaL"]
+shape = SubResource("shape_2")
+
+[node name="AlmenaMediaR" type="StaticBody2D" parent="."]
+position = Vector2(860, 390)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaMediaR"]
+shape = SubResource("shape_2")
+
+[node name="AlmenaAltaL" type="StaticBody2D" parent="."]
+position = Vector2(510, 270)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaAltaL"]
+shape = SubResource("shape_3")
+
+[node name="AlmenaAltaR" type="StaticBody2D" parent="."]
+position = Vector2(770, 270)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="AlmenaAltaR"]
+shape = SubResource("shape_3")
+
+[node name="DienteL1" type="StaticBody2D" parent="."]
+position = Vector2(370, 365)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="DienteL1"]
+shape = SubResource("shape_4")
+
+[node name="DienteR1" type="StaticBody2D" parent="."]
+position = Vector2(910, 365)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="DienteR1"]
+shape = SubResource("shape_4")
+
+[node name="DienteL2" type="StaticBody2D" parent="."]
+position = Vector2(460, 245)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="DienteL2"]
+shape = SubResource("shape_4")
+
+[node name="DienteR2" type="StaticBody2D" parent="."]
+position = Vector2(820, 245)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="DienteR2"]
+shape = SubResource("shape_4")
+
+[node name="FondoPozo" type="StaticBody2D" parent="."]
+position = Vector2(640, 600)
+script = ExtResource("1_geom")
+border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="FondoPozo"]
+shape = SubResource("shape_5")
+
+[node name="NucleoLetal" type="Area2D" parent="."]
+position = Vector2(640, 440)
+script = ExtResource("2_haz")
+
+[node name="Shape" type="CollisionShape2D" parent="NucleoLetal"]
+shape = SubResource("shape_6")

@@ -1,0 +1,109 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
+
+[sub_resource type="RectangleShape2D" id="shape_1"]
+size = Vector2(320, 28)
+
+[sub_resource type="RectangleShape2D" id="shape_2"]
+size = Vector2(20, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_3"]
+size = Vector2(200, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_4"]
+size = Vector2(160, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_5"]
+size = Vector2(280, 24)
+
+[sub_resource type="RectangleShape2D" id="shape_6"]
+size = Vector2(120, 22)
+
+[node name="MapElTrono" type="Node2D"]
+
+[node name="SpawnP1" type="Marker2D" parent="."]
+position = Vector2(260, 520)
+
+[node name="SpawnP2" type="Marker2D" parent="."]
+position = Vector2(1020, 520)
+
+[node name="TronoCentral" type="StaticBody2D" parent="."]
+position = Vector2(640, 320)
+script = ExtResource("1_geom")
+border_color = Color(0.4, 0.65, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="TronoCentral"]
+shape = SubResource("shape_1")
+
+[node name="ParapetoL" type="StaticBody2D" parent="."]
+position = Vector2(490, 295)
+script = ExtResource("1_geom")
+border_color = Color(0.4, 0.65, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="ParapetoL"]
+shape = SubResource("shape_2")
+
+[node name="ParapetoR" type="StaticBody2D" parent="."]
+position = Vector2(790, 295)
+script = ExtResource("1_geom")
+border_color = Color(0.4, 0.65, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="ParapetoR"]
+shape = SubResource("shape_2")
+
+[node name="Escalon1L" type="StaticBody2D" parent="."]
+position = Vector2(260, 560)
+script = ExtResource("1_geom")
+border_color = Color(0.4, 0.65, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="Escalon1L"]
+shape = SubResource("shape_3")
+
+[node name="Escalon1R" type="StaticBody2D" parent="."]
+position = Vector2(1020, 560)
+script = ExtResource("1_geom")
+border_color = Color(0.4, 0.65, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="Escalon1R"]
+shape = SubResource("shape_3")
+
+[node name="Escalon2L" type="StaticBody2D" parent="."]
+position = Vector2(380, 440)
+script = ExtResource("1_geom")
+border_color = Color(0.4, 0.65, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="Escalon2L"]
+shape = SubResource("shape_4")
+
+[node name="Escalon2R" type="StaticBody2D" parent="."]
+position = Vector2(900, 440)
+script = ExtResource("1_geom")
+border_color = Color(0.4, 0.65, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="Escalon2R"]
+shape = SubResource("shape_4")
+
+[node name="TrincheraBaja" type="StaticBody2D" parent="."]
+position = Vector2(640, 630)
+script = ExtResource("1_geom")
+border_color = Color(0.4, 0.65, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="TrincheraBaja"]
+shape = SubResource("shape_5")
+
+[node name="BalconL" type="StaticBody2D" parent="."]
+position = Vector2(120, 360)
+script = ExtResource("1_geom")
+border_color = Color(0.4, 0.65, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BalconL"]
+shape = SubResource("shape_6")
+
+[node name="BalconR" type="StaticBody2D" parent="."]
+position = Vector2(1160, 360)
+script = ExtResource("1_geom")
+border_color = Color(0.4, 0.65, 1.0, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BalconR"]
+shape = SubResource("shape_6")

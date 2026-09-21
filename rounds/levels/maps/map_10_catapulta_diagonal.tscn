@@ -1,0 +1,92 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
+[ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
+
+[sub_resource type="RectangleShape2D" id="shape_1"]
+size = Vector2(300, 28)
+
+[sub_resource type="RectangleShape2D" id="shape_2"]
+size = Vector2(240, 24)
+
+[sub_resource type="CircleShape2D" id="shape_3"]
+radius = 44
+
+[sub_resource type="CircleShape2D" id="shape_4"]
+radius = 36
+
+[sub_resource type="RectangleShape2D" id="shape_5"]
+size = Vector2(460, 24)
+
+[node name="MapCatapultaDiagonal" type="Node2D"]
+
+[node name="SpawnP1" type="Marker2D" parent="."]
+position = Vector2(240, 550)
+
+[node name="SpawnP2" type="Marker2D" parent="."]
+position = Vector2(1040, 550)
+
+[node name="BaseL" type="StaticBody2D" parent="."]
+position = Vector2(240, 590)
+script = ExtResource("1_geom")
+border_color = Color(0.8, 1.0, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BaseL"]
+shape = SubResource("shape_1")
+
+[node name="BaseR" type="StaticBody2D" parent="."]
+position = Vector2(1040, 590)
+script = ExtResource("1_geom")
+border_color = Color(0.8, 1.0, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="BaseR"]
+shape = SubResource("shape_1")
+
+[node name="RampaL" type="StaticBody2D" parent="."]
+position = Vector2(460, 440)
+rotation = -0.52
+script = ExtResource("1_geom")
+border_color = Color(0.8, 1.0, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="RampaL"]
+shape = SubResource("shape_2")
+
+[node name="RampaR" type="StaticBody2D" parent="."]
+position = Vector2(820, 440)
+rotation = 0.52
+script = ExtResource("1_geom")
+border_color = Color(0.8, 1.0, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="RampaR"]
+shape = SubResource("shape_2")
+
+[node name="OrbeCima" type="StaticBody2D" parent="."]
+position = Vector2(640, 300)
+script = ExtResource("1_geom")
+border_color = Color(0.8, 1.0, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="OrbeCima"]
+shape = SubResource("shape_3")
+
+[node name="OrbeAltoL" type="StaticBody2D" parent="."]
+position = Vector2(200, 380)
+script = ExtResource("1_geom")
+border_color = Color(0.8, 1.0, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="OrbeAltoL"]
+shape = SubResource("shape_4")
+
+[node name="OrbeAltoR" type="StaticBody2D" parent="."]
+position = Vector2(1080, 380)
+script = ExtResource("1_geom")
+border_color = Color(0.8, 1.0, 0.2, 1.0)
+
+[node name="Shape" type="CollisionShape2D" parent="OrbeAltoR"]
+shape = SubResource("shape_4")
+
+[node name="FosoCentral" type="Area2D" parent="."]
+position = Vector2(640, 660)
+script = ExtResource("2_haz")
+
+[node name="Shape" type="CollisionShape2D" parent="FosoCentral"]
+shape = SubResource("shape_5")
