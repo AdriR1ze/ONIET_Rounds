@@ -1,6 +1,5 @@
 [gd_scene format=3]
-
-[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
+[ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
 
 [sub_resource type="RectangleShape2D" id="shape_1"]
 size = Vector2(300, 28)
@@ -18,6 +17,12 @@ size = Vector2(320, 24)
 size = Vector2(260, 24)
 
 [sub_resource type="RectangleShape2D" id="shape_6"]
+[sub_resource type="RectangleShape2D" id="DeadZone_side"]
+size = Vector2(240, 1200)
+
+[sub_resource type="RectangleShape2D" id="DeadZone_bottom"]
+size = Vector2(2200, 240)
+
 size = Vector2(20, 20)
 
 [node name="MapCamarasGemelas" type="Node2D"]
@@ -30,80 +35,175 @@ position = Vector2(1040, 540)
 
 [node name="BunkerPisoL" type="StaticBody2D" parent="."]
 position = Vector2(260, 580)
-script = ExtResource("1_geom")
-border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="BunkerPisoL"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-150, -14, 150, -14, 150, 14, -150, 14)
+
+[node name="Border" type="Line2D" parent="BunkerPisoL"]
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1.0)
+closed = true
+points = PackedVector2Array(-150, -14, 150, -14, 150, 14, -150, 14)
 
 [node name="Shape" type="CollisionShape2D" parent="BunkerPisoL"]
 shape = SubResource("shape_1")
 
 [node name="BunkerTechoL" type="StaticBody2D" parent="."]
 position = Vector2(260, 400)
-script = ExtResource("1_geom")
-border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="BunkerTechoL"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-150, -12, 150, -12, 150, 12, -150, 12)
+
+[node name="Border" type="Line2D" parent="BunkerTechoL"]
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1.0)
+closed = true
+points = PackedVector2Array(-150, -12, 150, -12, 150, 12, -150, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="BunkerTechoL"]
 shape = SubResource("shape_2")
 
 [node name="BunkerPilarL" type="StaticBody2D" parent="."]
 position = Vector2(120, 490)
-script = ExtResource("1_geom")
-border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="BunkerPilarL"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-14, -80, 14, -80, 14, 80, -14, 80)
+
+[node name="Border" type="Line2D" parent="BunkerPilarL"]
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1.0)
+closed = true
+points = PackedVector2Array(-14, -80, 14, -80, 14, 80, -14, 80)
 
 [node name="Shape" type="CollisionShape2D" parent="BunkerPilarL"]
 shape = SubResource("shape_3")
 
 [node name="BunkerPisoR" type="StaticBody2D" parent="."]
 position = Vector2(1020, 580)
-script = ExtResource("1_geom")
-border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="BunkerPisoR"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-150, -14, 150, -14, 150, 14, -150, 14)
+
+[node name="Border" type="Line2D" parent="BunkerPisoR"]
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1.0)
+closed = true
+points = PackedVector2Array(-150, -14, 150, -14, 150, 14, -150, 14)
 
 [node name="Shape" type="CollisionShape2D" parent="BunkerPisoR"]
 shape = SubResource("shape_1")
 
 [node name="BunkerTechoR" type="StaticBody2D" parent="."]
 position = Vector2(1020, 400)
-script = ExtResource("1_geom")
-border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="BunkerTechoR"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-150, -12, 150, -12, 150, 12, -150, 12)
+
+[node name="Border" type="Line2D" parent="BunkerTechoR"]
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1.0)
+closed = true
+points = PackedVector2Array(-150, -12, 150, -12, 150, 12, -150, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="BunkerTechoR"]
 shape = SubResource("shape_2")
 
 [node name="BunkerPilarR" type="StaticBody2D" parent="."]
 position = Vector2(1160, 490)
-script = ExtResource("1_geom")
-border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="BunkerPilarR"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-14, -80, 14, -80, 14, 80, -14, 80)
+
+[node name="Border" type="Line2D" parent="BunkerPilarR"]
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1.0)
+closed = true
+points = PackedVector2Array(-14, -80, 14, -80, 14, 80, -14, 80)
 
 [node name="Shape" type="CollisionShape2D" parent="BunkerPilarR"]
 shape = SubResource("shape_3")
 
 [node name="PuenteElevado" type="StaticBody2D" parent="."]
 position = Vector2(640, 470)
-script = ExtResource("1_geom")
-border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="PuenteElevado"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-160, -12, 160, -12, 160, 12, -160, 12)
+
+[node name="Border" type="Line2D" parent="PuenteElevado"]
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1.0)
+closed = true
+points = PackedVector2Array(-160, -12, 160, -12, 160, 12, -160, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="PuenteElevado"]
 shape = SubResource("shape_4")
 
 [node name="ValleBajo" type="StaticBody2D" parent="."]
 position = Vector2(640, 630)
-script = ExtResource("1_geom")
-border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="ValleBajo"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-130, -12, 130, -12, 130, 12, -130, 12)
+
+[node name="Border" type="Line2D" parent="ValleBajo"]
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1.0)
+closed = true
+points = PackedVector2Array(-130, -12, 130, -12, 130, 12, -130, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="ValleBajo"]
 shape = SubResource("shape_5")
 
 [node name="AlmenaTechoL" type="StaticBody2D" parent="."]
 position = Vector2(360, 380)
-script = ExtResource("1_geom")
-border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="AlmenaTechoL"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
+
+[node name="Border" type="Line2D" parent="AlmenaTechoL"]
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1.0)
+closed = true
+points = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
 
 [node name="Shape" type="CollisionShape2D" parent="AlmenaTechoL"]
 shape = SubResource("shape_6")
 
 [node name="AlmenaTechoR" type="StaticBody2D" parent="."]
 position = Vector2(920, 380)
-script = ExtResource("1_geom")
-border_color = Color(0.15, 0.9, 0.85, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="AlmenaTechoR"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
+
+[node name="Border" type="Line2D" parent="AlmenaTechoR"]
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1.0)
+closed = true
+points = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
 
 [node name="Shape" type="CollisionShape2D" parent="AlmenaTechoR"]
 shape = SubResource("shape_6")
+
+[node name="DeadZone" type="Area2D" parent="."]
+script = ExtResource("2_haz")
+
+[node name="Left" type="CollisionShape2D" parent="DeadZone"]
+position = Vector2(-120, 360)
+shape = SubResource("DeadZone_side")
+
+[node name="Right" type="CollisionShape2D" parent="DeadZone"]
+position = Vector2(1400, 360)
+shape = SubResource("DeadZone_side")
+
+[node name="Bottom" type="CollisionShape2D" parent="DeadZone"]
+position = Vector2(640, 850)
+shape = SubResource("DeadZone_bottom")

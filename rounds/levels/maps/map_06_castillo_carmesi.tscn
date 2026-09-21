@@ -1,6 +1,5 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
 [ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
 
 [sub_resource type="RectangleShape2D" id="shape_1"]
@@ -19,6 +18,12 @@ size = Vector2(20, 26)
 size = Vector2(160, 24)
 
 [sub_resource type="CircleShape2D" id="shape_6"]
+[sub_resource type="RectangleShape2D" id="DeadZone_side"]
+size = Vector2(240, 1200)
+
+[sub_resource type="RectangleShape2D" id="DeadZone_bottom"]
+size = Vector2(2200, 240)
+
 radius = 45
 
 [node name="MapCastilloCarmesi" type="Node2D"]
@@ -31,104 +36,208 @@ position = Vector2(880, 350)
 
 [node name="BaseL" type="StaticBody2D" parent="."]
 position = Vector2(220, 620)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="BaseL"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-140, -12, 140, -12, 140, 12, -140, 12)
+
+[node name="Border" type="Line2D" parent="BaseL"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-140, -12, 140, -12, 140, 12, -140, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="BaseL"]
 shape = SubResource("shape_1")
 
 [node name="BaseR" type="StaticBody2D" parent="."]
 position = Vector2(1060, 620)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="BaseR"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-140, -12, 140, -12, 140, 12, -140, 12)
+
+[node name="Border" type="Line2D" parent="BaseR"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-140, -12, 140, -12, 140, 12, -140, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="BaseR"]
 shape = SubResource("shape_1")
 
 [node name="AlmenaBajaL" type="StaticBody2D" parent="."]
 position = Vector2(280, 510)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="AlmenaBajaL"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
+
+[node name="Border" type="Line2D" parent="AlmenaBajaL"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="AlmenaBajaL"]
 shape = SubResource("shape_2")
 
 [node name="AlmenaBajaR" type="StaticBody2D" parent="."]
 position = Vector2(1000, 510)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="AlmenaBajaR"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
+
+[node name="Border" type="Line2D" parent="AlmenaBajaR"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="AlmenaBajaR"]
 shape = SubResource("shape_2")
 
 [node name="AlmenaMediaL" type="StaticBody2D" parent="."]
 position = Vector2(420, 390)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="AlmenaMediaL"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
+
+[node name="Border" type="Line2D" parent="AlmenaMediaL"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="AlmenaMediaL"]
 shape = SubResource("shape_2")
 
 [node name="AlmenaMediaR" type="StaticBody2D" parent="."]
 position = Vector2(860, 390)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="AlmenaMediaR"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
+
+[node name="Border" type="Line2D" parent="AlmenaMediaR"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="AlmenaMediaR"]
 shape = SubResource("shape_2")
 
 [node name="AlmenaAltaL" type="StaticBody2D" parent="."]
 position = Vector2(510, 270)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="AlmenaAltaL"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-70, -12, 70, -12, 70, 12, -70, 12)
+
+[node name="Border" type="Line2D" parent="AlmenaAltaL"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-70, -12, 70, -12, 70, 12, -70, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="AlmenaAltaL"]
 shape = SubResource("shape_3")
 
 [node name="AlmenaAltaR" type="StaticBody2D" parent="."]
 position = Vector2(770, 270)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="AlmenaAltaR"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-70, -12, 70, -12, 70, 12, -70, 12)
+
+[node name="Border" type="Line2D" parent="AlmenaAltaR"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-70, -12, 70, -12, 70, 12, -70, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="AlmenaAltaR"]
 shape = SubResource("shape_3")
 
 [node name="DienteL1" type="StaticBody2D" parent="."]
 position = Vector2(370, 365)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="DienteL1"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-10, -13, 10, -13, 10, 13, -10, 13)
+
+[node name="Border" type="Line2D" parent="DienteL1"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-10, -13, 10, -13, 10, 13, -10, 13)
 
 [node name="Shape" type="CollisionShape2D" parent="DienteL1"]
 shape = SubResource("shape_4")
 
 [node name="DienteR1" type="StaticBody2D" parent="."]
 position = Vector2(910, 365)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="DienteR1"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-10, -13, 10, -13, 10, 13, -10, 13)
+
+[node name="Border" type="Line2D" parent="DienteR1"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-10, -13, 10, -13, 10, 13, -10, 13)
 
 [node name="Shape" type="CollisionShape2D" parent="DienteR1"]
 shape = SubResource("shape_4")
 
 [node name="DienteL2" type="StaticBody2D" parent="."]
 position = Vector2(460, 245)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="DienteL2"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-10, -13, 10, -13, 10, 13, -10, 13)
+
+[node name="Border" type="Line2D" parent="DienteL2"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-10, -13, 10, -13, 10, 13, -10, 13)
 
 [node name="Shape" type="CollisionShape2D" parent="DienteL2"]
 shape = SubResource("shape_4")
 
 [node name="DienteR2" type="StaticBody2D" parent="."]
 position = Vector2(820, 245)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="DienteR2"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-10, -13, 10, -13, 10, 13, -10, 13)
+
+[node name="Border" type="Line2D" parent="DienteR2"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-10, -13, 10, -13, 10, 13, -10, 13)
 
 [node name="Shape" type="CollisionShape2D" parent="DienteR2"]
 shape = SubResource("shape_4")
 
 [node name="FondoPozo" type="StaticBody2D" parent="."]
 position = Vector2(640, 600)
-script = ExtResource("1_geom")
-border_color = Color(1.0, 0.25, 0.35, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="FondoPozo"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-80, -12, 80, -12, 80, 12, -80, 12)
+
+[node name="Border" type="Line2D" parent="FondoPozo"]
+width = 3.0
+default_color = Color(1.0, 0.25, 0.35, 1.0)
+closed = true
+points = PackedVector2Array(-80, -12, 80, -12, 80, 12, -80, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="FondoPozo"]
 shape = SubResource("shape_5")
@@ -139,3 +248,18 @@ script = ExtResource("2_haz")
 
 [node name="Shape" type="CollisionShape2D" parent="NucleoLetal"]
 shape = SubResource("shape_6")
+
+[node name="DeadZone" type="Area2D" parent="."]
+script = ExtResource("2_haz")
+
+[node name="Left" type="CollisionShape2D" parent="DeadZone"]
+position = Vector2(-120, 360)
+shape = SubResource("DeadZone_side")
+
+[node name="Right" type="CollisionShape2D" parent="DeadZone"]
+position = Vector2(1400, 360)
+shape = SubResource("DeadZone_side")
+
+[node name="Bottom" type="CollisionShape2D" parent="DeadZone"]
+position = Vector2(640, 850)
+shape = SubResource("DeadZone_bottom")

@@ -1,6 +1,5 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://world/geometric_platform.gd" id="1_geom"]
 [ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
 
 [sub_resource type="RectangleShape2D" id="shape_1"]
@@ -22,6 +21,12 @@ radius = 50
 size = Vector2(90, 20)
 
 [sub_resource type="RectangleShape2D" id="shape_7"]
+[sub_resource type="RectangleShape2D" id="DeadZone_side"]
+size = Vector2(240, 1200)
+
+[sub_resource type="RectangleShape2D" id="DeadZone_bottom"]
+size = Vector2(2200, 240)
+
 size = Vector2(480, 24)
 
 [node name="MapColiseoPlasma" type="Node2D"]
@@ -34,80 +39,160 @@ position = Vector2(1040, 560)
 
 [node name="Grada1L" type="StaticBody2D" parent="."]
 position = Vector2(220, 600)
-script = ExtResource("1_geom")
-border_color = Color(0.85, 0.35, 1.0, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="Grada1L"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-110, -14, 110, -14, 110, 14, -110, 14)
+
+[node name="Border" type="Line2D" parent="Grada1L"]
+width = 3.0
+default_color = Color(0.85, 0.35, 1.0, 1.0)
+closed = true
+points = PackedVector2Array(-110, -14, 110, -14, 110, 14, -110, 14)
 
 [node name="Shape" type="CollisionShape2D" parent="Grada1L"]
 shape = SubResource("shape_1")
 
 [node name="Grada1R" type="StaticBody2D" parent="."]
 position = Vector2(1060, 600)
-script = ExtResource("1_geom")
-border_color = Color(0.85, 0.35, 1.0, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="Grada1R"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-110, -14, 110, -14, 110, 14, -110, 14)
+
+[node name="Border" type="Line2D" parent="Grada1R"]
+width = 3.0
+default_color = Color(0.85, 0.35, 1.0, 1.0)
+closed = true
+points = PackedVector2Array(-110, -14, 110, -14, 110, 14, -110, 14)
 
 [node name="Shape" type="CollisionShape2D" parent="Grada1R"]
 shape = SubResource("shape_1")
 
 [node name="Grada2L" type="StaticBody2D" parent="."]
 position = Vector2(180, 480)
-script = ExtResource("1_geom")
-border_color = Color(0.85, 0.35, 1.0, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="Grada2L"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
+
+[node name="Border" type="Line2D" parent="Grada2L"]
+width = 3.0
+default_color = Color(0.85, 0.35, 1.0, 1.0)
+closed = true
+points = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="Grada2L"]
 shape = SubResource("shape_2")
 
 [node name="Grada2R" type="StaticBody2D" parent="."]
 position = Vector2(1100, 480)
-script = ExtResource("1_geom")
-border_color = Color(0.85, 0.35, 1.0, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="Grada2R"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
+
+[node name="Border" type="Line2D" parent="Grada2R"]
+width = 3.0
+default_color = Color(0.85, 0.35, 1.0, 1.0)
+closed = true
+points = PackedVector2Array(-90, -12, 90, -12, 90, 12, -90, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="Grada2R"]
 shape = SubResource("shape_2")
 
 [node name="Grada3L" type="StaticBody2D" parent="."]
 position = Vector2(140, 360)
-script = ExtResource("1_geom")
-border_color = Color(0.85, 0.35, 1.0, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="Grada3L"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-70, -12, 70, -12, 70, 12, -70, 12)
+
+[node name="Border" type="Line2D" parent="Grada3L"]
+width = 3.0
+default_color = Color(0.85, 0.35, 1.0, 1.0)
+closed = true
+points = PackedVector2Array(-70, -12, 70, -12, 70, 12, -70, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="Grada3L"]
 shape = SubResource("shape_3")
 
 [node name="Grada3R" type="StaticBody2D" parent="."]
 position = Vector2(1140, 360)
-script = ExtResource("1_geom")
-border_color = Color(0.85, 0.35, 1.0, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="Grada3R"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-70, -12, 70, -12, 70, 12, -70, 12)
+
+[node name="Border" type="Line2D" parent="Grada3R"]
+width = 3.0
+default_color = Color(0.85, 0.35, 1.0, 1.0)
+closed = true
+points = PackedVector2Array(-70, -12, 70, -12, 70, 12, -70, 12)
 
 [node name="Shape" type="CollisionShape2D" parent="Grada3R"]
 shape = SubResource("shape_3")
 
 [node name="PuenteDuelo" type="StaticBody2D" parent="."]
 position = Vector2(640, 560)
-script = ExtResource("1_geom")
-border_color = Color(0.85, 0.35, 1.0, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="PuenteDuelo"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-150, -11, 150, -11, 150, 11, -150, 11)
+
+[node name="Border" type="Line2D" parent="PuenteDuelo"]
+width = 3.0
+default_color = Color(0.85, 0.35, 1.0, 1.0)
+closed = true
+points = PackedVector2Array(-150, -11, 150, -11, 150, 11, -150, 11)
 
 [node name="Shape" type="CollisionShape2D" parent="PuenteDuelo"]
 shape = SubResource("shape_4")
 
 [node name="OrbeCenital" type="StaticBody2D" parent="."]
 position = Vector2(640, 340)
-script = ExtResource("1_geom")
-border_color = Color(0.85, 0.35, 1.0, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="OrbeCenital"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(50, 0, 49.0393, 9.7545, 46.194, 19.1342, 41.5735, 27.7785, 35.3553, 35.3553, 27.7785, 41.5735, 19.1342, 46.194, 9.7545, 49.0393, 0, 50, -9.7545, 49.0393, -19.1342, 46.194, -27.7785, 41.5735, -35.3553, 35.3553, -41.5735, 27.7785, -46.194, 19.1342, -49.0393, 9.7545, -50, 0, -49.0393, -9.7545, -46.194, -19.1342, -41.5735, -27.7785, -35.3553, -35.3553, -27.7785, -41.5735, -19.1342, -46.194, -9.7545, -49.0393, 0, -50, 9.7545, -49.0393, 19.1342, -46.194, 27.7785, -41.5735, 35.3553, -35.3553, 41.5735, -27.7785, 46.194, -19.1342, 49.0393, -9.7545)
+
+[node name="Border" type="Line2D" parent="OrbeCenital"]
+width = 3.0
+default_color = Color(0.85, 0.35, 1.0, 1.0)
+closed = true
+points = PackedVector2Array(50, 0, 49.0393, 9.7545, 46.194, 19.1342, 41.5735, 27.7785, 35.3553, 35.3553, 27.7785, 41.5735, 19.1342, 46.194, 9.7545, 49.0393, 0, 50, -9.7545, 49.0393, -19.1342, 46.194, -27.7785, 41.5735, -35.3553, 35.3553, -41.5735, 27.7785, -46.194, 19.1342, -49.0393, 9.7545, -50, 0, -49.0393, -9.7545, -46.194, -19.1342, -41.5735, -27.7785, -35.3553, -35.3553, -27.7785, -41.5735, -19.1342, -46.194, -9.7545, -49.0393, 0, -50, 9.7545, -49.0393, 19.1342, -46.194, 27.7785, -41.5735, 35.3553, -35.3553, 41.5735, -27.7785, 46.194, -19.1342, 49.0393, -9.7545)
 
 [node name="Shape" type="CollisionShape2D" parent="OrbeCenital"]
 shape = SubResource("shape_5")
 
 [node name="PasoOrbL" type="StaticBody2D" parent="."]
 position = Vector2(440, 440)
-script = ExtResource("1_geom")
-border_color = Color(0.85, 0.35, 1.0, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="PasoOrbL"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-45, -10, 45, -10, 45, 10, -45, 10)
+
+[node name="Border" type="Line2D" parent="PasoOrbL"]
+width = 3.0
+default_color = Color(0.85, 0.35, 1.0, 1.0)
+closed = true
+points = PackedVector2Array(-45, -10, 45, -10, 45, 10, -45, 10)
 
 [node name="Shape" type="CollisionShape2D" parent="PasoOrbL"]
 shape = SubResource("shape_6")
 
 [node name="PasoOrbR" type="StaticBody2D" parent="."]
 position = Vector2(840, 440)
-script = ExtResource("1_geom")
-border_color = Color(0.85, 0.35, 1.0, 1.0)
+
+[node name="Visual" type="Polygon2D" parent="PasoOrbR"]
+color = Color(0.04, 0.08, 0.14, 0.95)
+polygon = PackedVector2Array(-45, -10, 45, -10, 45, 10, -45, 10)
+
+[node name="Border" type="Line2D" parent="PasoOrbR"]
+width = 3.0
+default_color = Color(0.85, 0.35, 1.0, 1.0)
+closed = true
+points = PackedVector2Array(-45, -10, 45, -10, 45, 10, -45, 10)
 
 [node name="Shape" type="CollisionShape2D" parent="PasoOrbR"]
 shape = SubResource("shape_6")
@@ -118,3 +203,18 @@ script = ExtResource("2_haz")
 
 [node name="Shape" type="CollisionShape2D" parent="FosoPlasma"]
 shape = SubResource("shape_7")
+
+[node name="DeadZone" type="Area2D" parent="."]
+script = ExtResource("2_haz")
+
+[node name="Left" type="CollisionShape2D" parent="DeadZone"]
+position = Vector2(-120, 360)
+shape = SubResource("DeadZone_side")
+
+[node name="Right" type="CollisionShape2D" parent="DeadZone"]
+position = Vector2(1400, 360)
+shape = SubResource("DeadZone_side")
+
+[node name="Bottom" type="CollisionShape2D" parent="DeadZone"]
+position = Vector2(640, 850)
+shape = SubResource("DeadZone_bottom")

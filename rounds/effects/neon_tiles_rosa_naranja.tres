@@ -19,3 +19,5 @@ shader_parameter/skip_chance = 0.55
 shader_parameter/warp_amount = 0.6
 shader_parameter/warp_scale = 1.0
 shader_parameter/color_speed = 0.6
+shader_parameter/fit_to_shape = false
+shader_parameter/target_cells = 9.0
