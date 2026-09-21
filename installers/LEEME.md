@@ -2,22 +2,27 @@
 
 Godot **no puede distinguir dos teclados**: el sistema operativo fusiona los
 eventos en un solo flujo y `InputEventKey.device` no sirve para separarlos. Por
-eso, para que **cada jugador use el mismo layout** (p. ej. los dos con WASD), hay
-que reasignar el **segundo teclado a nivel del sistema operativo**.
+eso, para que **cada jugador use el mismo layout** (p. ej. los dos con WASD),
+hay que usar un puente por dispositivo o reasignar el **segundo teclado** antes
+de que llegue al input normal de Godot.
 
 Si a cada jugador le sirve un layout distinto (P1 WASD, P2 flechas, P3 numpad,
 P4 TFGH), **no hace falta nada de esto**: ya funciona con 4 jugadores.
 
+- Desde el juego: **Opciones > Instalar 2 teclados** (Windows y Linux)
 - Detector Linux: `python3 installers/detectar_teclados.py`
-- Instalador Linux: `sudo bash installers/linux/instalar_keyd.sh`
+- Instalador Linux manual: `sudo bash installers/linux/instalar_keyd.sh`
 - Desinstalador Linux: `sudo bash installers/linux/desinstalar_keyd.sh`
 - Detector Windows: `powershell -ExecutionPolicy Bypass -File installers\windows\detectar_teclados.ps1`
 
 ## Linux (automatico)
 
-`instalar_keyd.sh` instala [keyd](https://github.com/rvaiya/keyd) (por apt o su
-PPA si tu Ubuntu es < 25.04), detecta los teclados y escribe la config para que
-el segundo teclado emita el layout alternativo.
+El juego puede lanzar el instalador desde **Opciones > Instalar 2 teclados**. En
+Linux usa `pkexec` para pedir permisos de administrador y configurar
+[keyd](https://github.com/rvaiya/keyd). Si falta `pkexec` o queres hacerlo a
+mano, `instalar_keyd.sh` instala keyd (por apt o su PPA si tu Ubuntu es <
+25.04), detecta los teclados y escribe la config para que el segundo teclado
+emita el layout alternativo.
 
 ```bash
 # Default: el teclado 2 manda flechas (sirve con los controles por defecto de P2)
@@ -42,12 +47,30 @@ mismo modelo**, comparten id y keyd **no puede** distinguirlos. En ese caso se
 necesita un helper que lea por dispositivo (`/dev/input/eventN` + `uinput`),
 que todavia no esta incluido.
 
-## Windows (manual por ahora)
+## Windows (automatico sin driver)
 
-En Windows no hay una herramienta por-dispositivo instalable de forma confiable
-y sin drivers (a diferencia de keyd en Linux). Instalar ViGEmBus / Interception
-u otro driver requiere permisos de administrador y no se puede automatizar sin
-un binario propio firmado. Por eso queda documentado, no automatico.
+El juego puede compilar e iniciar un helper local desde **Opciones > Instalar 2
+teclados**. Ese helper usa Raw Input de Windows para leer cada teclado fisico por
+separado y manda los eventos al juego por UDP local (`127.0.0.1`). No instala
+drivers ni requiere permisos de administrador.
+
+Con el helper activo, los jugadores 1 y 2 usan el mismo layout fisico:
+
+| Accion | Tecla |
+|--------|-------|
+| Mover / apuntar | W A S D |
+| Saltar | W |
+| Disparar | V |
+| Agarrar | C |
+| Trompezar | Q |
+| Strafe | B |
+| Bloquear | Tab |
+| Graznar | E |
+
+El primer teclado que mande una tecla queda como Jugador 1 y el segundo como
+Jugador 2.
+
+### Si queres interceptar teclas globalmente
 
 Opciones conocidas:
 

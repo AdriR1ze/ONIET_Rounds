@@ -22,6 +22,7 @@ MapManager="*res://levels/map_manager.gd"
 RunManager="*res://run/run_manager.gd"
 PauseManager="*res://ui/pause_manager.gd"
 Settings="*res://settings/settings.gd"
+KeyboardSetup="*res://settings/keyboard_setup.gd"
 AudioManager="*res://audio/audio_manager.gd"
 Transition="*res://ui/transition.gd"
 

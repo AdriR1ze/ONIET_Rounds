@@ -12,6 +12,7 @@ const COLOR_ERROR := Color(0.85, 0.2, 0.2)
 @onready var _resolucion: OptionButton = $Centro/Marco/Margin/VBox/VideoGrid/Resolucion
 @onready var _hint_f11: Label = $Centro/Marco/Margin/VBox/HintF11
 @onready var _aviso: Label = $Centro/Marco/Margin/VBox/Aviso
+@onready var _boton_instalar_teclados: Button = $Centro/Marco/Margin/VBox/InstalarTeclados
 @onready var _controles: VBoxContainer = $Centro/Marco/Margin/VBox/Scroll/Controles
 @onready var _boton_guardar: Button = $Centro/Marco/Margin/VBox/Botones/Guardar
 @onready var _boton_restablecer: Button = $Centro/Marco/Margin/VBox/Botones/Restablecer
@@ -47,6 +48,9 @@ func _ready() -> void:
 	_boton_guardar.pressed.connect(_guardar)
 	_boton_restablecer.pressed.connect(_restablecer)
 	_boton_volver.pressed.connect(cerrar)
+	_boton_instalar_teclados.pressed.connect(_configurar_dos_teclados)
+	_boton_instalar_teclados.text = KeyboardSetup.etiqueta_boton()
+	_boton_instalar_teclados.disabled = not KeyboardSetup.puede_configurar()
 	_construir_controles()
 
 
@@ -235,6 +239,18 @@ func _restablecer() -> void:
 	_escuchando = ""
 	_pendientes.clear()
 	_aviso.text = "Controles restablecidos"
+	_actualizar_botones()
+
+
+func _configurar_dos_teclados() -> void:
+	_escuchando = ""
+	_pendientes.clear()
+	_boton_instalar_teclados.disabled = true
+	_aviso.text = "Configurando teclados..."
+	var resultado := KeyboardSetup.configurar_dos_teclados()
+	_aviso.text = resultado.get("mensaje", "No se pudo configurar.")
+	_boton_instalar_teclados.text = KeyboardSetup.etiqueta_boton()
+	_boton_instalar_teclados.disabled = not KeyboardSetup.puede_configurar()
 	_actualizar_botones()
 
 

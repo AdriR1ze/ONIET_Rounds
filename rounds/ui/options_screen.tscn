@@ -115,6 +115,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Controles"
 
+[node name="InstalarTeclados" type="Button" parent="Centro/Marco/Margin/VBox"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+text = "Instalar 2 teclados"
+
 [node name="Aviso" type="Label" parent="Centro/Marco/Margin/VBox"]
 custom_minimum_size = Vector2(0, 22)
 layout_mode = 2

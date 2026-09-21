@@ -6,6 +6,7 @@ signal fase_completa
 
 const CARD_SCENE := preload("res://ui/upgrade_card.tscn")
 const OPCIONES_POR_JUGADOR := 3
+const RAW_MENU_REPEAT_DELAY := 0.18
 
 const COLORES_RAREZA := {
 	UpgradeDefinition.Rareza.COMUN: Color(0.78, 0.82, 0.88),
@@ -30,6 +31,8 @@ var _floating_tags: Array[PanelContainer] = []
 
 var _grupos: Array = []
 var _esperando_fase := false
+var _raw_menu_prev: Dictionary = {}
+var _raw_menu_cooldowns: Dictionary = {}
 
 
 func _ready() -> void:
@@ -97,7 +100,10 @@ func _mostrar_grupo(grupo: Array) -> void:
 	_confirmados.clear()
 	_status_labels.clear()
 	_floating_tags.clear()
+	_raw_menu_prev.clear()
+	_raw_menu_cooldowns.clear()
 	_jugadores = grupo
+	_preparar_raw_menu_estado()
 
 	for i in _jugadores.size():
 		var jugador = _jugadores[i]
@@ -433,7 +439,7 @@ func _crear_divisor_central() -> void:
 	div_container.add_child(linea_inf)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not _activo or not _esperando_fase:
 		return
 	for jugador in _jugadores:
@@ -444,15 +450,17 @@ func _process(_delta: float) -> void:
 		if total == 0:
 			_confirmar(numero)
 			continue
-		if Input.is_action_just_pressed(_accion(numero, "left")):
+		if _procesar_raw_menu(numero, total, delta):
+			continue
+		if _accion_just_pressed(numero, "left"):
 			_indices[numero] = wrapi(_indices[numero] - 1, 0, total)
 			_actualizar_seleccion()
 			AudioManager.reproducir("ui_mover", 0.05)
-		if Input.is_action_just_pressed(_accion(numero, "right")):
+		if _accion_just_pressed(numero, "right"):
 			_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
 			_actualizar_seleccion()
 			AudioManager.reproducir("ui_mover", 0.05)
-		if Input.is_action_just_pressed(_accion(numero, "fire")):
+		if _accion_just_pressed(numero, "fire"):
 			_confirmar(numero)
 
 
@@ -506,3 +514,56 @@ func _actualizar_seleccion() -> void:
 func _accion(numero: int, nombre: String) -> String:
 	return "p%d_%s" % [numero, nombre]
 
+
+func _accion_just_pressed(numero: int, nombre: String) -> bool:
+	if numero <= 2 and KeyboardSetup.raw_input_activo():
+		return KeyboardSetup.raw_action_just_pressed(numero, nombre)
+	return Input.is_action_just_pressed(_accion(numero, nombre))
+
+
+func _procesar_raw_menu(numero: int, total: int, delta: float) -> bool:
+	if numero > 2 or not KeyboardSetup.raw_input_activo():
+		return false
+	if _raw_menu_action(numero, "left", true, delta):
+		_indices[numero] = wrapi(_indices[numero] - 1, 0, total)
+		_actualizar_seleccion()
+		AudioManager.reproducir("ui_mover", 0.05)
+	if _raw_menu_action(numero, "right", true, delta):
+		_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
+		_actualizar_seleccion()
+		AudioManager.reproducir("ui_mover", 0.05)
+	if _raw_menu_action(numero, "fire", false, delta):
+		_confirmar(numero)
+	return true
+
+
+func _raw_menu_action(numero: int, nombre: String, repetir: bool, delta: float) -> bool:
+	var key := "%d_%s" % [numero, nombre]
+	var pressed := KeyboardSetup.raw_action_pressed(numero, nombre)
+	var was_pressed := bool(_raw_menu_prev.get(key, false))
+	_raw_menu_prev[key] = pressed
+	if not pressed:
+		_raw_menu_cooldowns[key] = 0.0
+		return false
+	if not repetir:
+		return not was_pressed
+	var cooldown := maxf(float(_raw_menu_cooldowns.get(key, 0.0)) - delta, 0.0)
+	if not was_pressed or cooldown <= 0.0:
+		_raw_menu_cooldowns[key] = RAW_MENU_REPEAT_DELAY
+		return true
+	_raw_menu_cooldowns[key] = cooldown
+	return false
+
+
+func _preparar_raw_menu_estado() -> void:
+	if not KeyboardSetup.raw_input_activo():
+		return
+	for jugador in _jugadores:
+		var numero: int = jugador.player_number
+		if numero > 2:
+			continue
+		for nombre in ["left", "right", "fire"]:
+			var key := "%d_%s" % [numero, nombre]
+			var pressed := KeyboardSetup.raw_action_pressed(numero, nombre)
+			_raw_menu_prev[key] = pressed
+			_raw_menu_cooldowns[key] = RAW_MENU_REPEAT_DELAY if pressed else 0.0

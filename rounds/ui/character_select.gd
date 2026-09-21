@@ -224,6 +224,8 @@ func _on_card_input(event: InputEvent, numero: int, eleccion: int) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	for numero in _numeros:
+		if _usa_raw_keyboard(numero):
+			continue
 		if not _listo[numero]:
 			if event.is_action_pressed("p%d_left" % numero):
 				_choice[numero] = 0
@@ -237,6 +239,28 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("ui_cancel"):
 		_volver_al_menu()
+
+
+func _process(_delta: float) -> void:
+	for numero in _numeros:
+		if not _usa_raw_keyboard(numero):
+			continue
+		if not _listo[numero]:
+			if KeyboardSetup.raw_action_just_pressed(numero, "left"):
+				_choice[numero] = 0
+				_actualizar_ui()
+			elif KeyboardSetup.raw_action_just_pressed(numero, "right"):
+				_choice[numero] = 1
+				_actualizar_ui()
+		if (
+			KeyboardSetup.raw_action_just_pressed(numero, "jump")
+			or KeyboardSetup.raw_action_just_pressed(numero, "fire")
+		):
+			_toggle_ready(numero)
+
+
+func _usa_raw_keyboard(numero: int) -> bool:
+	return numero <= 2 and KeyboardSetup.raw_input_activo()
 
 
 func _toggle_ready(numero: int) -> void:
