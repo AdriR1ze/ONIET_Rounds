@@ -15,6 +15,7 @@ const VampiricLeechEffect = preload("res://upgrades/effects/vampiric_leech_effec
 const QuickdrawEffect = preload("res://upgrades/effects/quickdraw_effect.gd")
 const RussianRouletteEffect = preload("res://upgrades/effects/russian_roulette_effect.gd")
 const GlitchEffect = preload("res://upgrades/effects/glitch_effect.gd")
+const BulletTimeEffect = preload("res://upgrades/effects/bullet_time_effect.gd")
 
 
 func _initialize() -> void:
@@ -274,3 +275,44 @@ func _generar() -> void:
 		["Ligera dispersión (+8°)"],
 		["Fase cibernética y clonación en vuelo"],
 		&"glitch")
+
+	# 17. Bullet Time: Nivel 1 (Común)
+	_crear(&"bullet_time", "Bullet Time", "Tus balas se mueven a cámara lenta", 1,
+		"Tus proyectiles vuelan un 90% más lentos y no expiran por tiempo, quedando suspendidos en el aire hasta impactar.",
+		UpgradeDefinition.Rareza.COMUN, 1.0, 1,
+		[],
+		[BulletTimeEffect.new()],
+		["Balas un 90% más lentas (control total)", "Tus balas no expiran por tiempo"],
+		["Los proyectiles tardan en llegar al rival"],
+		["Cámara lenta de proyectiles (bullet time)"],
+		&"default")
+
+	# 18. Gatillo Eléctrico: Nivel 1 (Común)
+	_crear(&"gatillo_electrico", "Gatillo Eléctrico", "Cadencia de fuego desmedida", 1,
+		"Disparás mucho más rápido (+100% cadencia) y recargás más rápido (-30% tiempo de recarga) pero cada impacto hace menos daño (-35%).",
+		UpgradeDefinition.Rareza.COMUN, 1.0, 1,
+		[
+			_mod(&"fire_rate", StatModifier.Op.MULT, 2.0),
+			_mod(&"reload_time", StatModifier.Op.MULT, 0.70),
+			_mod(&"damage", StatModifier.Op.MULT, 0.65)
+		],
+		[],
+		["+100% Cadencia de tiro", "-30% Tiempo de recarga"],
+		["-35% Daño de impacto"],
+		["Cadencia de fuego desmedida"],
+		&"rapido")
+
+	# 19. Piel Gruesa: Nivel 1 (Común)
+	_crear(&"piel_gruesa", "Piel Gruesa", "Más aguante, menos agresividad", 1,
+		"Ganás vida máxima (+30%) pero atacás un poco más débil y más lento (-10% daño y cadencia).",
+		UpgradeDefinition.Rareza.COMUN, 1.0, 1,
+		[
+			_mod(&"max_health", StatModifier.Op.MULT, 1.30),
+			_mod(&"damage", StatModifier.Op.MULT, 0.90),
+			_mod(&"fire_rate", StatModifier.Op.MULT, 0.90)
+		],
+		[],
+		["+30% Salud máxima"],
+		["-10% Daño de impacto", "-10% Cadencia de tiro"],
+		["Más resistencia a cambio de ofensiva"],
+		&"default")

@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_puoii"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="2_yelko"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="3_rt4y7"]
+
+[sub_resource type="Resource" id="Resource_mk16p"]
+script = ExtResource("3_rt4y7")
+stat = &"max_health"
+op = 1
+value = 1.3
+
+[sub_resource type="Resource" id="Resource_sbj0v"]
+script = ExtResource("3_rt4y7")
+stat = &"damage"
+op = 1
+value = 0.9
+
+[sub_resource type="Resource" id="Resource_sae7o"]
+script = ExtResource("3_rt4y7")
+stat = &"fire_rate"
+op = 1
+value = 0.9
+
+[resource]
+script = ExtResource("2_yelko")
+id = &"piel_gruesa"
+titulo = "Piel Gruesa"
+subtitulo = "Más aguante, menos agresividad"
+descripcion = "Ganás vida máxima (+30%) pero atacás un poco más débil y más lento (-10% daño y cadencia)."
+ventajas = Array[String](["+30% Salud máxima"])
+desventajas = Array[String](["-10% Daño de impacto", "-10% Cadencia de tiro"])
+mecanicas = Array[String](["Más resistencia a cambio de ofensiva"])
+stats = Array[ExtResource("3_rt4y7")]([SubResource("Resource_mk16p"), SubResource("Resource_sbj0v"), SubResource("Resource_sae7o")])

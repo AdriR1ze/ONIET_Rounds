@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_ypnqd"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="2_21gdw"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="3_bghyl"]
+
+[sub_resource type="Resource" id="Resource_oya7m"]
+script = ExtResource("3_bghyl")
+stat = &"fire_rate"
+op = 1
+value = 2.0
+
+[sub_resource type="Resource" id="Resource_jui8v"]
+script = ExtResource("3_bghyl")
+stat = &"reload_time"
+op = 1
+value = 0.7
+
+[sub_resource type="Resource" id="Resource_yqq2m"]
+script = ExtResource("3_bghyl")
+stat = &"damage"
+op = 1
+value = 0.65
+
+[resource]
+script = ExtResource("2_21gdw")
+id = &"gatillo_electrico"
+titulo = "Gatillo Eléctrico"
+subtitulo = "Cadencia de fuego desmedida"
+descripcion = "Disparás mucho más rápido (+100% cadencia) y recargás más rápido (-30% tiempo de recarga) pero cada impacto hace menos daño (-35%)."
+tema = &"rapido"
+ventajas = Array[String](["+100% Cadencia de tiro", "-30% Tiempo de recarga"])
+desventajas = Array[String](["-35% Daño de impacto"])
+mecanicas = Array[String](["Cadencia de fuego desmedida"])
+stats = Array[ExtResource("3_bghyl")]([SubResource("Resource_oya7m"), SubResource("Resource_jui8v"), SubResource("Resource_yqq2m")])

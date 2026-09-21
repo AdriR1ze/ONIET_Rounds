@@ -1,23 +1,26 @@
 class_name ExplosiveEffect
 extends UpgradeEffect
 
-@export var radius: float = 70.0
+@export var radius: float = 60.0
 @export var damage: int = 15
 
 
 func on_hit(shot: Shot, _target: Node, player: Node) -> void:
 	if shot == null:
 		return
-	_explode(shot.hit_position, player)
+	_explode(shot.hit_position, player, shot.damage)
 
 
 func on_body_hit(shot: Shot, _body: Node, player: Node) -> void:
 	if shot == null:
 		return
-	_explode(shot.hit_position, player)
+	if shot.bounces > 0:
+		return
+	print(shot.damage)
+	_explode(shot.hit_position, player, shot.damage)
 
 
-func _explode(pos: Vector2, player: Node) -> void:
+func _explode(pos: Vector2, player: Node, shot_damage) -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null or tree.current_scene == null:
 		return
@@ -43,7 +46,7 @@ func _explode(pos: Vector2, player: Node) -> void:
 		if p != null and is_instance_valid(p) and p != player and p is Node2D:
 			if (p as Node2D).global_position.distance_to(pos) <= radius:
 				if p.has_method("hurt"):
-					p.hurt(damage, player)
+					p.hurt((shot_damage / 25) * 15, player)
 				if p.has_method("apply_knockback"):
 					var dir := ((p as Node2D).global_position - pos).normalized()
 					if dir.is_zero_approx():

@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=11 format=3]
+[gd_resource type="SpriteFrames" format=3 uid="uid://udksxa18xsea"]
 
 [ext_resource type="Texture2D" uid="uid://c77kkvfhjql1o" path="res://sprite_sheets/esqueleto_camina.png" id="1_camina"]
 [ext_resource type="Texture2D" uid="uid://c182kj8qc3sbc" path="res://sprite_sheets/esqueleto_quieto.png" id="2_quieto"]
@@ -40,6 +40,14 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_i0")
+}],
+"loop": 0,
+"name": &"dead",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i0")
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_i1")
@@ -50,7 +58,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_i3")
 }],
-"loop": true,
+"loop": 1,
 "name": &"idle",
 "speed": 5.0
 }, {
@@ -67,15 +75,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_w3")
 }],
-"loop": true,
+"loop": 1,
 "name": &"walk",
 "speed": 8.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_i0")
-}],
-"loop": false,
-"name": &"dead",
-"speed": 5.0
 }]

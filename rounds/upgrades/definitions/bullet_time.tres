@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="UpgradeDefinition" format=3]
+
+[ext_resource type="Script" path="res://upgrades/upgrade_effect.gd" id="1_a84yb"]
+[ext_resource type="Script" path="res://upgrades/effects/bullet_time_effect.gd" id="2_er468"]
+[ext_resource type="Script" path="res://upgrades/upgrade_definition.gd" id="3_1mdcx"]
+[ext_resource type="Script" path="res://stats/stat_modifier.gd" id="4_pypr1"]
+
+[sub_resource type="Resource" id="Resource_m4ir7"]
+script = ExtResource("2_er468")
+
+[resource]
+script = ExtResource("3_1mdcx")
+id = &"bullet_time"
+titulo = "Bullet Time"
+subtitulo = "Tus balas se mueven a cámara lenta"
+descripcion = "Tus proyectiles vuelan un 90% más lentos y no expiran por tiempo, quedando suspendidos en el aire hasta impactar."
+ventajas = Array[String](["Balas un 90% más lentas (control total)", "Tus balas no expiran por tiempo"])
+desventajas = Array[String](["Los proyectiles tardan en llegar al rival"])
+mecanicas = Array[String](["Cámara lenta de proyectiles (bullet time)"])
+efectos = Array[ExtResource("1_a84yb")]([SubResource("Resource_m4ir7")])
