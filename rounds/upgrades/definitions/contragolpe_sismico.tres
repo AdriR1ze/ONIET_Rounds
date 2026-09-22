@@ -22,6 +22,7 @@ subtitulo = "Explosión masiva al parrear"
 nivel = 3
 descripcion = "Al parrear una bala, detonas una explosión radial alrededor de tu personaje que inflige 15% de tu vida máxima y empuja."
 rareza = 1
+categoria = 1
 tema = &"sismico"
 ventajas = Array[String](["Explosión de 15% vida máx al parrear"])
 desventajas = Array[String](["-10% Daño de disparo"])

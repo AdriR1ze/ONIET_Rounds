@@ -1,11 +1,10 @@
 extends Node
 
 const RUTA_DEFINICIONES := "res://upgrades/definitions"
-const PESO_RAREZA := {
-	UpgradeDefinition.Rareza.COMUN: 1.0,
-	UpgradeDefinition.Rareza.RARA: 0.55,
-	UpgradeDefinition.Rareza.EPICA: 0.25,
-	UpgradeDefinition.Rareza.LEGENDARIA: 0.08,
+const PROB_CATEGORIA := {
+	UpgradeDefinition.Categoria.ATAQUE: 0.40,
+	UpgradeDefinition.Categoria.DEFENSA: 0.40,
+	UpgradeDefinition.Categoria.CONTROL: 0.20,
 }
 
 var definiciones: Array[UpgradeDefinition] = []
@@ -61,20 +60,38 @@ func total_activas() -> int:
 
 
 func opciones(cantidad: int, rng: RandomNumberGenerator, filtro: Callable) -> Array[UpgradeDefinition]:
-	var pool: Array[UpgradeDefinition] = []
+	var por_categoria: Dictionary = {}
 	for def in definiciones:
 		if not is_activa(def.id):
 			continue
-		if filtro.call(def):
-			pool.append(def)
+		if not filtro.call(def):
+			continue
+		if not por_categoria.has(def.categoria):
+			por_categoria[def.categoria] = []
+		por_categoria[def.categoria].append(def)
 
 	var elegidas: Array[UpgradeDefinition] = []
-	while elegidas.size() < cantidad and not pool.is_empty():
-		var indice := rng.randi_range(0, pool.size() - 1)
-		elegidas.append(pool[indice])
-		pool.remove_at(indice)
+	for _i in cantidad:
+		var categorias: Array = []
+		var total := 0.0
+		for categoria in por_categoria:
+			if not por_categoria[categoria].is_empty():
+				categorias.append(categoria)
+				total += float(PROB_CATEGORIA.get(categoria, 0.0))
+		if categorias.is_empty():
+			break
+
+		var tirada := rng.randf() * total
+		var elegida: int = categorias[categorias.size() - 1]
+		for categoria in categorias:
+			tirada -= float(PROB_CATEGORIA.get(categoria, 0.0))
+			if tirada <= 0.0:
+				elegida = categoria
+				break
+
+		var bucket: Array = por_categoria[elegida]
+		var indice := rng.randi_range(0, bucket.size() - 1)
+		elegidas.append(bucket[indice])
+		bucket.remove_at(indice)
+
 	return elegidas
-
-
-func _peso(def: UpgradeDefinition) -> float:
-	return maxf(def.peso, 0.0) * float(PESO_RAREZA.get(def.rareza, 1.0))

@@ -4,8 +4,8 @@
 [ext_resource type="Script" path="res://ui/card_theme_window.gd" id="2_theme"]
 
 [node name="UpgradeCard" type="PanelContainer"]
-custom_minimum_size = Vector2(174, 310)
-offset_right = 174.0
+custom_minimum_size = Vector2(126, 310)
+offset_right = 126.0
 offset_bottom = 310.0
 script = ExtResource("1_card")
 
@@ -28,7 +28,7 @@ horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="ThemeWindow" type="Control" parent="Margin/VBox"]
-custom_minimum_size = Vector2(154, 86)
+custom_minimum_size = Vector2(104, 86)
 layout_mode = 2
 script = ExtResource("2_theme")
 

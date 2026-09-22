@@ -22,6 +22,7 @@ subtitulo = "Atrae las balas enemigas hacia vos"
 nivel = 3
 descripcion = "Genera un campo magnético que desvía y atrae las balas enemigas hacia tu posición, facilitando realizar parries."
 rareza = 1
+categoria = 2
 tema = &"iman"
 ventajas = Array[String](["Atrae balas enemigas en un radio de 160px"])
 desventajas = Array[String](["-10% Cadencia de tiro"])

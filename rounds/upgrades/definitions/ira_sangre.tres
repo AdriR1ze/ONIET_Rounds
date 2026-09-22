@@ -22,6 +22,7 @@ subtitulo = "Furia desatada al borde del colapso"
 nivel = 4
 descripcion = "Mientras te encuentres por debajo del 50% de tu salud máxima, ganas +25% de daño y +15% de velocidad de movimiento."
 rareza = 2
+categoria = 1
 tema = &"sangre"
 ventajas = Array[String](["Bajo 50% vida: +25% daño y +15% velocidad"])
 desventajas = Array[String](["-10% Salud máxima"])

@@ -22,6 +22,7 @@ subtitulo = "Tu sanación hiere a los rivales cercanos"
 nivel = 3
 descripcion = "Cada vez que recuperas vida, los rivales a menos de 140px sufren daño igual a la mitad de la cantidad curada."
 rareza = 1
+categoria = 1
 tema = &"sangre"
 ventajas = Array[String](["Al curarte, rivales cercanos reciben 50% de lo curado"])
 desventajas = Array[String](["-10% Salud máxima"])

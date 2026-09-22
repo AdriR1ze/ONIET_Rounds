@@ -22,6 +22,7 @@ subtitulo = "Aura de gravedad aumentada para tus rivales"
 nivel = 4
 descripcion = "Los rivales cercanos (<130px) caen más rápido (+85% gravedad) y casi no pueden despegar del suelo (-55% fuerza de salto)."
 rareza = 2
+categoria = 2
 tema = &"gravedad"
 ventajas = Array[String](["Rivales cerca caen más rápido y casi no pueden saltar"])
 desventajas = Array[String](["-10% Velocidad propia"])

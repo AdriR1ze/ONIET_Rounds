@@ -22,6 +22,7 @@ subtitulo = "Sustento y blindaje al parrear"
 nivel = 4
 descripcion = "Cada bala parreada te cura 5 de vida y otorga un +5% de armadura temporal (acumula hasta 3 veces)."
 rareza = 2
+categoria = 1
 tema = &"armadura"
 ventajas = Array[String](["+5 Vida y +5% Armadura por parry (stack 3)"])
 desventajas = Array[String](["-10% Salud máxima"])

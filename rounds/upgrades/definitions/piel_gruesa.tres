@@ -28,6 +28,7 @@ id = &"piel_gruesa"
 titulo = "Piel Gruesa"
 subtitulo = "Más aguante, menos agresividad"
 descripcion = "Ganás vida máxima (+30%) pero atacás un poco más débil y más lento (-10% daño y cadencia)."
+categoria = 1
 ventajas = Array[String](["+30% Salud máxima"])
 desventajas = Array[String](["-10% Daño de impacto", "-10% Cadencia de tiro"])
 mecanicas = Array[String](["Más resistencia a cambio de ofensiva"])

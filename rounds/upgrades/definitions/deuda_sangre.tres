@@ -22,6 +22,7 @@ subtitulo = "5 segundos de gracia para evitar la muerte"
 nivel = 4
 descripcion = "Al sufrir daño letal, no mueres de inmediato: entras en Deuda de Sangre por 5 segundos a 1 HP. Si logras curarte sobrevives; si no, mueres (10s de cooldown)."
 rareza = 2
+categoria = 1
 tema = &"sangre"
 ventajas = Array[String](["5s de gracia al recibir daño letal para curarte"])
 desventajas = Array[String](["-10% Daño de bala", "Mueres si no te curas en 5s (10s cooldown)"])

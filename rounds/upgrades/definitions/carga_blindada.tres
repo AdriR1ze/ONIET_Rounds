@@ -22,6 +22,7 @@ subtitulo = "Blindaje en sprint y embestida demoledora"
 nivel = 3
 descripcion = "Correr de forma continua acumula hasta +25% de armadura. Chocar contra un rival le inflige 20 de daño y gran empuje."
 rareza = 1
+categoria = 1
 tema = &"armadura"
 ventajas = Array[String](["Correr acumula +25% armadura; chocar daña y empuja"])
 desventajas = Array[String](["-10% Daño de disparo"])

@@ -22,6 +22,7 @@ subtitulo = "Empuje demoledor y aturdimiento contundente"
 nivel = 3
 descripcion = "Tus proyectiles empujan fuertemente (+550 fuerza) y aturden 0.35 s al objetivo impactado."
 rareza = 1
+categoria = 2
 tema = &"sismico"
 ventajas = Array[String](["Empuje masivo (+550) y aturde 0.35s"])
 desventajas = Array[String](["-20% Daño de bala"])

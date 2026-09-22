@@ -21,6 +21,7 @@ enum PlayerState {
 }
 
 @export var player_number: int = 1
+@export var weapon_offset: Vector2 = Vector2(4.0, -2.0)
 
 @export_group("Movement")
 @export var acceleration: float = 2000.0
@@ -28,13 +29,13 @@ enum PlayerState {
 @export var air_control: float = 0.70
 @export var gravity: float = 1800.0
 @export var max_fall_speed: float = 1100.0
-@export var ragdoll_time: float = 0.6
+@export var ragdoll_time: float = 0.35
 
 @export_group("Jump Game Feel")
 @export var coyote_time: float = 0.12
 @export var jump_buffer_time: float = 0.12
-@export var corner_correction_step: float = 2.0
-@export var corner_correction_max: float = 12.0
+@export var corner_correction_step: float = 1.0
+@export var corner_correction_max: float = 6.0
 
 @onready var _input: PlayerInput = $PlayerInput
 @onready var _weapon: WeaponComponent = $WeaponComponent
@@ -337,7 +338,7 @@ func _handle_actions() -> void:
 
 func _update_visual_facing() -> void:
 	$Visual.scale.x = absf($Visual.scale.x) * facing
-	_weapon.position = Vector2(4.0 * facing, 9.0)
+	_weapon.position = Vector2(weapon_offset.x * facing, weapon_offset.y)
 
 
 func _start_ragdoll() -> void:

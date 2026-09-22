@@ -22,6 +22,7 @@ subtitulo = "Campo de anclaje que ralentiza en área"
 nivel = 3
 descripcion = "Al impactar, genera un campo de anclaje de 85px que reduce la velocidad de movimiento de los rivales un 50% por 1.5 s."
 rareza = 1
+categoria = 2
 tema = &"gravedad"
 ventajas = Array[String](["Ralentiza al 50% en área durante 1.5s"])
 desventajas = Array[String](["-10% Daño de bala"])

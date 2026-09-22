@@ -22,6 +22,7 @@ subtitulo = "Tótem sanador al iniciar recarga"
 nivel = 4
 descripcion = "Al iniciar una recarga, plantas un tótem de vida a tus pies que cura en pulsos durante 3 segundos (+8 vida/s)."
 rareza = 2
+categoria = 1
 tema = &"totem"
 ventajas = Array[String](["Planta un tótem que cura en área durante 3s (+8 HP/s)"])
 desventajas = Array[String](["-15% Daño de bala"])

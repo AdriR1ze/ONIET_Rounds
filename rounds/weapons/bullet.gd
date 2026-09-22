@@ -3,6 +3,9 @@ extends Area2D
 static var _bullet_scene_res: PackedScene = null
 const MAX_TRAIL_POINTS := 8
 const BORDER_PROBE := 96.0
+const PARRY_DAMAGE_MULT := 0.6
+const PARRY_SPEED_MULT := 0.85
+const PARRY_LIFETIME_REMAINING := 0.6
 
 @export var speed: float = 1050.0
 @export var lifetime: float = 1.5
@@ -33,7 +36,6 @@ var _shooter_immune: bool = true
 var _trail_points: Array[Vector2] = []
 var bounce_count: int = 0
 var has_split: bool = false
-var _initial_dir: Vector2 = Vector2.ZERO
 var _distance_traveled: float = 0.0
 var _split_distance: float = 0.0
 
@@ -51,7 +53,6 @@ func _ready() -> void:
 	add_to_group("bullet")
 	if velocity == Vector2.ZERO:
 		velocity = direction * speed
-	_initial_dir = direction
 	rotation = velocity.angle()
 
 	if shot == null:
@@ -118,9 +119,8 @@ func _physics_process(delta: float) -> void:
 	if drag > 0.0:
 		velocity -= velocity * (drag * delta)
 
-	# 2. Gravedad según ángulo de disparo: tiro frontal más plano, arriba/abajo caída rápida
-	var grav_scale := lerpf(0.30, 1.0, absf(_initial_dir.y))
-	velocity.y += (bullet_gravity * grav_scale) * delta
+	# 2. Gravedad constante: la caída es la misma sin importar el ángulo de disparo
+	velocity.y += bullet_gravity * delta
 	if velocity.y > max_fall_speed:
 		velocity.y = max_fall_speed
 
@@ -210,8 +210,6 @@ func _physics_process(delta: float) -> void:
 		_do_split()
 
 	_time_alive += delta
-	if _time_alive >= lifetime:
-		queue_free()
 
 
 ## Crea una bala hija que hereda todas las propiedades, escala, rebotes y copia profunda de efectos.
@@ -457,11 +455,12 @@ func _on_body_exited(body: Node) -> void:
 func parry(new_shooter: Node) -> void:
 	shooter = new_shooter
 	player = new_shooter
-	velocity = -velocity
+	velocity = -velocity * PARRY_SPEED_MULT
 	direction = velocity.normalized()
 	rotation = velocity.angle()
 	global_position += direction * 8.0
-	_time_alive = 0.0
+	damage = maxi(int(round(float(damage) * PARRY_DAMAGE_MULT)), 1)
+	_time_alive = lifetime * (1.0 - PARRY_LIFETIME_REMAINING)
 	_hit_targets.clear()
 	_trail_points.clear()
 	_phasing_bodies.clear()

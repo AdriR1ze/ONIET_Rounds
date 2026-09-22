@@ -5,7 +5,7 @@ signal cerrado
 signal fase_completa
 
 const CARD_SCENE := preload("res://ui/upgrade_card.tscn")
-const OPCIONES_POR_JUGADOR := 3
+const OPCIONES_POR_JUGADOR := 4
 const RAW_MENU_REPEAT_DELAY := 0.18
 
 const COLORES_RAREZA := {
@@ -151,9 +151,9 @@ func _crear_panel(numero: int) -> void:
 	sb.border_color = Color(color_acento.r, color_acento.g, color_acento.b, 0.6)
 	sb.set_border_width_all(2)
 	sb.set_corner_radius_all(10)
-	sb.content_margin_left = 16
+	sb.content_margin_left = 12
 	sb.content_margin_top = 12
-	sb.content_margin_right = 16
+	sb.content_margin_right = 12
 	sb.content_margin_bottom = 12
 	panel_marco.add_theme_stylebox_override("panel", sb)
 	_contenedor.add_child(panel_marco)
@@ -198,7 +198,7 @@ func _crear_panel(numero: int) -> void:
 	var fila := HBoxContainer.new()
 	fila.alignment = BoxContainer.ALIGNMENT_CENTER
 	fila.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	fila.add_theme_constant_override("separation", 14)
+	fila.add_theme_constant_override("separation", 8)
 	v_box.add_child(fila)
 
 	var cartas: Array = []

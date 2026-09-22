@@ -22,6 +22,7 @@ subtitulo = "Umbral inquebrantable de supervivencia"
 nivel = 5
 descripcion = "Ningún impacto individual puede reducir tu salud por debajo del 25% de tu vida máxima (enfriamiento de 12 s)."
 rareza = 3
+categoria = 1
 tema = &"armadura"
 ventajas = Array[String](["Un golpe no puede bajarte de 25% vida"])
 desventajas = Array[String](["-10% Velocidad de movimiento", "Enfriamiento de 12s tras activarse"])

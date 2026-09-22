@@ -22,6 +22,7 @@ subtitulo = "Expansión física radial en cada impacto"
 nivel = 3
 descripcion = "Al impactar a un rival o una superficie sólida, libera una onda expansiva de 90px que empuja a todos los rivales."
 rareza = 1
+categoria = 2
 tema = &"sismico"
 ventajas = Array[String](["Onda expansiva de empuje en área (radio 90px)"])
 desventajas = Array[String](["-15% Daño de bala"])

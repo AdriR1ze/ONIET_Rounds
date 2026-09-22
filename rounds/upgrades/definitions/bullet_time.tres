@@ -14,6 +14,7 @@ id = &"bullet_time"
 titulo = "Bullet Time"
 subtitulo = "Tus balas se mueven a cámara lenta"
 descripcion = "Tus proyectiles vuelan un 90% más lentos y no expiran por tiempo, quedando suspendidos en el aire hasta impactar."
+categoria = 2
 ventajas = Array[String](["Balas un 90% más lentas (control total)", "Tus balas no expiran por tiempo"])
 desventajas = Array[String](["Los proyectiles tardan en llegar al rival"])
 mecanicas = Array[String](["Cámara lenta de proyectiles (bullet time)"])

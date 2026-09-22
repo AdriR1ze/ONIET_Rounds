@@ -8,6 +8,12 @@ enum Rareza {
 	LEGENDARIA,
 }
 
+enum Categoria {
+	ATAQUE,
+	DEFENSA,
+	CONTROL,
+}
+
 @export var id: StringName
 @export var titulo: String
 @export var subtitulo: String = ""
@@ -15,6 +21,7 @@ enum Rareza {
 @export_multiline var descripcion: String
 @export var icono: Texture2D
 @export var rareza: Rareza = Rareza.COMUN
+@export var categoria: Categoria = Categoria.ATAQUE
 @export var tema: StringName = &"default"
 @export var ventajas: Array[String] = []
 @export var desventajas: Array[String] = []

@@ -68,7 +68,8 @@ func _crear(
 	ventajas: Array,
 	desventajas: Array,
 	mecanicas: Array,
-	tema: StringName = &"default"
+	tema: StringName = &"default",
+	categoria: UpgradeDefinition.Categoria = UpgradeDefinition.Categoria.ATAQUE
 ) -> void:
 	var def := UpgradeDefinition.new()
 	def.id = id
@@ -77,6 +78,7 @@ func _crear(
 	def.nivel = nivel
 	def.descripcion = descripcion
 	def.rareza = rareza
+	def.categoria = categoria
 	def.peso = peso
 	def.max_stacks = max_stacks
 	def.tema = tema
@@ -251,7 +253,8 @@ func _generar() -> void:
 		["Regeneración inmediata en combate"],
 		["-15% Salud máxima"],
 		["Robo de vida (recuperas 30% del daño)"],
-		&"vampirico")
+		&"vampirico",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 13. Cañón de Cristal (Glass Cannon): Nivel 4 (Épica)
 	_crear(&"glass_cannon", "Cañón de Cristal", "Poder destructivo colosal a cambio de tu vida", 4,
@@ -306,7 +309,8 @@ func _generar() -> void:
 		["Balas un 90% más lentas (control total)", "Tus balas no expiran por tiempo"],
 		["Los proyectiles tardan en llegar al rival"],
 		["Cámara lenta de proyectiles (bullet time)"],
-		&"default")
+		&"default",
+		UpgradeDefinition.Categoria.CONTROL)
 
 	# 18. Gatillo Eléctrico: Nivel 1 (Común)
 	_crear(&"gatillo_electrico", "Gatillo Eléctrico", "Cadencia de fuego desmedida", 1,
@@ -336,7 +340,8 @@ func _generar() -> void:
 		["+30% Salud máxima"],
 		["-10% Daño de impacto", "-10% Cadencia de tiro"],
 		["Más resistencia a cambio de ofensiva"],
-		&"default")
+		&"default",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 20. Contragolpe Sísmico: Nivel 3 (Rara)
 	_crear(&"contragolpe_sismico", "Contragolpe Sísmico", "Explosión masiva al parrear", 3,
@@ -347,7 +352,8 @@ func _generar() -> void:
 		["Explosión de 15% vida máx al parrear"],
 		["-10% Daño de disparo"],
 		["Contragolpe explosivo en área al hacer parry"],
-		&"sismico")
+		&"sismico",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 21. Cosecha de Balas: Nivel 4 (Épica)
 	_crear(&"cosecha_balas", "Cosecha de Balas", "Sustento y blindaje al parrear", 4,
@@ -358,7 +364,8 @@ func _generar() -> void:
 		["+5 Vida y +5% Armadura por parry (stack 3)"],
 		["-10% Salud máxima"],
 		["Acumula armadura y cura al parrear"],
-		&"armadura")
+		&"armadura",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 22. Piel Adaptativa: Nivel 3 (Rara)
 	_crear(&"piel_adaptativa", "Piel Adaptativa", "Te endureces con cada impacto recibido", 3,
@@ -369,7 +376,8 @@ func _generar() -> void:
 		["+8% Armadura por 4s al recibir golpe (stack 3)"],
 		["-10% Daño"],
 		["Armadura reactiva acumulativa"],
-		&"armadura")
+		&"armadura",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 23. Corazón de Titanio: Nivel 5 (Legendaria)
 	_crear(&"corazon_titanio", "Corazón de Titanio", "Umbral inquebrantable de supervivencia", 5,
@@ -380,7 +388,8 @@ func _generar() -> void:
 		["Un golpe no puede bajarte de 25% vida"],
 		["-10% Velocidad de movimiento", "Enfriamiento de 12s tras activarse"],
 		["Umbral de supervivencia de titanio"],
-		&"armadura")
+		&"armadura",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 24. Ira de Sangre: Nivel 4 (Épica)
 	_crear(&"ira_sangre", "Ira de Sangre", "Furia desatada al borde del colapso", 4,
@@ -391,7 +400,8 @@ func _generar() -> void:
 		["Bajo 50% vida: +25% daño y +15% velocidad"],
 		["-10% Salud máxima"],
 		["Furia sanguinaria condicional"],
-		&"sangre")
+		&"sangre",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 25. Segunda Piel: Nivel 4 (Épica)
 	_crear(&"segunda_piel", "Segunda Piel", "Regeneración reactiva al sufrir daño", 4,
@@ -402,7 +412,8 @@ func _generar() -> void:
 		["Al recibir daño: +4 vida/s durante 3s (12 HP)"],
 		["-15% Salud máxima"],
 		["Regeneración reactiva en combate"],
-		&"vampirico")
+		&"vampirico",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 26. Impacto Sísmico: Nivel 3 (Rara)
 	_crear(&"impacto_sismico", "Impacto Sísmico", "Empuje demoledor y aturdimiento contundente", 3,
@@ -413,7 +424,8 @@ func _generar() -> void:
 		["Empuje masivo (+550) y aturde 0.35s"],
 		["-20% Daño de bala"],
 		["Empuje masivo y aturdimiento contundente"],
-		&"sismico")
+		&"sismico",
+		UpgradeDefinition.Categoria.CONTROL)
 
 	# 27. Onda de Choque: Nivel 3 (Rara)
 	_crear(&"onda_choque", "Onda de Choque", "Expansión física radial en cada impacto", 3,
@@ -424,7 +436,8 @@ func _generar() -> void:
 		["Onda expansiva de empuje en área (radio 90px)"],
 		["-15% Daño de bala"],
 		["Onda de choque al impactar"],
-		&"sismico")
+		&"sismico",
+		UpgradeDefinition.Categoria.CONTROL)
 
 	# 28. Bala Anclante: Nivel 3 (Rara)
 	_crear(&"bala_anclante", "Bala Anclante", "Campo de anclaje que ralentiza en área", 3,
@@ -435,7 +448,8 @@ func _generar() -> void:
 		["Ralentiza al 50% en área durante 1.5s"],
 		["-10% Daño de bala"],
 		["Zona de anclaje y ralentización"],
-		&"gravedad")
+		&"gravedad",
+		UpgradeDefinition.Categoria.CONTROL)
 
 	# 29. Propulsión: Nivel 2 (Rara)
 	_crear(&"propulsion", "Propulsión", "Retroceso masivo y +2 balas en el cargador", 2,
@@ -446,7 +460,8 @@ func _generar() -> void:
 		["Retroceso colosal hacia atrás (Rocket Jump extremo)", "+2 Balas en el cargador"],
 		["-10% Daño de bala"],
 		["Retroceso cinético masivo y cargador ampliado"],
-		&"rapido")
+		&"rapido",
+		UpgradeDefinition.Categoria.CONTROL)
 
 
 	# 30. Sepultador: Nivel 4 (Épica)
@@ -480,7 +495,8 @@ func _generar() -> void:
 		["Atrae balas enemigas en un radio de 160px"],
 		["-10% Cadencia de tiro"],
 		["Campo de atracción magnética de proyectiles"],
-		&"iman")
+		&"iman",
+		UpgradeDefinition.Categoria.CONTROL)
 
 	# 33. Deuda de Sangre: Nivel 4 (Épica)
 	_crear(&"deuda_sangre", "Deuda de Sangre", "5 segundos de gracia para evitar la muerte", 4,
@@ -491,7 +507,8 @@ func _generar() -> void:
 		["5s de gracia al recibir daño letal para curarte"],
 		["-10% Daño de bala", "Mueres si no te curas en 5s (10s cooldown)"],
 		["Estado de deuda de sangre y supervivencia"],
-		&"sangre")
+		&"sangre",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 34. Sacrificio Compartido: Nivel 3 (Rara)
 	_crear(&"sacrificio_compartido", "Sacrificio Compartido", "Tu sanación hiere a los rivales cercanos", 3,
@@ -502,7 +519,8 @@ func _generar() -> void:
 		["Al curarte, rivales cercanos reciben 50% de lo curado"],
 		["-10% Salud máxima"],
 		["Daño reactivo por curación en área"],
-		&"sangre")
+		&"sangre",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 35. Zona de Gravedad: Nivel 4 (Épica)
 	_crear(&"zona_gravedad", "Zona de Gravedad", "Aura de gravedad aumentada para tus rivales", 4,
@@ -513,7 +531,8 @@ func _generar() -> void:
 		["Rivales cerca caen más rápido y casi no pueden saltar"],
 		["-10% Velocidad propia"],
 		["Aura de gravedad aumentada"],
-		&"gravedad")
+		&"gravedad",
+		UpgradeDefinition.Categoria.CONTROL)
 
 	# 36. Nexo de Vida: Nivel 4 (Épica)
 	_crear(&"nexo_vida", "Nexo de Vida", "Tótem sanador al iniciar recarga", 4,
@@ -524,7 +543,8 @@ func _generar() -> void:
 		["Planta un tótem que cura en área durante 3s (+8 HP/s)"],
 		["-15% Daño de bala"],
 		["Invocación de tótem curativo al recargar"],
-		&"totem")
+		&"totem",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 37. Carga Blindada: Nivel 3 (Rara)
 	_crear(&"carga_blindada", "Carga Blindada", "Blindaje en sprint y embestida demoledora", 3,
@@ -535,7 +555,8 @@ func _generar() -> void:
 		["Correr acumula +25% armadura; chocar daña y empuja"],
 		["-10% Daño de disparo"],
 		["Embestida cinética y armadura en carrera"],
-		&"armadura")
+		&"armadura",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 38. Muro Vivo: Nivel 4 (Épica)
 	_crear(&"muro_vivo", "Muro Vivo", "Barrera protectora al quedarte quieto", 4,
@@ -546,7 +567,8 @@ func _generar() -> void:
 		["Quieto 0.75s: barrera que bloquea hasta 2 balas"],
 		["-15% Daño de disparo"],
 		["Barrera energética desplegable"],
-		&"barrera")
+		&"barrera",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 39. Vitalidad Sólida: Nivel 1 (Común)
 	_crear(&"vitalidad_solida", "Vitalidad Sólida", "Salud base plana, no porcentual", 1,
@@ -560,7 +582,8 @@ func _generar() -> void:
 		["+40 Salud base máxima (plana)"],
 		["-8% Velocidad de movimiento"],
 		["Incremento de salud base no porcentual"],
-		&"default")
+		&"default",
+		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 40. Corazón Extra: Nivel 2 (Rara)
 	_crear(&"corazon_extra", "Corazón Extra", "Tanque colosal a cambio de capacidad", 2,
@@ -586,4 +609,3 @@ func _generar() -> void:
 		["Rango limitado a cuerpo a cuerpo"],
 		["Ataque cuerpo a cuerpo devastador"],
 		&"sismico")
-

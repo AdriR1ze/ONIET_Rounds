@@ -22,6 +22,7 @@ subtitulo = "Robas vida a tu enemigo"
 nivel = 3
 descripcion = "Una porción del daño que le causás al rival se convierte inmediatamente en salud para vos. Salud máxima ligeramente reducida."
 rareza = 1
+categoria = 1
 tema = &"vampirico"
 ventajas = Array[String](["Regeneración inmediata en combate"])
 desventajas = Array[String](["-15% Salud máxima"])

@@ -22,6 +22,7 @@ subtitulo = "Te endureces con cada impacto recibido"
 nivel = 3
 descripcion = "Cada golpe recibido te otorga +8% de armadura durante 4 segundos (acumula hasta 3 veces)."
 rareza = 1
+categoria = 1
 tema = &"armadura"
 ventajas = Array[String](["+8% Armadura por 4s al recibir golpe (stack 3)"])
 desventajas = Array[String](["-10% Daño"])

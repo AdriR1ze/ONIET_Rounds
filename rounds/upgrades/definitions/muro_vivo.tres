@@ -22,6 +22,7 @@ subtitulo = "Barrera protectora al quedarte quieto"
 nivel = 4
 descripcion = "Al permanecer quieto durante 0.75 segundos, proyectas una barrera energética que absorbe hasta 2 disparos enemigos."
 rareza = 2
+categoria = 1
 tema = &"barrera"
 ventajas = Array[String](["Quieto 0.75s: barrera que bloquea hasta 2 balas"])
 desventajas = Array[String](["-15% Daño de disparo"])
