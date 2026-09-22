@@ -200,3 +200,60 @@ func obtener_mapa_aleatorio() -> Dictionary:
 	var seleccionado: Dictionary = candidatos[_rng.randi_range(0, candidatos.size() - 1)]
 	ultimo_mapa_id = seleccionado["id"]
 	return seleccionado
+
+
+const SHADER_NEON: Shader = preload("res://effects/neon_grid.gdshader")
+var _materiales_mapa: Dictionary = {}
+
+
+func obtener_material_mapa(mapa_id: StringName) -> ShaderMaterial:
+	if _materiales_mapa.has(mapa_id):
+		return _materiales_mapa[mapa_id]
+	var info := obtener_mapa_por_id(mapa_id)
+	var col1: Color = info.get("color", Color(0.2, 0.9, 1.0))
+	var col2 := Color.from_hsv(fposmod(col1.h + 0.16, 1.0), clampf(col1.s * 1.05, 0.7, 1.0), clampf(col1.v * 1.05, 0.85, 1.0), 1.0)
+
+	var grad := Gradient.new()
+	grad.colors = PackedColorArray([col1, col2])
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.width = 256
+	tex.height = 1
+
+	var mat := ShaderMaterial.new()
+	mat.shader = SHADER_NEON
+	mat.set_shader_parameter("palette", tex)
+	mat.set_shader_parameter("cell_size", 32.0)
+	mat.set_shader_parameter("jitter", 0.4)
+	mat.set_shader_parameter("skip_chance", 0.55)
+	mat.set_shader_parameter("warp_amount", 0.6)
+	mat.set_shader_parameter("warp_scale", 1.0)
+	mat.set_shader_parameter("color_speed", 0.6)
+	mat.set_shader_parameter("fit_to_shape", false)
+
+	_materiales_mapa[mapa_id] = mat
+	return mat
+
+
+func aplicar_estilo_mapa(mapa_node: Node2D, info: Dictionary) -> void:
+	if mapa_node == null or not is_instance_valid(mapa_node):
+		return
+	var mapa_id: StringName = info.get("id", &"")
+	var mat := obtener_material_mapa(mapa_id)
+	var color_mapa: Color = info.get("color", Color(0.2, 0.9, 1.0))
+	_aplicar_estilo_recursivo(mapa_node, mat, color_mapa)
+
+
+func _aplicar_estilo_recursivo(nodo: Node, mat: ShaderMaterial, color_mapa: Color) -> void:
+	if nodo is HazardZone or nodo.name.begins_with("Hazard") or nodo.name.begins_with("DeadZone"):
+		return
+	if nodo is Polygon2D:
+		var poly := nodo as Polygon2D
+		poly.material = mat
+		poly.color = Color.WHITE
+	elif nodo is Line2D:
+		var line := nodo as Line2D
+		line.default_color = color_mapa
+		line.width = 3.0
+	for hijo in nodo.get_children():
+		_aplicar_estilo_recursivo(hijo, mat, color_mapa)

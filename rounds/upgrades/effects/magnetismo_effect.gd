@@ -1,8 +1,8 @@
 class_name MagnetismoEffect
 extends UpgradeEffect
 
-@export var radius: float = 160.0
-@export var pull_force: float = 700.0
+@export var radius: float = 240.0
+@export var pull_force: float = 2600.0
 
 
 func on_process(delta: float, player: Node) -> void:
@@ -24,8 +24,11 @@ func on_process(delta: float, player: Node) -> void:
 		var diff := pos - b2d.global_position
 		var dist := diff.length()
 		if dist <= radius and dist > 8.0:
-			var pull := diff.normalized() * (pull_force * delta)
 			if "velocity" in bullet:
+				var current_speed: float = bullet.velocity.length()
+				var pull := diff.normalized() * (pull_force * delta)
 				bullet.velocity += pull
+				if current_speed > 10.0:
+					bullet.velocity = bullet.velocity.normalized() * current_speed
 				bullet.direction = bullet.velocity.normalized()
 				bullet.rotation = bullet.velocity.angle()

@@ -54,6 +54,10 @@ func _on_jugador_muerto(jugador: Node) -> void:
 
 	# Se quedó sin vidas en esta ronda.
 	var con_vidas := RunManager.jugadores_con_vidas()
+	if con_vidas.size() == 1 and not con_vidas[0].is_alive():
+		RunManager.perder_vida(con_vidas[0].player_number)
+		con_vidas = RunManager.jugadores_con_vidas()
+
 	if con_vidas.size() > 1:
 		return
 
@@ -103,6 +107,8 @@ func _revivir_caidos() -> void:
 			continue
 		if RunManager.vidas_de(jug.player_number) > 0 and jug.has_method("respawn") and not jug.is_alive():
 			jug.respawn()
+		elif RunManager.vidas_de(jug.player_number) <= 0:
+			jug.visible = false
 
 
 func cargar_nuevo_mapa() -> void:
@@ -128,6 +134,7 @@ func cargar_nuevo_mapa() -> void:
 		return
 
 	_mapa_actual = escena_mapa.instantiate() as Node2D
+	MapManager.aplicar_estilo_mapa(_mapa_actual, _mapa_info_actual)
 	map_container.add_child(_mapa_actual)
 
 	for jug in RunManager.jugadores():

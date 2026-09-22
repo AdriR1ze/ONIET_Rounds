@@ -96,16 +96,31 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _asegurar_acciones_globales() -> void:
-	if InputMap.has_action("pause"):
-		return
-	InputMap.add_action("pause")
-	var escape := InputEventKey.new()
-	escape.physical_keycode = KEY_ESCAPE
-	InputMap.action_add_event("pause", escape)
-	var start := InputEventJoypadButton.new()
-	start.device = -1
-	start.button_index = JOY_BUTTON_START
-	InputMap.action_add_event("pause", start)
+	if not InputMap.has_action("pause"):
+		InputMap.add_action("pause")
+		var escape := InputEventKey.new()
+		escape.physical_keycode = KEY_ESCAPE
+		InputMap.action_add_event("pause", escape)
+		var start := InputEventJoypadButton.new()
+		start.device = -1
+		start.button_index = JOY_BUTTON_START
+		InputMap.action_add_event("pause", start)
+
+	# Asegurar que los mandos puedan confirmar y cancelar en la interfaz (ui_accept / ui_cancel)
+	_asegurar_joy_en_accion("ui_accept", JOY_BUTTON_A)
+	_asegurar_joy_en_accion("ui_cancel", JOY_BUTTON_B)
+
+
+func _asegurar_joy_en_accion(accion: String, boton: JoyButton) -> void:
+	if not InputMap.has_action(accion):
+		InputMap.add_action(accion)
+	for ev in InputMap.action_get_events(accion):
+		if ev is InputEventJoypadButton and ev.button_index == boton:
+			return
+	var joy_btn := InputEventJoypadButton.new()
+	joy_btn.device = -1
+	joy_btn.button_index = boton
+	InputMap.action_add_event(accion, joy_btn)
 
 
 func _asegurar_acciones_jugadores() -> void:

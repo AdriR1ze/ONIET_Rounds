@@ -39,6 +39,7 @@ var _cards: Dictionary = {}
 var _ready_btn: Dictionary = {}
 var _status_lbl: Dictionary = {}
 var _disp_sel: Dictionary = {}
+var _nav_cooldowns: Dictionary = {}
 
 
 func _ready() -> void:
@@ -231,40 +232,49 @@ func _on_card_input(event: InputEvent, numero: int, eleccion: int) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	for numero in _numeros:
-		if _usa_raw_keyboard(numero):
-			continue
-		if not _listo[numero]:
-			if event.is_action_pressed("p%d_left" % numero):
-				_mover_eleccion(numero, -1)
-			elif event.is_action_pressed("p%d_right" % numero):
-				_mover_eleccion(numero, 1)
-			elif event.is_action_pressed("p%d_up" % numero):
-				_mover_eleccion(numero, -COLUMNAS_PERSONAJES)
-			elif event.is_action_pressed("p%d_down" % numero):
-				_mover_eleccion(numero, COLUMNAS_PERSONAJES)
-		if event.is_action_pressed("p%d_fire" % numero):
-			_toggle_ready(numero)
-			get_viewport().set_input_as_handled()
-
 	if event.is_action_pressed("ui_cancel"):
 		_volver_al_menu()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	for numero in _numeros:
-		if not _usa_raw_keyboard(numero):
+		if _usa_raw_keyboard(numero):
+			if not _listo[numero]:
+				if KeyboardSetup.raw_action_just_pressed(numero, "left"):
+					_mover_eleccion(numero, -1)
+					AudioManager.reproducir("ui_mover", 0.05)
+				elif KeyboardSetup.raw_action_just_pressed(numero, "right"):
+					_mover_eleccion(numero, 1)
+					AudioManager.reproducir("ui_mover", 0.05)
+				elif KeyboardSetup.raw_action_just_pressed(numero, "up"):
+					_mover_eleccion(numero, -COLUMNAS_PERSONAJES)
+					AudioManager.reproducir("ui_mover", 0.05)
+				elif KeyboardSetup.raw_action_just_pressed(numero, "down"):
+					_mover_eleccion(numero, COLUMNAS_PERSONAJES)
+					AudioManager.reproducir("ui_mover", 0.05)
+			if KeyboardSetup.raw_action_just_pressed(numero, "fire") or KeyboardSetup.raw_action_just_pressed(numero, "jump"):
+				_toggle_ready(numero)
 			continue
+
+		# Jugadores de mando o teclado estándar
 		if not _listo[numero]:
-			if KeyboardSetup.raw_action_just_pressed(numero, "left"):
-				_mover_eleccion(numero, -1)
-			elif KeyboardSetup.raw_action_just_pressed(numero, "right"):
-				_mover_eleccion(numero, 1)
-			elif KeyboardSetup.raw_action_just_pressed(numero, "up"):
-				_mover_eleccion(numero, -COLUMNAS_PERSONAJES)
-			elif KeyboardSetup.raw_action_just_pressed(numero, "down"):
-				_mover_eleccion(numero, COLUMNAS_PERSONAJES)
-		if KeyboardSetup.raw_action_just_pressed(numero, "fire"):
+			var mx := Input.get_axis("p%d_left" % numero, "p%d_right" % numero)
+			var my := Input.get_axis("p%d_up" % numero, "p%d_down" % numero)
+			var cd: float = maxf(float(_nav_cooldowns.get(numero, 0.0)) - delta, 0.0)
+			if absf(mx) < 0.35 and absf(my) < 0.35:
+				_nav_cooldowns[numero] = 0.0
+			elif cd <= 0.0:
+				if absf(mx) >= absf(my):
+					_mover_eleccion(numero, 1 if mx > 0.0 else -1)
+				else:
+					_mover_eleccion(numero, COLUMNAS_PERSONAJES if my > 0.0 else -COLUMNAS_PERSONAJES)
+				_nav_cooldowns[numero] = 0.22
+				AudioManager.reproducir("ui_mover", 0.05)
+
+		var fire_pressed: bool = Input.is_action_just_pressed("p%d_fire" % numero)
+		var jump_pressed: bool = Input.is_action_just_pressed("p%d_jump" % numero)
+		var accept_pressed: bool = (numero == 1 and Input.is_action_just_pressed("ui_accept"))
+		if fire_pressed or jump_pressed or accept_pressed:
 			_toggle_ready(numero)
 
 
@@ -313,7 +323,7 @@ func _actualizar_ui() -> void:
 			status.text = "¡LISTO PARA COMBATIR!"
 			status.modulate = COLOR_LISTO
 		else:
-			status.text = "Mové para elegir • Dispará para confirmar"
+			status.text = "Mové para elegir • X / Dispará para confirmar"
 			status.modulate = Color(0.7, 0.7, 0.7, 1.0)
 	_btn_iniciar.text = "¡A LUCHAR! (COMENZANDO...)" if _todos_listos() else "COMENZAR PARTIDA"
 

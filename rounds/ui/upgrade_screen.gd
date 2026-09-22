@@ -181,7 +181,7 @@ func _crear_panel(numero: int) -> void:
 	var corazones := ""
 	for i in 5:
 		corazones += "♥" if i < vidas_count else "♡"
-	var controles_hint: String = "Moverse para elegir · Disparar para confirmar"
+	var controles_hint: String = "Moverse para elegir · X / Disparar para confirmar"
 
 	var info_sub := Label.new()
 	info_sub.text = "%s  •  Nivel máx %d  •  %s" % [corazones, max_nivel, controles_hint]
@@ -452,15 +452,25 @@ func _process(delta: float) -> void:
 			continue
 		if _procesar_raw_menu(numero, total, delta):
 			continue
-		if _accion_just_pressed(numero, "left"):
+		var move_axis := Input.get_axis(_accion(numero, "left"), _accion(numero, "right"))
+		var key_cd := "%d_stick" % numero
+		var cd: float = maxf(float(_raw_menu_cooldowns.get(key_cd, 0.0)) - delta, 0.0)
+		if absf(move_axis) < 0.35:
+			_raw_menu_cooldowns[key_cd] = 0.0
+		elif cd <= 0.0:
+			_indices[numero] = wrapi(_indices[numero] + (1 if move_axis > 0.0 else -1), 0, total)
+			_actualizar_seleccion()
+			AudioManager.reproducir("ui_mover", 0.05)
+			_raw_menu_cooldowns[key_cd] = RAW_MENU_REPEAT_DELAY
+		elif _accion_just_pressed(numero, "left") and absf(move_axis) < 0.35:
 			_indices[numero] = wrapi(_indices[numero] - 1, 0, total)
 			_actualizar_seleccion()
 			AudioManager.reproducir("ui_mover", 0.05)
-		if _accion_just_pressed(numero, "right"):
+		elif _accion_just_pressed(numero, "right") and absf(move_axis) < 0.35:
 			_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
 			_actualizar_seleccion()
 			AudioManager.reproducir("ui_mover", 0.05)
-		if _accion_just_pressed(numero, "fire"):
+		if _accion_just_pressed(numero, "fire") or _accion_just_pressed(numero, "jump") or (numero == 1 and Input.is_action_just_pressed("ui_accept")):
 			_confirmar(numero)
 
 
@@ -532,7 +542,7 @@ func _procesar_raw_menu(numero: int, total: int, delta: float) -> bool:
 		_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
 		_actualizar_seleccion()
 		AudioManager.reproducir("ui_mover", 0.05)
-	if _raw_menu_action(numero, "fire", false, delta):
+	if _raw_menu_action(numero, "fire", false, delta) or _raw_menu_action(numero, "jump", false, delta):
 		_confirmar(numero)
 	return true
 
@@ -562,7 +572,7 @@ func _preparar_raw_menu_estado() -> void:
 		var numero: int = jugador.player_number
 		if numero > 2:
 			continue
-		for nombre in ["left", "right", "fire"]:
+		for nombre in ["left", "right", "fire", "jump"]:
 			var key := "%d_%s" % [numero, nombre]
 			var pressed := KeyboardSetup.raw_action_pressed(numero, nombre)
 			_raw_menu_prev[key] = pressed

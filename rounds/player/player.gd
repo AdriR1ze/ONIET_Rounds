@@ -140,6 +140,9 @@ func _physics_process(delta: float) -> void:
 		$Visual.rotation = 0.0
 	_apply_gravity(delta)
 	_update_jump_timers(delta)
+	# Comprobación de límites del mapa (caída al abismo o salir fuera de pantalla)
+	if is_alive() and (global_position.y > 850.0 or global_position.y < -400.0 or absf(global_position.x - 640.0) > 950.0):
+		_health.apply_damage(_health.health, null)
 
 	match current_state:
 		PlayerState.DEAD:
@@ -239,14 +242,14 @@ func _handle_horizontal(delta: float) -> void:
 		return
 	var direction := _input.move_axis()
 	var speed := _stats.get_stat(&"move_speed") * get_speed_multiplier()
-	if absf(velocity.x) > speed and (is_zero_approx(direction) or signi(velocity.x) != signi(direction)):
+	if absf(velocity.x) > speed and (is_zero_approx(direction) or signf(velocity.x) != signf(direction)):
 		var decel := friction * 0.4 if is_on_floor() else friction * 0.15
 		velocity.x = move_toward(velocity.x, direction * speed, decel * delta)
 	else:
 		var accel := acceleration if is_on_floor() else acceleration * air_control
 		velocity.x = move_toward(velocity.x, direction * speed, accel * delta)
 	if not is_zero_approx(direction) and not _input.is_strafe_pressed():
-		facing = signi(direction)
+		facing = 1 if direction > 0.0 else -1
 		_update_visual_facing()
 
 
@@ -290,7 +293,7 @@ func _handle_aim() -> void:
 	if direction.is_zero_approx():
 		direction = Vector2(facing, 0.0)
 	elif not is_zero_approx(direction.x):
-		facing = signi(direction.x)
+		facing = 1 if direction.x > 0.0 else -1
 	_weapon.set_aim(direction)
 	_update_visual_facing()
 
@@ -308,8 +311,13 @@ func _handle_actions() -> void:
 
 
 func _update_visual_facing() -> void:
-	$Visual.scale.x = absf($Visual.scale.x) * facing
-	_weapon.position = Vector2(weapon_offset.x * facing, weapon_offset.y)
+	var sx := absf($Visual.scale.x)
+	if sx < 0.001:
+		sx = 1.0
+	var f := 1 if facing >= 0 else -1
+	$Visual.scale.x = sx * f
+	if _weapon != null:
+		_weapon.position = Vector2(weapon_offset.x * f, weapon_offset.y)
 
 
 func _start_ragdoll() -> void:
@@ -436,6 +444,15 @@ func _on_died() -> void:
 	_death_tween.tween_property($Visual, "position:y", 8.0, 0.22)
 	_death_tween.tween_property(self, "modulate", Color(0.72, 0.72, 0.78, 1.0), 0.3)
 
+	# Desvanecer y ocultar el cadáver tras una breve pausa
+	var fade_tween := create_tween()
+	fade_tween.tween_interval(0.8)
+	fade_tween.tween_property(self, "modulate:a", 0.0, 0.4)
+	fade_tween.tween_callback(func():
+		if current_state == PlayerState.DEAD:
+			visible = false
+	)
+
 	# Desactivar colisión con proyectiles para no deflectar ni recibir más impactos
 	var hurtbox_col := get_node_or_null("HurtboxComponent/CollisionShape2D") as CollisionShape2D
 	if hurtbox_col != null:
@@ -506,7 +523,14 @@ func respawn() -> void:
 	if is_instance_valid(active_barrier):
 		active_barrier.queue_free()
 		active_barrier = null
+	visible = true
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
+	if _skeleton_sprite != null:
+		_skeleton_sprite.modulate = Color.WHITE
+		_skeleton_sprite.visible = true
+	facing = 1
+	var sx := absf($Visual.scale.x)
+	$Visual.scale.x = sx if sx > 0.001 else 1.0
 	if _death_tween != null and _death_tween.is_valid():
 		_death_tween.kill()
 	_death_tween = null
@@ -562,6 +586,11 @@ func _on_weapon_reload_started() -> void:
 
 func hurt(amount: int, source: Node = null) -> void:
 	if not is_alive():
+		return
+
+	# Daño letal extremo de zonas de muerte / abismo
+	if amount >= 999:
+		_health.apply_damage(_health.health, source)
 		return
 
 	# Intercepción por Barrera de Muro Vivo
@@ -762,7 +791,7 @@ func apply_dot(damage_per_tick: float, ticks_count: int = 3, source: Node = null
 func apply_poison_tick(damage: float, _source: Node = null) -> void:
 	if current_state == PlayerState.DEAD:
 		return
-	var dmg := maxi(int(round(damage)), 4)
+	var dmg := maxi(int(round(damage)), 1)
 	_health.apply_silent_damage(dmg)
 	_trigger_poison_feedback()
 

@@ -1,7 +1,7 @@
 class_name PropulsionEffect
 extends UpgradeEffect
 
-@export var recoil_force: float = 950.0
+@export var recoil_force: float = 720.0
 
 
 func on_fire(shot: Shot, player: Node) -> void:
