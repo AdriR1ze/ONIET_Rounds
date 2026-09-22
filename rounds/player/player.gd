@@ -88,6 +88,12 @@ var _second_skin_tick_timer: float = 0.0
 var _slow_factor: float = 1.0
 var _slow_timer: float = 0.0
 
+# Debuff de Gravedad y Salto (Zona de Gravedad)
+var _gravity_mult: float = 1.0
+var _gravity_mult_timer: float = 0.0
+var _jump_mult: float = 1.0
+var _jump_mult_timer: float = 0.0
+
 # Corazón de Titanio
 var has_titanium_heart: bool = false
 var _titanium_heart_ready: bool = true
@@ -231,7 +237,8 @@ func _update_jump_timers(delta: float) -> void:
 
 func _apply_gravity(delta: float) -> void:
 	if not is_on_floor():
-		velocity.y = minf(velocity.y + (gravity * gravity_scale) * delta, max_fall_speed)
+		var total_gravity_scale: float = gravity_scale * (_gravity_mult if _gravity_mult_timer > 0.0 else 1.0)
+		velocity.y = minf(velocity.y + (gravity * total_gravity_scale) * delta, max_fall_speed)
 	elif velocity.y > 0.0:
 		velocity.y = 0.0
 
@@ -257,7 +264,8 @@ func _handle_jump() -> void:
 	if _input.is_lock_pressed():
 		return
 	if _jump_buffer_timer > 0.0 and _coyote_timer > 0.0:
-		velocity.y = _stats.get_stat(&"jump_velocity") * jump_force_multiplier
+		var total_jump_mult: float = jump_force_multiplier * (_jump_mult if _jump_mult_timer > 0.0 else 1.0)
+		velocity.y = _stats.get_stat(&"jump_velocity") * total_jump_mult
 		_jump_buffer_timer = 0.0
 		_coyote_timer = 0.0
 		AudioManager.reproducir("salto", 0.05)
@@ -511,6 +519,10 @@ func respawn() -> void:
 	_second_skin_tick_timer = 0.0
 	_slow_factor = 1.0
 	_slow_timer = 0.0
+	_gravity_mult = 1.0
+	_gravity_mult_timer = 0.0
+	_jump_mult = 1.0
+	_jump_mult_timer = 0.0
 	_titanium_heart_ready = true
 	_titanium_heart_cooldown = 0.0
 	_in_blood_debt = false
@@ -689,6 +701,15 @@ func apply_slow(factor: float, duration: float) -> void:
 	_slow_timer = maxf(_slow_timer, duration)
 
 
+func apply_gravity_debuff(grav_scale: float, jump_scale: float, duration: float = 0.20) -> void:
+	if current_state == PlayerState.DEAD:
+		return
+	_gravity_mult = maxf(_gravity_mult, grav_scale)
+	_gravity_mult_timer = maxf(_gravity_mult_timer, duration)
+	_jump_mult = minf(_jump_mult, jump_scale)
+	_jump_mult_timer = maxf(_jump_mult_timer, duration)
+
+
 func mark_sepultador(source: Node, bullet_dmg: int, duration: float = 0.6) -> void:
 	_last_sepultador_source = source
 	_sepultador_damage = bullet_dmg
@@ -734,6 +755,17 @@ func _update_buffs(delta: float) -> void:
 		_slow_timer -= delta
 		if _slow_timer <= 0.0:
 			_slow_factor = 1.0
+
+	# Debuff de Gravedad y Salto (Zona de Gravedad)
+	if _gravity_mult_timer > 0.0:
+		_gravity_mult_timer -= delta
+		if _gravity_mult_timer <= 0.0:
+			_gravity_mult = 1.0
+
+	if _jump_mult_timer > 0.0:
+		_jump_mult_timer -= delta
+		if _jump_mult_timer <= 0.0:
+			_jump_mult = 1.0
 
 	# Corazón de Titanio
 	if _titanium_heart_cooldown > 0.0:

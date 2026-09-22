@@ -523,14 +523,14 @@ func _generar() -> void:
 		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 35. Zona de Gravedad: Nivel 4 (Épica)
-	_crear(&"zona_gravedad", "Zona de Gravedad", "Aura de gravedad aumentada para tus rivales", 4,
-		"Los rivales cercanos (<130px) caen más rápido (+85% gravedad) y casi no pueden despegar del suelo (-55% fuerza de salto).",
+	_crear(&"zona_gravedad", "Zona de Gravedad", "Aura de gravedad: rivales caen rápido, se mueven lento y saltan menos", 4,
+		"Los rivales cercanos (<140px) sufren gravedad extrema (+90%), se mueven un 35% más lento y pierden más de la mitad de su fuerza de salto.",
 		UpgradeDefinition.Rareza.EPICA, 1.0, 1,
 		[_mod(&"move_speed", StatModifier.Op.MULT, 0.90)],
 		[ZonaGravedadEffect.new()],
-		["Rivales cerca caen más rápido y casi no pueden saltar"],
+		["Rivales cerca sufren +90% gravedad", "Rivales cerca se mueven 35% más lento", "Rivales cerca saltan un 55% menos"],
 		["-10% Velocidad propia"],
-		["Aura de gravedad aumentada"],
+		["Aura de gravedad aumentada, lentitud y reducción de salto"],
 		&"gravedad",
 		UpgradeDefinition.Categoria.CONTROL)
 
