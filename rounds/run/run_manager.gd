@@ -28,7 +28,7 @@ const PALETAS_ESQUELETO := {
 
 var vidas: Dictionary = { 1: 5, 2: 5 }
 var nombres: Dictionary = { 1: "Jugador 1", 2: "Jugador 2" }
-var personajes: Dictionary = { 1: "pato", 2: "pato" }
+var personajes: Dictionary = { 1: "esqueleto", 2: "esqueleto" }
 var partida_finalizada: bool = false
 var _jugadores: Dictionary = {}
 var _mejoras: Dictionary = {}
@@ -68,7 +68,7 @@ func set_personaje(player_number: int, id: String) -> void:
 
 
 func personaje_de(player_number: int) -> String:
-	return personajes.get(player_number, "pato")
+	return personajes.get(player_number, "esqueleto")
 
 
 func configurar_partida(rondas: int, vidas: int) -> void:
@@ -220,7 +220,7 @@ func _inicializar_jugadores() -> void:
 		if not nombres.has(numero):
 			nombres[numero] = "Jugador %d" % numero
 		if not personajes.has(numero):
-			personajes[numero] = "pato"
+			personajes[numero] = "esqueleto"
 
 
 func _cumple_requisitos(player_number: int, def: UpgradeDefinition) -> bool:

@@ -47,18 +47,12 @@ enum PlayerState {
 @onready var _corner_ray_right: RayCast2D = $CornerRayRight
 @onready var _ground_ray: RayCast2D = $GroundRay
 @onready var _skeleton_sprite: AnimatedSprite2D = $Visual.get_node_or_null("SkeletonSprite")
-@onready var _body_mesh: Polygon2D = $Visual.get_node_or_null("Body")
-@onready var _wing_mesh: Polygon2D = $Visual.get_node_or_null("Wing")
-@onready var _beak_mesh: Polygon2D = $Visual.get_node_or_null("Beak")
-@onready var _eye_mesh: Polygon2D = $Visual.get_node_or_null("Eye")
-@onready var _pupil_mesh: Polygon2D = $Visual.get_node_or_null("Pupil")
-@onready var _feet_node: Node2D = $Visual.get_node_or_null("Feet")
 @onready var _floating_hp: Node2D = get_node_or_null("FloatingHealthBar")
 
 var facing: int = 1
 var can_control: bool = true
 var current_state: PlayerState = PlayerState.IDLE
-var tipo_personaje: String = "pato"
+var tipo_personaje: String = "esqueleto"
 
 var _effects: Array = []
 var _active_dots: Array = []
@@ -71,6 +65,7 @@ var _jump_buffer_timer: float = 0.0
 var _spawn_position: Vector2
 var _hit_stop_remaining: float = 0.0
 var _hit_stop_active: bool = false
+var _death_tween: Tween = null
 
 # Modificadores de físicas dinámicos (auras / campos)
 var gravity_scale: float = 1.0
@@ -140,6 +135,9 @@ func _physics_process(delta: float) -> void:
 	_update_ragdoll(delta)
 	_update_buffs(delta)
 	_update_state()
+	# Vivo y fuera del trompezar: el visual nunca debe quedar tumbado.
+	if current_state != PlayerState.DEAD and _ragdoll_timer <= 0.0:
+		$Visual.rotation = 0.0
 	_apply_gravity(delta)
 	_update_jump_timers(delta)
 
@@ -173,68 +171,41 @@ func _update_state() -> void:
 	_update_character_visual()
 
 
-func _set_duck_parts_visible(v: bool) -> void:
-	if _body_mesh != null: _body_mesh.visible = v
-	if _wing_mesh != null: _wing_mesh.visible = v
-	if _beak_mesh != null: _beak_mesh.visible = v
-	if _eye_mesh != null: _eye_mesh.visible = v
-	if _pupil_mesh != null: _pupil_mesh.visible = v
-	if _feet_node != null: _feet_node.visible = v
-
-
 func _configurar_personaje() -> void:
 	tipo_personaje = RunManager.personaje_de(player_number)
-	if CHARACTER_FRAMES.has(tipo_personaje):
-		_set_duck_parts_visible(false)
-		if _skeleton_sprite != null:
-			_skeleton_sprite.visible = true
-			_skeleton_sprite.sprite_frames = CHARACTER_FRAMES[tipo_personaje]
-			_skeleton_sprite.modulate = Color.WHITE
-			if tipo_personaje == "esqueleto":
-				var paleta := RunManager.paleta_esqueleto(player_number)
-				var mat := ShaderMaterial.new()
-				mat.shader = preload("res://player/skeleton_palette.gdshader")
-				mat.set_shader_parameter("color_highlight", paleta[0])
-				mat.set_shader_parameter("color_midtone", paleta[1])
-				mat.set_shader_parameter("color_shadow", paleta[2])
-				_skeleton_sprite.material = mat
-			else:
-				_skeleton_sprite.material = null
-			_skeleton_sprite.play("idle")
-		_body_animation.play("stand")
-	else:
-		_set_duck_parts_visible(true)
-		if _wing_mesh != null:
-			_wing_mesh.color = RunManager.color_jugador(player_number).darkened(0.2)
-		if _skeleton_sprite != null:
-			_skeleton_sprite.visible = false
-		_body_animation.play("duck_idle")
+	if not CHARACTER_FRAMES.has(tipo_personaje):
+		tipo_personaje = "esqueleto"
+	if _skeleton_sprite != null:
+		_skeleton_sprite.visible = true
+		_skeleton_sprite.sprite_frames = CHARACTER_FRAMES[tipo_personaje]
+		_skeleton_sprite.modulate = Color.WHITE
+		if tipo_personaje == "esqueleto":
+			var paleta := RunManager.paleta_esqueleto(player_number)
+			var mat := ShaderMaterial.new()
+			mat.shader = preload("res://player/skeleton_palette.gdshader")
+			mat.set_shader_parameter("color_highlight", paleta[0])
+			mat.set_shader_parameter("color_midtone", paleta[1])
+			mat.set_shader_parameter("color_shadow", paleta[2])
+			_skeleton_sprite.material = mat
+		else:
+			_skeleton_sprite.material = null
+		_skeleton_sprite.play("idle")
+	_body_animation.play("stand")
 
 
 func _update_character_visual() -> void:
-	if CHARACTER_FRAMES.has(tipo_personaje):
-		if _skeleton_sprite == null:
-			return
-		match current_state:
-			PlayerState.DEAD:
-				if _skeleton_sprite.animation != "dead":
-					_skeleton_sprite.play("dead")
-			PlayerState.WALKING:
-				if _skeleton_sprite.animation != "walk":
-					_skeleton_sprite.play("walk")
-			_:
-				if _skeleton_sprite.animation != "idle":
-					_skeleton_sprite.play("idle")
-	else:
-		match current_state:
-			PlayerState.DEAD:
-				_body_animation.stop()
-			PlayerState.WALKING:
-				if _body_animation.current_animation != "duck_walk":
-					_body_animation.play("duck_walk")
-			_:
-				if _body_animation.current_animation != "duck_idle":
-					_body_animation.play("duck_idle")
+	if _skeleton_sprite == null:
+		return
+	match current_state:
+		PlayerState.DEAD:
+			if _skeleton_sprite.animation != "dead":
+				_skeleton_sprite.play("dead")
+		PlayerState.WALKING:
+			if _skeleton_sprite.animation != "walk":
+				_skeleton_sprite.play("walk")
+		_:
+			if _skeleton_sprite.animation != "idle":
+				_skeleton_sprite.play("idle")
 
 
 func _update_jump_timers(delta: float) -> void:
@@ -244,7 +215,7 @@ func _update_jump_timers(delta: float) -> void:
 		return
 
 	_ground_ray.force_raycast_update()
-	if _ground_ray.is_colliding() and velocity.y >= 0.0:
+	if is_on_floor() or (_ground_ray.is_colliding() and velocity.y >= 0.0):
 		_coyote_timer = coyote_time
 	else:
 		_coyote_timer = maxf(_coyote_timer - delta, 0.0)
@@ -459,11 +430,11 @@ func _on_died() -> void:
 
 	# Rotar el personaje tumbado en el suelo
 	var rot_target := deg_to_rad(90.0 if facing >= 0 else -90.0)
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property($Visual, "rotation", rot_target, 0.22).set_ease(Tween.EASE_OUT)
-	tween.tween_property($Visual, "position:y", 8.0, 0.22)
-	tween.tween_property(self, "modulate", Color(0.72, 0.72, 0.78, 1.0), 0.3)
+	_death_tween = create_tween()
+	_death_tween.set_parallel(true)
+	_death_tween.tween_property($Visual, "rotation", rot_target, 0.22).set_ease(Tween.EASE_OUT)
+	_death_tween.tween_property($Visual, "position:y", 8.0, 0.22)
+	_death_tween.tween_property(self, "modulate", Color(0.72, 0.72, 0.78, 1.0), 0.3)
 
 	# Desactivar colisión con proyectiles para no deflectar ni recibir más impactos
 	var hurtbox_col := get_node_or_null("HurtboxComponent/CollisionShape2D") as CollisionShape2D
@@ -536,14 +507,14 @@ func respawn() -> void:
 		active_barrier.queue_free()
 		active_barrier = null
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
+	if _death_tween != null and _death_tween.is_valid():
+		_death_tween.kill()
+	_death_tween = null
 	$Visual.rotation = 0.0
 	$Visual.position = Vector2.ZERO
-	if CHARACTER_FRAMES.has(tipo_personaje):
-		_body_animation.play("stand")
-		if _skeleton_sprite != null:
-			_skeleton_sprite.play("idle")
-	else:
-		_body_animation.play("duck_idle")
+	_body_animation.play("stand")
+	if _skeleton_sprite != null:
+		_skeleton_sprite.play("idle")
 	_update_visual_facing()
 	_health.reset()
 	var hurtbox_col := get_node_or_null("HurtboxComponent/CollisionShape2D") as CollisionShape2D

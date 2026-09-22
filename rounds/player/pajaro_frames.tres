@@ -1,27 +1,38 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://d15rtbdb6iimh"]
 
+[ext_resource type="Texture2D" uid="uid://c3e6njyltwjc2" path="res://sprite_sheets/personajes/pajaro/pajaro_caminando.png" id="1_camina"]
+[ext_resource type="Texture2D" uid="uid://jodt6vr4m8nm" path="res://sprite_sheets/personajes/pajaro/pajaro_quieto.png" id="2_quieto"]
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_i0"]
+atlas = ExtResource("2_quieto")
 region = Rect2(0, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_i1"]
+atlas = ExtResource("2_quieto")
 region = Rect2(32, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_i2"]
+atlas = ExtResource("2_quieto")
 region = Rect2(64, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_i3"]
+atlas = ExtResource("2_quieto")
 region = Rect2(96, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_w0"]
+atlas = ExtResource("1_camina")
 region = Rect2(0, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_w1"]
+atlas = ExtResource("1_camina")
 region = Rect2(32, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_w2"]
+atlas = ExtResource("1_camina")
 region = Rect2(64, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_w3"]
+atlas = ExtResource("1_camina")
 region = Rect2(96, 0, 32, 32)
 
 [resource]

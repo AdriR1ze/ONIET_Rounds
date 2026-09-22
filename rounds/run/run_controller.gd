@@ -81,9 +81,9 @@ func _on_jugador_muerto(jugador: Node) -> void:
 		cargar_nuevo_mapa()
 
 	RunManager.iniciar_ronda(RunManager.ronda + 1)
+	_revivir_caidos()
 	if banner_intro != null and banner_intro.has_method("mostrar_intro"):
 		await banner_intro.mostrar_intro(RunManager.ronda, _mapa_info_actual)
-	_revivir_caidos()
 	_ronda_activa = true
 	_procesando = false
 

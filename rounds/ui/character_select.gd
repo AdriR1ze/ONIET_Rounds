@@ -1,6 +1,6 @@
 extends Control
 
-const PERSONAJES: Array[String] = ["pato", "esqueleto", "sapo", "pajaro"]
+const PERSONAJES: Array[String] = ["esqueleto", "sapo", "pajaro"]
 const COLUMNAS_PERSONAJES := 2
 const ESCENA_JUEGO := "res://levels/test_level.tscn"
 const ESCENA_MENU := "res://ui/main_menu.tscn"
@@ -15,13 +15,11 @@ const SPRITE_FRAMES := {
 	"pajaro": PAJARO_FRAMES,
 }
 const NOMBRES_PERSONAJES := {
-	"pato": "Pato Clasico",
 	"esqueleto": "Esqueleto",
 	"sapo": "Sapo",
 	"pajaro": "Pajaro",
 }
 const DESCRIPCIONES_PERSONAJES := {
-	"pato": "El duelista emplumado original.",
 	"esqueleto": "Agil, huesudo e implacable.",
 	"sapo": "Salton, verde y dificil de tumbar.",
 	"pajaro": "Ligero, veloz y con mucho estilo.",
@@ -29,17 +27,6 @@ const DESCRIPCIONES_PERSONAJES := {
 
 const COLOR_APAGADO := Color(0.2, 0.22, 0.28, 1.0)
 const COLOR_LISTO := Color(0.3, 0.9, 0.4, 1.0)
-const COLOR_BEAK := Color(0.96, 0.52, 0.12, 1.0)
-const COLOR_EYE := Color(0.12, 0.13, 0.18, 1.0)
-const COLOR_FOOT := Color(0.92, 0.45, 0.08, 1.0)
-
-const POLY_BODY := [-9, -15, 6, -15, 11, -12, 12, -4, 10, 2, 12, 10, 8, 15, -7, 15, -12, 11, -14, 4, -16, 1, -12, -4, -10, -11]
-const POLY_WING := [-8, -1, 1, -1, 3, 4, -2, 9, -9, 6]
-const POLY_BEAK := [11, -4, 19, -3, 21, 0, 19, 3, 11, 3]
-const POLY_EYE := [4, -12, 8, -12, 8, -7, 4, -7]
-const POLY_PUPIL := [5, -11, 7, -11, 7, -9, 5, -9]
-const POLY_FOOT_L := [-5, 14, 0, 14, 3, 17, -4, 17]
-const POLY_FOOT_R := [1, 14, 6, 14, 9, 17, 2, 17]
 
 @onready var _panel_jugadores: HBoxContainer = $Margin/VBox/PanelJugadores
 @onready var _btn_iniciar: Button = $Margin/VBox/Footer/BotonIniciar
@@ -117,7 +104,7 @@ func _crear_panel(numero: int) -> VBoxContainer:
 	_cards[numero] = []
 	for indice in PERSONAJES.size():
 		var personaje := PERSONAJES[indice]
-		var card := _crear_card_personaje(numero, color, personaje, indice)
+		var card := _crear_card_sprite(numero, color, personaje, indice)
 		cards.add_child(card)
 		_cards[numero].append(card)
 	panel.add_child(cards)
@@ -137,40 +124,6 @@ func _crear_panel(numero: int) -> VBoxContainer:
 	_ready_btn[numero] = boton
 
 	return panel
-
-
-func _crear_card_personaje(numero: int, color: Color, personaje: String, indice: int) -> PanelContainer:
-	if personaje == "pato":
-		return _crear_card_pato(numero, color, indice)
-	return _crear_card_sprite(numero, color, personaje, indice)
-
-
-func _crear_card_pato(numero: int, color: Color, indice: int) -> PanelContainer:
-	var card := PanelContainer.new()
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.gui_input.connect(_on_card_input.bind(numero, indice))
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 6)
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	var preview := Control.new()
-	preview.custom_minimum_size = Vector2(0, 100)
-	var visual := Node2D.new()
-	visual.position = Vector2(60, 52)
-	visual.scale = Vector2(1.6, 1.6)
-	visual.add_child(_poly(POLY_BODY, color))
-	visual.add_child(_poly(POLY_WING, color.darkened(0.2)))
-	visual.add_child(_poly(POLY_BEAK, COLOR_BEAK))
-	visual.add_child(_poly(POLY_EYE, COLOR_EYE))
-	visual.add_child(_poly(POLY_PUPIL, Color.WHITE))
-	visual.add_child(_poly(POLY_FOOT_L, COLOR_FOOT))
-	visual.add_child(_poly(POLY_FOOT_R, COLOR_FOOT))
-	preview.add_child(visual)
-	vbox.add_child(preview)
-	vbox.add_child(_texto(NOMBRES_PERSONAJES["pato"], 15, Color.WHITE))
-	vbox.add_child(_texto("El duelista emplumado original.", 11, Color(0.7, 0.72, 0.8)))
-	card.add_child(vbox)
-	_ignorar_raton(vbox)
-	return card
 
 
 func _crear_card_sprite(numero: int, color: Color, personaje: String, indice: int) -> PanelContainer:
@@ -211,13 +164,6 @@ func _ignorar_raton(nodo: Node) -> void:
 		(nodo as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for hijo in nodo.get_children():
 		_ignorar_raton(hijo)
-
-
-func _poly(puntos: Array, color: Color) -> Polygon2D:
-	var poli := Polygon2D.new()
-	poli.polygon = PackedVector2Array(puntos)
-	poli.color = color
-	return poli
 
 
 func _texto(contenido: String, tamano: int, color: Color) -> Label:

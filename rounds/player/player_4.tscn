@@ -5,8 +5,5 @@
 [node name="Player" instance=ExtResource("1_player")]
 player_number = 4
 
-[node name="Body" parent="Visual" index="0"]
-color = Color(1, 0.45, 0.8, 1)
-
 [node name="Barrel" parent="WeaponComponent" index="0"]
 color = Color(0.6, 0.25, 0.45, 1)

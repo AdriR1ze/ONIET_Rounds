@@ -23,8 +23,8 @@ func cargar() -> void:
 	dir.list_dir_begin()
 	var archivo := dir.get_next()
 	while archivo != "":
-		if not dir.current_is_dir() and archivo.ends_with(".tres"):
-			var recurso := load(RUTA_DEFINICIONES + "/" + archivo)
+		if not dir.current_is_dir() and (archivo.ends_with(".tres") or archivo.ends_with(".tres.remap")):
+			var recurso := load(RUTA_DEFINICIONES + "/" + archivo.trim_suffix(".remap"))
 			if recurso is UpgradeDefinition:
 				definiciones.append(recurso)
 		archivo = dir.get_next()
