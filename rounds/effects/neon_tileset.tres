@@ -5,6 +5,9 @@
 [ext_resource type="Material" uid="uid://dy1muh88al70y" path="res://effects/neon_tiles_azul_violeta.tres" id="3_mnv5x"]
 [ext_resource type="Material" uid="uid://b84f3b306mff7" path="res://effects/neon_tiles_rosa_naranja.tres" id="4_j88qb"]
 [ext_resource type="Texture2D" uid="uid://b4cuu43ij0g12" path="res://effects/tile_white_strip.png" id="5_8i66l"]
+[ext_resource type="Material" path="res://effects/neon_tiles_coral_aqua.tres" id="6_scan"]
+[ext_resource type="Material" path="res://effects/neon_tiles_violeta_lima.tres" id="7_pulse"]
+[ext_resource type="Material" path="res://effects/neon_tiles_amarillo_cian.tres" id="8_circuit"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5fp4i"]
 texture = ExtResource("5_8i66l")
@@ -22,7 +25,31 @@ texture_region_size = Vector2i(32, 32)
 3:0/0/material = ExtResource("4_j88qb")
 3:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_scan"]
+texture = ExtResource("5_8i66l")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+0:0/0/material = ExtResource("6_scan")
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_pulse"]
+texture = ExtResource("5_8i66l")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+0:0/0/material = ExtResource("7_pulse")
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_circuit"]
+texture = ExtResource("5_8i66l")
+texture_region_size = Vector2i(32, 32)
+0:0/0 = 0
+0:0/0/material = ExtResource("8_circuit")
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+
 [resource]
 tile_size = Vector2i(32, 32)
 physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_5fp4i")
+sources/1 = SubResource("TileSetAtlasSource_scan")
+sources/2 = SubResource("TileSetAtlasSource_pulse")
+sources/3 = SubResource("TileSetAtlasSource_circuit")

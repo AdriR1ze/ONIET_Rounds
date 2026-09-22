@@ -1,0 +1,23 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://effects/neon_grid.gdshader" id="1_neon"]
+
+[sub_resource type="Gradient" id="Gradient_vl"]
+colors = PackedColorArray(0.55, 0.1, 1, 1, 0.5, 1, 0.1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_vl"]
+gradient = SubResource("Gradient_vl")
+width = 256
+height = 1
+
+[resource]
+shader = ExtResource("1_neon")
+shader_parameter/palette = SubResource("GradientTexture2D_vl")
+shader_parameter/cell_size = 32.0
+shader_parameter/jitter = 0.4
+shader_parameter/skip_chance = 0.55
+shader_parameter/warp_amount = 0.6
+shader_parameter/warp_scale = 1.0
+shader_parameter/color_speed = 0.6
+shader_parameter/fit_to_shape = false
+shader_parameter/target_cells = 9.0
