@@ -1,11 +1,31 @@
 extends Control
 
-const PERSONAJES: Array[String] = ["pato", "esqueleto"]
+const PERSONAJES: Array[String] = ["pato", "esqueleto", "sapo", "pajaro"]
+const COLUMNAS_PERSONAJES := 2
 const ESCENA_JUEGO := "res://levels/test_level.tscn"
 const ESCENA_MENU := "res://ui/main_menu.tscn"
 
 const SKEL_FRAMES: SpriteFrames = preload("res://player/skeleton_frames.tres")
+const SAPO_FRAMES: SpriteFrames = preload("res://player/sapo_frames.tres")
+const PAJARO_FRAMES: SpriteFrames = preload("res://player/pajaro_frames.tres")
 const SKEL_SHADER: Shader = preload("res://player/skeleton_palette.gdshader")
+const SPRITE_FRAMES := {
+	"esqueleto": SKEL_FRAMES,
+	"sapo": SAPO_FRAMES,
+	"pajaro": PAJARO_FRAMES,
+}
+const NOMBRES_PERSONAJES := {
+	"pato": "Pato Clasico",
+	"esqueleto": "Esqueleto",
+	"sapo": "Sapo",
+	"pajaro": "Pajaro",
+}
+const DESCRIPCIONES_PERSONAJES := {
+	"pato": "El duelista emplumado original.",
+	"esqueleto": "Agil, huesudo e implacable.",
+	"sapo": "Salton, verde y dificil de tumbar.",
+	"pajaro": "Ligero, veloz y con mucho estilo.",
+}
 
 const COLOR_APAGADO := Color(0.2, 0.22, 0.28, 1.0)
 const COLOR_LISTO := Color(0.3, 0.9, 0.4, 1.0)
@@ -28,8 +48,7 @@ const POLY_FOOT_R := [1, 14, 6, 14, 9, 17, 2, 17]
 var _numeros: Array = []
 var _choice: Dictionary = {}
 var _listo: Dictionary = {}
-var _card_pato: Dictionary = {}
-var _card_esqueleto: Dictionary = {}
+var _cards: Dictionary = {}
 var _ready_btn: Dictionary = {}
 var _status_lbl: Dictionary = {}
 
@@ -90,16 +109,19 @@ func _crear_panel(numero: int) -> VBoxContainer:
 	header.add_child(nombre)
 	panel.add_child(header)
 
-	var cards := HBoxContainer.new()
+	var cards := GridContainer.new()
+	cards.columns = COLUMNAS_PERSONAJES
+	cards.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cards.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	cards.add_theme_constant_override("separation", 8)
-	var card_pato := _crear_card_pato(numero, color)
-	var card_esqueleto := _crear_card_esqueleto(numero, color)
-	cards.add_child(card_pato)
-	cards.add_child(card_esqueleto)
+	cards.add_theme_constant_override("h_separation", 8)
+	cards.add_theme_constant_override("v_separation", 8)
+	_cards[numero] = []
+	for indice in PERSONAJES.size():
+		var personaje := PERSONAJES[indice]
+		var card := _crear_card_personaje(numero, color, personaje, indice)
+		cards.add_child(card)
+		_cards[numero].append(card)
 	panel.add_child(cards)
-	_card_pato[numero] = card_pato
-	_card_esqueleto[numero] = card_esqueleto
 
 	var status := Label.new()
 	status.add_theme_font_size_override("font_size", 11)
@@ -118,10 +140,16 @@ func _crear_panel(numero: int) -> VBoxContainer:
 	return panel
 
 
-func _crear_card_pato(numero: int, color: Color) -> PanelContainer:
+func _crear_card_personaje(numero: int, color: Color, personaje: String, indice: int) -> PanelContainer:
+	if personaje == "pato":
+		return _crear_card_pato(numero, color, indice)
+	return _crear_card_sprite(numero, color, personaje, indice)
+
+
+func _crear_card_pato(numero: int, color: Color, indice: int) -> PanelContainer:
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.gui_input.connect(_on_card_input.bind(numero, 0))
+	card.gui_input.connect(_on_card_input.bind(numero, indice))
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 6)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -139,40 +167,41 @@ func _crear_card_pato(numero: int, color: Color) -> PanelContainer:
 	visual.add_child(_poly(POLY_FOOT_R, COLOR_FOOT))
 	preview.add_child(visual)
 	vbox.add_child(preview)
-	vbox.add_child(_texto("Pato Clásico", 15, Color.WHITE))
+	vbox.add_child(_texto(NOMBRES_PERSONAJES["pato"], 15, Color.WHITE))
 	vbox.add_child(_texto("El duelista emplumado original.", 11, Color(0.7, 0.72, 0.8)))
 	card.add_child(vbox)
 	_ignorar_raton(vbox)
 	return card
 
 
-func _crear_card_esqueleto(numero: int, color: Color) -> PanelContainer:
+func _crear_card_sprite(numero: int, color: Color, personaje: String, indice: int) -> PanelContainer:
 	var card := PanelContainer.new()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.gui_input.connect(_on_card_input.bind(numero, 1))
+	card.gui_input.connect(_on_card_input.bind(numero, indice))
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 6)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	var preview := Control.new()
 	preview.custom_minimum_size = Vector2(0, 100)
 	var sprite := AnimatedSprite2D.new()
-	var paleta := RunManager.paleta_esqueleto(numero)
-	var mat := ShaderMaterial.new()
-	mat.shader = SKEL_SHADER
-	mat.set_shader_parameter("color_highlight", paleta[0])
-	mat.set_shader_parameter("color_midtone", paleta[1])
-	mat.set_shader_parameter("color_shadow", paleta[2])
-	sprite.material = mat
+	if personaje == "esqueleto":
+		var paleta := RunManager.paleta_esqueleto(numero)
+		var mat := ShaderMaterial.new()
+		mat.shader = SKEL_SHADER
+		mat.set_shader_parameter("color_highlight", paleta[0])
+		mat.set_shader_parameter("color_midtone", paleta[1])
+		mat.set_shader_parameter("color_shadow", paleta[2])
+		sprite.material = mat
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.position = Vector2(60, 55)
 	sprite.scale = Vector2(3.4, 3.4)
-	sprite.sprite_frames = SKEL_FRAMES
+	sprite.sprite_frames = SPRITE_FRAMES[personaje]
 	sprite.animation = &"walk"
 	sprite.frame_progress = 0.5
 	preview.add_child(sprite)
 	vbox.add_child(preview)
-	vbox.add_child(_texto("Esqueleto", 15, Color.WHITE))
-	vbox.add_child(_texto("Ágil, huesudo e implacable.", 11, Color(0.7, 0.72, 0.8)))
+	vbox.add_child(_texto(NOMBRES_PERSONAJES[personaje], 15, Color.WHITE))
+	vbox.add_child(_texto(DESCRIPCIONES_PERSONAJES[personaje], 11, Color(0.7, 0.72, 0.8)))
 	card.add_child(vbox)
 	_ignorar_raton(vbox)
 	return card
@@ -228,12 +257,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			continue
 		if not _listo[numero]:
 			if event.is_action_pressed("p%d_left" % numero):
-				_choice[numero] = 0
-				_actualizar_ui()
+				_mover_eleccion(numero, -1)
 			elif event.is_action_pressed("p%d_right" % numero):
-				_choice[numero] = 1
-				_actualizar_ui()
-		if event.is_action_pressed("p%d_jump" % numero) or event.is_action_pressed("p%d_fire" % numero):
+				_mover_eleccion(numero, 1)
+			elif event.is_action_pressed("p%d_up" % numero):
+				_mover_eleccion(numero, -COLUMNAS_PERSONAJES)
+			elif event.is_action_pressed("p%d_down" % numero):
+				_mover_eleccion(numero, COLUMNAS_PERSONAJES)
+		if event.is_action_pressed("p%d_fire" % numero):
 			_toggle_ready(numero)
 			get_viewport().set_input_as_handled()
 
@@ -247,15 +278,14 @@ func _process(_delta: float) -> void:
 			continue
 		if not _listo[numero]:
 			if KeyboardSetup.raw_action_just_pressed(numero, "left"):
-				_choice[numero] = 0
-				_actualizar_ui()
+				_mover_eleccion(numero, -1)
 			elif KeyboardSetup.raw_action_just_pressed(numero, "right"):
-				_choice[numero] = 1
-				_actualizar_ui()
-		if (
-			KeyboardSetup.raw_action_just_pressed(numero, "jump")
-			or KeyboardSetup.raw_action_just_pressed(numero, "fire")
-		):
+				_mover_eleccion(numero, 1)
+			elif KeyboardSetup.raw_action_just_pressed(numero, "up"):
+				_mover_eleccion(numero, -COLUMNAS_PERSONAJES)
+			elif KeyboardSetup.raw_action_just_pressed(numero, "down"):
+				_mover_eleccion(numero, COLUMNAS_PERSONAJES)
+		if KeyboardSetup.raw_action_just_pressed(numero, "fire"):
 			_toggle_ready(numero)
 
 
@@ -268,6 +298,11 @@ func _toggle_ready(numero: int) -> void:
 	AudioManager.reproducir("salto", 0.05)
 	_actualizar_ui()
 	_comprobar_inicio_automatico()
+
+
+func _mover_eleccion(numero: int, direccion: int) -> void:
+	_choice[numero] = posmod(int(_choice[numero]) + direccion, PERSONAJES.size())
+	_actualizar_ui()
 
 
 func _comprobar_inicio_automatico() -> void:
@@ -289,8 +324,9 @@ func _actualizar_ui() -> void:
 	for numero in _numeros:
 		var color := RunManager.color_jugador(numero)
 		var elegido: int = _choice[numero]
-		_card_pato[numero].add_theme_stylebox_override("panel", _estilo_card(color, elegido == 0))
-		_card_esqueleto[numero].add_theme_stylebox_override("panel", _estilo_card(color, elegido == 1))
+		var cards: Array = _cards[numero]
+		for indice in cards.size():
+			cards[indice].add_theme_stylebox_override("panel", _estilo_card(color, elegido == indice))
 		var boton: Button = _ready_btn[numero]
 		boton.text = "CANCELAR" if _listo[numero] else "¡LISTO!"
 		var status: Label = _status_lbl[numero]
@@ -298,7 +334,7 @@ func _actualizar_ui() -> void:
 			status.text = "¡LISTO PARA COMBATIR!"
 			status.modulate = COLOR_LISTO
 		else:
-			status.text = "Mové para elegir • Saltá para confirmar"
+			status.text = "Mové para elegir • Dispará para confirmar"
 			status.modulate = Color(0.7, 0.7, 0.7, 1.0)
 	_btn_iniciar.text = "¡A LUCHAR! (COMENZANDO...)" if _todos_listos() else "COMENZAR PARTIDA"
 

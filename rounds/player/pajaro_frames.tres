@@ -1,7 +1,7 @@
-[gd_resource type="SpriteFrames" format=3 uid="uid://udksxa18xsea"]
+[gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://sprite_sheets/personajes/esqueleto/esqueleto_caminando.png" id="1_camina"]
-[ext_resource type="Texture2D" path="res://sprite_sheets/personajes/esqueleto/esqueleto_quieto-sheet.png" id="2_quieto"]
+[ext_resource type="Texture2D" path="res://sprite_sheets/personajes/pajaro/pajaro_caminando.png" id="1_camina"]
+[ext_resource type="Texture2D" path="res://sprite_sheets/personajes/pajaro/pajaro_quieto.png" id="2_quieto"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_i0"]
 atlas = ExtResource("2_quieto")

@@ -4,6 +4,7 @@ const SCRIPT_PATH := "user://oniet_instalar_keyd.sh"
 const WINDOWS_HELPER_CS_PATH := "user://OnietRawKeyboardHelper.cs"
 const WINDOWS_HELPER_PS_PATH := "user://instalar_raw_keyboard_helper.ps1"
 const WINDOWS_HELPER_EXE_PATH := "user://OnietRawKeyboardHelper.exe"
+const WINDOWS_CONFIG_PATH := "user://keyboard_setup.cfg"
 const WINDOWS_PORT := 38571
 const INSTALL_SCRIPT := """#!/usr/bin/env bash
 set -euo pipefail
@@ -374,6 +375,7 @@ const WINDOWS_VKEY_ACTIONS := {
 var _udp := PacketPeerUDP.new()
 var _windows_bridge_active: bool = false
 var _windows_bridge_started: bool = false
+var _windows_enabled: bool = false
 var _helper_pid: int = -1
 var _raw_pressed := {1: {}, 2: {}}
 var _raw_just_pressed := {1: {}, 2: {}}
@@ -384,7 +386,8 @@ var _raw_consumed_released := {1: {}, 2: {}}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	if OS.get_name() == "Windows" and FileAccess.file_exists(WINDOWS_HELPER_EXE_PATH):
+	_cargar_estado()
+	if _windows_enabled and OS.get_name() == "Windows" and FileAccess.file_exists(WINDOWS_HELPER_EXE_PATH):
 		_iniciar_windows_helper()
 
 
@@ -423,6 +426,8 @@ func configurar_dos_teclados() -> Dictionary:
 		"Windows":
 			if _windows_bridge_active:
 				_detener_windows_helper()
+				_windows_enabled = false
+				_guardar_estado()
 				return {"ok": true, "mensaje": "Modo 2 teclados desactivado. Vuelve el input normal."}
 			return _configurar_windows()
 	return {
@@ -527,7 +532,11 @@ func _configurar_windows() -> Dictionary:
 		if detalle.is_empty():
 			detalle = "No pude compilar el helper. Instala .NET Framework Developer Pack o Visual Studio Build Tools."
 		return {"ok": false, "mensaje": detalle}
-	return _iniciar_windows_helper()
+	var resultado := _iniciar_windows_helper()
+	if bool(resultado.get("ok", false)):
+		_windows_enabled = true
+		_guardar_estado()
+	return resultado
 
 
 func _iniciar_windows_helper() -> Dictionary:
@@ -606,6 +615,20 @@ func _raw_alias(accion: String) -> String:
 	if accion == "jump":
 		return "up"
 	return accion
+
+
+func _cargar_estado() -> void:
+	_windows_enabled = false
+	var cfg := ConfigFile.new()
+	if cfg.load(WINDOWS_CONFIG_PATH) != OK:
+		return
+	_windows_enabled = bool(cfg.get_value("windows", "enabled", false))
+
+
+func _guardar_estado() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("windows", "enabled", _windows_enabled)
+	cfg.save(WINDOWS_CONFIG_PATH)
 
 
 func _escribir_archivo(ruta: String, contenido: String) -> bool:

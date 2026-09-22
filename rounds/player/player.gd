@@ -6,6 +6,11 @@ signal grabbed(player_number: int)
 signal parried_bullet(bullet: Node)
 
 const BLOOD_SCENE := preload("res://effects/blood_splatter.tscn")
+const CHARACTER_FRAMES := {
+	"esqueleto": preload("res://player/skeleton_frames.tres"),
+	"sapo": preload("res://player/sapo_frames.tres"),
+	"pajaro": preload("res://player/pajaro_frames.tres"),
+}
 
 enum PlayerState {
 	IDLE,
@@ -179,18 +184,22 @@ func _set_duck_parts_visible(v: bool) -> void:
 
 func _configurar_personaje() -> void:
 	tipo_personaje = RunManager.personaje_de(player_number)
-	if tipo_personaje == "esqueleto":
+	if CHARACTER_FRAMES.has(tipo_personaje):
 		_set_duck_parts_visible(false)
 		if _skeleton_sprite != null:
 			_skeleton_sprite.visible = true
+			_skeleton_sprite.sprite_frames = CHARACTER_FRAMES[tipo_personaje]
 			_skeleton_sprite.modulate = Color.WHITE
-			var paleta := RunManager.paleta_esqueleto(player_number)
-			var mat := ShaderMaterial.new()
-			mat.shader = preload("res://player/skeleton_palette.gdshader")
-			mat.set_shader_parameter("color_highlight", paleta[0])
-			mat.set_shader_parameter("color_midtone", paleta[1])
-			mat.set_shader_parameter("color_shadow", paleta[2])
-			_skeleton_sprite.material = mat
+			if tipo_personaje == "esqueleto":
+				var paleta := RunManager.paleta_esqueleto(player_number)
+				var mat := ShaderMaterial.new()
+				mat.shader = preload("res://player/skeleton_palette.gdshader")
+				mat.set_shader_parameter("color_highlight", paleta[0])
+				mat.set_shader_parameter("color_midtone", paleta[1])
+				mat.set_shader_parameter("color_shadow", paleta[2])
+				_skeleton_sprite.material = mat
+			else:
+				_skeleton_sprite.material = null
 			_skeleton_sprite.play("idle")
 		_body_animation.play("stand")
 	else:
@@ -203,7 +212,7 @@ func _configurar_personaje() -> void:
 
 
 func _update_character_visual() -> void:
-	if tipo_personaje == "esqueleto":
+	if CHARACTER_FRAMES.has(tipo_personaje):
 		if _skeleton_sprite == null:
 			return
 		match current_state:
@@ -530,7 +539,7 @@ func respawn() -> void:
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	$Visual.rotation = 0.0
 	$Visual.position = Vector2.ZERO
-	if tipo_personaje == "esqueleto":
+	if CHARACTER_FRAMES.has(tipo_personaje):
 		_body_animation.play("stand")
 		if _skeleton_sprite != null:
 			_skeleton_sprite.play("idle")
