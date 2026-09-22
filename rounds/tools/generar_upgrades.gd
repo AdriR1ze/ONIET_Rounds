@@ -452,14 +452,14 @@ func _generar() -> void:
 		UpgradeDefinition.Categoria.CONTROL)
 
 	# 29. Propulsión: Nivel 2 (Rara)
-	_crear(&"propulsion", "Propulsión", "Retroceso masivo y +2 balas en el cargador", 2,
-		"Cada disparo genera un retroceso colosal (Rocket Jump extremo) y amplía tu cargador en 2 balas.",
+	_crear(&"propulsion", "Propulsión", "Ligero impulso hacia atrás y +2 balas en el cargador", 2,
+		"Cada disparo genera un ligero retroceso hacia atrás y amplía tu cargador en 2 balas.",
 		UpgradeDefinition.Rareza.RARA, 1.0, 1,
 		[_mod(&"damage", StatModifier.Op.MULT, 0.90), _mod(&"max_ammo", StatModifier.Op.ADD, 2.0)],
 		[PropulsionEffect.new()],
-		["Retroceso colosal hacia atrás (Rocket Jump extremo)", "+2 Balas en el cargador"],
+		["Retroceso al disparar", "+2 Balas en el cargador"],
 		["-10% Daño de bala"],
-		["Retroceso cinético masivo y cargador ampliado"],
+		["Impulso hacia atrás y cargador ampliado"],
 		&"rapido",
 		UpgradeDefinition.Categoria.CONTROL)
 
@@ -487,14 +487,14 @@ func _generar() -> void:
 		&"sangre")
 
 	# 32. Magnetismo: Nivel 3 (Rara)
-	_crear(&"magnetismo", "Magnetismo", "Atrae las balas enemigas hacia vos", 3,
-		"Genera un campo magnético que desvía y atrae las balas enemigas hacia tu posición, facilitando realizar parries.",
+	_crear(&"magnetismo", "Magnetismo", "Tus balas proyectan un aura magnética que atrae rivales", 3,
+		"Tus balas generan un aura magnética visible en vuelo que succiona a los rivales hacia ellas y desvía proyectiles enemigos.",
 		UpgradeDefinition.Rareza.RARA, 1.0, 1,
 		[_mod(&"fire_rate", StatModifier.Op.MULT, 0.90)],
 		[MagnetismoEffect.new()],
-		["Atrae balas enemigas en un radio de 160px"],
+		["Aura magnética en balas (radio 120px)", "Succiona rivales hacia la bala", "Desvía proyectiles enemigos hacia vos"],
 		["-10% Cadencia de tiro"],
-		["Campo de atracción magnética de proyectiles"],
+		["Aura de succión magnética en proyectiles"],
 		&"iman",
 		UpgradeDefinition.Categoria.CONTROL)
 

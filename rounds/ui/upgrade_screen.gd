@@ -470,8 +470,16 @@ func _process(delta: float) -> void:
 			_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
 			_actualizar_seleccion()
 			AudioManager.reproducir("ui_mover", 0.05)
-		if _accion_just_pressed(numero, "fire") or _accion_just_pressed(numero, "jump") or (numero == 1 and Input.is_action_just_pressed("ui_accept")):
+		if _accion_just_pressed(numero, "fire") or _accion_just_pressed(numero, "jump"):
 			_confirmar(numero)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _activo or _confirmados.get(1, false):
+		return
+	elif event is InputEventKey and event.pressed and not event.echo:
+		if (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE) and Settings.es_teclado(1):
+			_confirmar(1)
 
 
 func _confirmar(numero: int) -> void:

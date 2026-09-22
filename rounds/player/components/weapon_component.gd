@@ -203,6 +203,7 @@ func try_fire() -> bool:
 			bala.wall_pierce = s.wall_pierce
 			bala.can_split = s.can_split
 			bala.is_glitch = s.is_glitch
+			bala.magnetic_aura = s.magnetic_aura
 			bala.stun_duration = s.stun_duration
 			bala.ricochet_bonus = s.ricochet_bonus
 			if is_quick:
@@ -451,4 +452,3 @@ func _fire_melee_strike(is_roulette: bool = false) -> void:
 		AudioManager.reproducir("golpe", 0.16)
 	else:
 		AudioManager.reproducir("disparo", 0.08)
-

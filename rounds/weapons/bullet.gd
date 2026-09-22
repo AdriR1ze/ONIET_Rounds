@@ -44,6 +44,11 @@ var is_glitch: bool = false
 var has_glitched: bool = false
 var _glitch_timer: float = 0.0
 
+# Mecánica de Aura Magnética
+@export var magnetic_aura: bool = false
+@export var magnetic_radius: float = 120.0
+@export var magnetic_pull_force: float = 1400.0
+
 # Mecánica de Balas Fantasma / Phasing
 var _is_phasing_wall: bool = false
 var _phasing_bodies: Array[Node] = []
@@ -71,7 +76,10 @@ func _ready() -> void:
 		shot.ricochet_bonus = ricochet_bonus
 		shot.can_split = can_split
 		shot.is_glitch = is_glitch
+		shot.magnetic_aura = magnetic_aura
 	if shot != null:
+		if shot.magnetic_aura:
+			magnetic_aura = true
 		shot.visual = get_node_or_null("Visual") as CanvasItem
 		if shot.phantom and shot.visual != null:
 			shot.visual.modulate = Color(0.85, 0.5, 1.0, 0.85)
@@ -91,12 +99,26 @@ func _ready() -> void:
 
 
 func _draw() -> void:
+	if magnetic_aura:
+		var pulse := sin(_time_alive * 7.0)
+		var aura_col := Color(0.2, 0.75, 1.0, 0.08 + 0.03 * pulse)
+		draw_circle(Vector2.ZERO, magnetic_radius, aura_col)
+		draw_arc(Vector2.ZERO, magnetic_radius, 0.0, TAU, 36, Color(0.35, 0.85, 1.0, 0.45 + 0.20 * pulse), 1.6)
+		var phase := fmod(_time_alive * 1.6, 1.0)
+		var r1 := magnetic_radius * (1.0 - phase)
+		draw_arc(Vector2.ZERO, r1, 0.0, TAU, 28, Color(0.4, 0.9, 1.0, 0.40 * (1.0 - phase)), 1.4)
+		var phase2 := fmod(phase + 0.5, 1.0)
+		var r2 := magnetic_radius * (1.0 - phase2)
+		draw_arc(Vector2.ZERO, r2, 0.0, TAU, 28, Color(0.4, 0.9, 1.0, 0.40 * (1.0 - phase2)), 1.4)
+
 	var count := _trail_points.size()
 	if count < 2:
 		return
 	var base_color := Color(1.0, 0.88, 0.35)
 	if is_glitch:
 		base_color = Color(0.2, 0.95, 1.0)
+	elif magnetic_aura:
+		base_color = Color(0.3, 0.85, 1.0)
 	elif wall_pierce > 0 or _is_phasing_wall:
 		base_color = Color(0.85, 0.45, 1.0)
 
@@ -209,6 +231,10 @@ func _physics_process(delta: float) -> void:
 	if can_split and not has_split and _split_distance > 0.0 and _distance_traveled >= _split_distance:
 		_do_split()
 
+	# 6. Succión del Aura Magnética
+	if magnetic_aura:
+		_process_magnetic_aura(delta)
+
 	_time_alive += delta
 
 
@@ -258,9 +284,13 @@ func spawn_child_bullet(
 	child.is_glitch = allow_glitch
 	child.has_glitched = not allow_glitch
 	# 8. Datos del disparo (el resto de campos los hereda del padre)
+	child.magnetic_aura = magnetic_aura
+	child.magnetic_radius = magnetic_radius
+	child.magnetic_pull_force = magnetic_pull_force
 	child.shot = shot.copy()
 	child.shot.can_split = allow_split
 	child.shot.is_glitch = allow_glitch
+	child.shot.magnetic_aura = magnetic_aura
 
 	var target_parent := get_parent()
 	if target_parent == null and is_inside_tree():
@@ -268,6 +298,38 @@ func spawn_child_bullet(
 	if target_parent != null:
 		target_parent.add_child(child)
 	return child
+
+
+func _process_magnetic_aura(delta: float) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	# 1. Succionar jugadores rivales hacia la trayectoria del proyectil
+	for p in tree.get_nodes_in_group("player"):
+		if not is_instance_valid(p) or not (p is CharacterBody2D):
+			continue
+		if p == shooter or (shooter != null and shooter.is_ancestor_of(p)):
+			continue
+		if p.has_method("is_alive") and not p.is_alive():
+			continue
+		var diff: Vector2 = global_position - p.global_position
+		var dist: float = diff.length()
+		if dist <= magnetic_radius and dist > 4.0:
+			var pull_dir := diff.normalized()
+			var proximity: float = 1.0 - (dist / magnetic_radius)
+			var pull: Vector2 = pull_dir * (magnetic_pull_force * (0.6 + 0.4 * proximity)) * delta
+			p.velocity += pull
+
+	# 2. Atraer proyectiles enemigos cercanos hacia el vórtice
+	for b in tree.get_nodes_in_group("bullet"):
+		if not is_instance_valid(b) or b == self or not (b is Node2D):
+			continue
+		if "shooter" in b and b.shooter == shooter:
+			continue
+		var b_diff: Vector2 = global_position - (b as Node2D).global_position
+		var b_dist: float = b_diff.length()
+		if b_dist <= magnetic_radius * 0.8 and b_dist > 6.0 and "velocity" in b:
+			b.velocity += b_diff.normalized() * (900.0 * delta)
 
 
 func _do_split() -> void:

@@ -5,6 +5,11 @@ extends UpgradeEffect
 @export var pull_force: float = 2600.0
 
 
+func on_fire(shot: Shot, _player: Node) -> void:
+	if shot != null:
+		shot.magnetic_aura = true
+
+
 func on_process(delta: float, player: Node) -> void:
 	if player == null or not is_instance_valid(player) or not (player is Node2D):
 		return

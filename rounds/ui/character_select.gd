@@ -43,6 +43,8 @@ var _nav_cooldowns: Dictionary = {}
 
 
 func _ready() -> void:
+	_btn_iniciar.focus_mode = Control.FOCUS_NONE
+	_btn_volver.focus_mode = Control.FOCUS_NONE
 	_btn_iniciar.pressed.connect(_iniciar_partida)
 	_btn_volver.pressed.connect(_volver_al_menu)
 	_construir_paneles()
@@ -120,6 +122,7 @@ func _crear_panel(numero: int) -> VBoxContainer:
 	_status_lbl[numero] = status
 
 	var boton := Button.new()
+	boton.focus_mode = Control.FOCUS_NONE
 	boton.custom_minimum_size = Vector2(130, 32)
 	boton.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	boton.pressed.connect(_toggle_ready.bind(numero))
@@ -234,6 +237,9 @@ func _on_card_input(event: InputEvent, numero: int, eleccion: int) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_volver_al_menu()
+	elif event is InputEventKey and event.pressed and not event.echo:
+		if (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE) and Settings.es_teclado(1):
+			_toggle_ready(1)
 
 
 func _process(delta: float) -> void:
@@ -273,8 +279,7 @@ func _process(delta: float) -> void:
 
 		var fire_pressed: bool = Input.is_action_just_pressed("p%d_fire" % numero)
 		var jump_pressed: bool = Input.is_action_just_pressed("p%d_jump" % numero)
-		var accept_pressed: bool = (numero == 1 and Input.is_action_just_pressed("ui_accept"))
-		if fire_pressed or jump_pressed or accept_pressed:
+		if fire_pressed or jump_pressed:
 			_toggle_ready(numero)
 
 

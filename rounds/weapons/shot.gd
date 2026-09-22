@@ -17,6 +17,7 @@ var ricochet_bonus: float = 0.0
 var can_split: bool = false
 var is_glitch: bool = false
 var phantom: bool = false
+var magnetic_aura: bool = false
 
 var hit_position: Vector2 = Vector2.ZERO
 var hit_normal: Vector2 = Vector2.ZERO
@@ -40,6 +41,7 @@ func copy() -> Shot:
 	s.can_split = can_split
 	s.is_glitch = is_glitch
 	s.phantom = phantom
+	s.magnetic_aura = magnetic_aura
 	s.hit_position = hit_position
 	s.hit_normal = hit_normal
 	s.visual = visual
