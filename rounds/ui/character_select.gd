@@ -139,14 +139,16 @@ func _crear_selector_dispositivo(numero: int) -> HBoxContainer:
 	fila.add_child(etiqueta)
 	var selector := OptionButton.new()
 	selector.focus_mode = Control.FOCUS_NONE
-	selector.add_item("Teclado", Settings.DISPOSITIVO_TECLADO)
+	# ids del menu: 0 = teclado, 1..MAX = device 0..MAX-1 (Godot auto-genera
+	# ids para -1, por eso no se puede usar DISPOSITIVO_TECLADO como id).
+	selector.add_item("Teclado", 0)
 	var conectados := Input.get_connected_joypads()
 	for m in Settings.MAX_MANDOS:
 		var texto := "Mando %d" % (m + 1)
 		if conectados.has(m):
 			texto += " (conectado)"
-		selector.add_item(texto, m)
-	selector.select(selector.get_item_index(Settings.dispositivo_de(numero)))
+		selector.add_item(texto, m + 1)
+	selector.select(selector.get_item_index(Settings.dispositivo_de(numero) + 1))
 	selector.item_selected.connect(_on_dispositivo_seleccionado.bind(numero))
 	fila.add_child(selector)
 	_disp_sel[numero] = selector
@@ -155,7 +157,7 @@ func _crear_selector_dispositivo(numero: int) -> HBoxContainer:
 
 func _on_dispositivo_seleccionado(indice: int, numero: int) -> void:
 	var selector: OptionButton = _disp_sel[numero]
-	Settings.set_dispositivo(numero, selector.get_item_id(indice))
+	Settings.set_dispositivo(numero, selector.get_item_id(indice) - 1)
 
 
 func _crear_card_sprite(numero: int, color: Color, personaje: String, indice: int) -> PanelContainer:
