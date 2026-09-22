@@ -54,7 +54,6 @@ var _status_lbl: Dictionary = {}
 
 
 func _ready() -> void:
-	AudioManager.reproducir_musica("menu")
 	_btn_iniciar.pressed.connect(_iniciar_partida)
 	_btn_volver.pressed.connect(_volver_al_menu)
 	_construir_paneles()

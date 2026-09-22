@@ -29,7 +29,6 @@ var _inputs: Array[LineEdit] = []
 
 func _ready() -> void:
 	get_tree().paused = false
-	AudioManager.reproducir_musica("menu")
 	_controles.visible = false
 	_modal_nombres.visible = false
 	_poblar(_jugadores, OPCIONES_JUGADORES, RunManager.cantidad_jugadores)

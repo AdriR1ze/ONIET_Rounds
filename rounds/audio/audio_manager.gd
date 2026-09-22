@@ -2,6 +2,8 @@ extends Node
 
 const DIR_SFX := "res://audio/sfx/"
 const DIR_MUSICA := "res://audio/music/"
+const DIR_INSTRUMENTAL := DIR_MUSICA + "instrumental/"
+const PISTAS_INSTRUMENTALES := ["Digital Rush", "Glitch Protocol"]
 const VOCES_SFX := 16
 const BUSES := ["Music", "SFX"]
 
@@ -10,6 +12,8 @@ var _cache_musica: Dictionary = {}
 var _voces: Array[AudioStreamPlayer] = []
 var _musica: AudioStreamPlayer
 var _musica_actual: String = ""
+var _playlist: Array = []
+var _pista: int = -1
 var _indice_voz: int = 0
 
 
@@ -20,7 +24,9 @@ func _ready() -> void:
 	_musica.name = "Musica"
 	_musica.bus = "Music"
 	_musica.process_mode = Node.PROCESS_MODE_ALWAYS
+	_musica.finished.connect(_siguiente_pista)
 	add_child(_musica)
+	_iniciar_playlist()
 	for i in VOCES_SFX:
 		var voz := AudioStreamPlayer.new()
 		voz.name = "SFX%d" % i
@@ -45,19 +51,30 @@ func reproducir(nombre: String, variacion_tono: float = 0.0) -> void:
 	voz.play()
 
 
-func reproducir_musica(nombre: String) -> void:
-	if nombre == _musica_actual and _musica.playing:
+func _iniciar_playlist() -> void:
+	_playlist = PISTAS_INSTRUMENTALES.duplicate()
+	_playlist.shuffle()
+	_pista = 0
+	_reproducir_pista()
+
+
+func _siguiente_pista() -> void:
+	if _playlist.is_empty():
 		return
-	var stream := _cargar(DIR_MUSICA + nombre + ".wav", _cache_musica)
+	_pista += 1
+	if _pista >= _playlist.size():
+		_playlist.shuffle()
+		_pista = 0
+	_reproducir_pista()
+
+
+func _reproducir_pista() -> void:
+	var stream := _cargar(DIR_INSTRUMENTAL + _playlist[_pista] + ".mp3", _cache_musica)
 	if stream == null:
 		return
-	if stream is AudioStreamWAV:
-		stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
-		stream.loop_begin = 0
-		stream.loop_end = int(stream.get_length() * stream.mix_rate)
 	_musica.stream = stream
 	_musica.play()
-	_musica_actual = nombre
+	_musica_actual = _playlist[_pista]
 
 
 func detener_musica() -> void:
