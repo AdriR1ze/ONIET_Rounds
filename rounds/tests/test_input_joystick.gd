@@ -31,11 +31,34 @@ func test_defaults_gamepad() -> void:
 
 
 func test_apuntado_configurado_por_jugador() -> void:
+	var previo := Settings.dispositivos.duplicate()
+	for n in [1, 2, 3, 4]:
+		Settings.dispositivos[n] = n - 1
+	Settings.aplicar_controles()
 	for n in [1, 2, 3, 4]:
 		assert(_tiene_eje("p%d_aim_left" % n, 2, -1.0, n - 1), "aim_left p%d" % n)
 		assert(_tiene_eje("p%d_aim_right" % n, 2, 1.0, n - 1), "aim_right p%d" % n)
 		assert(_tiene_eje("p%d_aim_up" % n, 3, -1.0, n - 1), "aim_up p%d" % n)
 		assert(_tiene_eje("p%d_aim_down" % n, 3, 1.0, n - 1), "aim_down p%d" % n)
+	Settings.dispositivos = previo
+	Settings.aplicar_controles()
+
+
+func test_cada_jugador_usa_su_dispositivo() -> void:
+	# Un jugador de teclado no debe responder al joystick, y uno de joystick
+	# no debe responder al teclado.
+	var previo := Settings.dispositivos.duplicate()
+	Settings.dispositivos[1] = Settings.DISPOSITIVO_TECLADO
+	Settings.dispositivos[2] = 0
+	Settings.aplicar_controles()
+	for ev in InputMap.action_get_events("p1_left"):
+		assert(not (ev is InputEventJoypadButton or ev is InputEventJoypadMotion), "P1 teclado no debe tener eventos de mando")
+	for ev in InputMap.action_get_events("p2_left"):
+		assert(not (ev is InputEventKey), "P2 mando no debe tener eventos de teclado")
+	assert(_tiene_eje("p2_aim_left", 2, -1.0, 0), "P2 mando usa el stick de su device")
+	assert(InputMap.action_get_events("p1_aim_left").is_empty(), "P1 teclado no tiene stick de apuntado")
+	Settings.dispositivos = previo
+	Settings.aplicar_controles()
 
 
 func test_apuntado_analogico_no_rigido() -> void:

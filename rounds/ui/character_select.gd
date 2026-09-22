@@ -38,6 +38,7 @@ var _listo: Dictionary = {}
 var _cards: Dictionary = {}
 var _ready_btn: Dictionary = {}
 var _status_lbl: Dictionary = {}
+var _disp_sel: Dictionary = {}
 
 
 func _ready() -> void:
@@ -94,6 +95,7 @@ func _crear_panel(numero: int) -> VBoxContainer:
 	header.add_child(tag)
 	header.add_child(nombre)
 	panel.add_child(header)
+	panel.add_child(_crear_selector_dispositivo(numero))
 
 	var cards := GridContainer.new()
 	cards.columns = COLUMNAS_PERSONAJES
@@ -124,6 +126,36 @@ func _crear_panel(numero: int) -> VBoxContainer:
 	_ready_btn[numero] = boton
 
 	return panel
+
+
+func _crear_selector_dispositivo(numero: int) -> HBoxContainer:
+	var fila := HBoxContainer.new()
+	fila.alignment = BoxContainer.ALIGNMENT_CENTER
+	fila.add_theme_constant_override("separation", 6)
+	var etiqueta := Label.new()
+	etiqueta.text = "Dispositivo:"
+	etiqueta.add_theme_font_size_override("font_size", 11)
+	etiqueta.add_theme_color_override("font_color", Color(0.7, 0.72, 0.8))
+	fila.add_child(etiqueta)
+	var selector := OptionButton.new()
+	selector.focus_mode = Control.FOCUS_NONE
+	selector.add_item("Teclado", Settings.DISPOSITIVO_TECLADO)
+	var conectados := Input.get_connected_joypads()
+	for m in Settings.MAX_MANDOS:
+		var texto := "Mando %d" % (m + 1)
+		if conectados.has(m):
+			texto += " (conectado)"
+		selector.add_item(texto, m)
+	selector.select(selector.get_item_index(Settings.dispositivo_de(numero)))
+	selector.item_selected.connect(_on_dispositivo_seleccionado.bind(numero))
+	fila.add_child(selector)
+	_disp_sel[numero] = selector
+	return fila
+
+
+func _on_dispositivo_seleccionado(indice: int, numero: int) -> void:
+	var selector: OptionButton = _disp_sel[numero]
+	Settings.set_dispositivo(numero, selector.get_item_id(indice))
 
 
 func _crear_card_sprite(numero: int, color: Color, personaje: String, indice: int) -> PanelContainer:
@@ -235,7 +267,7 @@ func _process(_delta: float) -> void:
 
 
 func _usa_raw_keyboard(numero: int) -> bool:
-	return numero <= 2 and KeyboardSetup.raw_input_activo()
+	return Settings.es_teclado(numero) and numero <= 2 and KeyboardSetup.raw_input_activo()
 
 
 func _toggle_ready(numero: int) -> void:

@@ -41,6 +41,9 @@ const AIM_EJES := {
 const DEADZONE_ANALOGO := 0.2
 const SUFIJOS_ANALOGOS := ["left", "right", "up", "down"]
 const ACCIONES_PROTEGIDAS := ["pause", "ui_cancel"]
+# -1 = teclado; >= 0 = indice del joystick (device de Godot).
+const DISPOSITIVO_TECLADO := -1
+const MAX_MANDOS := 4
 # Teclas por defecto para los jugadores 3 y 4 (los 1 y 2 se definen en project.godot).
 const DEFAULT_P3 := {
 	"left": KEY_KP_4, "right": KEY_KP_6, "up": KEY_KP_8, "down": KEY_KP_5,
@@ -68,6 +71,12 @@ var resolucion_actual: Vector2i = Vector2i(1280, 720)
 
 var _defaults: Dictionary = {}
 var _remaps: Dictionary = {}
+var dispositivos := {
+	1: DISPOSITIVO_TECLADO,
+	2: DISPOSITIVO_TECLADO,
+	3: DISPOSITIVO_TECLADO,
+	4: DISPOSITIVO_TECLADO,
+}
 
 
 func _ready() -> void:
@@ -170,6 +179,10 @@ func cargar() -> void:
 	var rh: int = int(cfg.get_value("video", "resolution_h", 720))
 	resolucion_actual = Vector2i(rw, rh)
 	_remaps = cfg.get_value("input", "remaps", {})
+	var devs: Variant = cfg.get_value("input", "dispositivos", {})
+	if devs is Dictionary:
+		for clave in devs:
+			dispositivos[int(clave)] = int(devs[clave])
 
 
 func guardar() -> void:
@@ -181,6 +194,7 @@ func guardar() -> void:
 	cfg.set_value("video", "resolution_w", resolucion_actual.x)
 	cfg.set_value("video", "resolution_h", resolucion_actual.y)
 	cfg.set_value("input", "remaps", _remaps)
+	cfg.set_value("input", "dispositivos", dispositivos)
 	cfg.save(RUTA)
 
 
@@ -267,6 +281,7 @@ func _centrar_ventana() -> void:
 
 func aplicar_controles() -> void:
 	for jugador in JUGADORES:
+		var device := dispositivo_de(jugador)
 		for sufijo in SUFIJOS:
 			var accion := "p%d_%s" % [jugador, sufijo]
 			if not InputMap.has_action(accion):
@@ -274,20 +289,55 @@ func aplicar_controles() -> void:
 			InputMap.action_erase_events(accion)
 			if sufijo in SUFIJOS_ANALOGOS:
 				InputMap.action_set_deadzone(accion, DEADZONE_ANALOGO)
-			if _remaps.has(accion):
-				_agregar_evento(accion, _remaps[accion])
-				continue
-			for d in _defaults.get(accion, []):
-				_agregar_evento(accion, d)
-			var jd: Dictionary = DEFAULT_JOY.get(sufijo, {})
-			if not jd.is_empty():
-				var con_device := jd.duplicate()
-				con_device["device"] = jugador - 1
-				_agregar_evento(accion, con_device)
-		_aplicar_aim(jugador)
+			if device == DISPOSITIVO_TECLADO:
+				_aplicar_teclado(accion)
+			else:
+				_aplicar_mando(accion, sufijo, device)
+		_aplicar_aim(jugador, device)
 
 
-func _aplicar_aim(jugador: int) -> void:
+func dispositivo_de(jugador: int) -> int:
+	return int(dispositivos.get(jugador, DISPOSITIVO_TECLADO))
+
+
+func es_teclado(jugador: int) -> bool:
+	return dispositivo_de(jugador) == DISPOSITIVO_TECLADO
+
+
+func set_dispositivo(jugador: int, device: int) -> void:
+	dispositivos[jugador] = clampi(device, DISPOSITIVO_TECLADO, MAX_MANDOS - 1)
+	aplicar_controles()
+	guardar()
+
+
+func _aplicar_teclado(accion: String) -> void:
+	var remap: Dictionary = _remaps.get(accion, {})
+	var tr := String(remap.get("t", ""))
+	if tr == "key" or tr == "mouse_button":
+		_agregar_evento(accion, remap)
+		return
+	for d in _defaults.get(accion, []):
+		var td := String(d.get("t", ""))
+		if td == "key" or td == "mouse_button":
+			_agregar_evento(accion, d)
+
+
+func _aplicar_mando(accion: String, sufijo: String, device: int) -> void:
+	var remap: Dictionary = _remaps.get(accion, {})
+	var tr := String(remap.get("t", ""))
+	if tr == "joy_button" or tr == "joy_axis":
+		var con_device := remap.duplicate()
+		con_device["device"] = device
+		_agregar_evento(accion, con_device)
+		return
+	var jd: Dictionary = DEFAULT_JOY.get(sufijo, {})
+	if not jd.is_empty():
+		var con_device := jd.duplicate()
+		con_device["device"] = device
+		_agregar_evento(accion, con_device)
+
+
+func _aplicar_aim(jugador: int, device: int) -> void:
 	for sufijo in AIM_EJES:
 		var accion := "p%d_%s" % [jugador, sufijo]
 		if not InputMap.has_action(accion):
@@ -295,8 +345,10 @@ func _aplicar_aim(jugador: int) -> void:
 		else:
 			InputMap.action_set_deadzone(accion, DEADZONE_ANALOGO)
 		InputMap.action_erase_events(accion)
+		if device == DISPOSITIVO_TECLADO:
+			continue
 		var eje := InputEventJoypadMotion.new()
-		eje.device = jugador - 1
+		eje.device = device
 		eje.axis = AIM_EJES[sufijo]["axis"]
 		eje.axis_value = AIM_EJES[sufijo]["value"]
 		InputMap.action_add_event(accion, eje)

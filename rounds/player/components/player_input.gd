@@ -107,4 +107,4 @@ func _action(name: String) -> String:
 
 
 func _usa_raw_keyboard() -> bool:
-	return player_number <= 2 and KeyboardSetup.raw_input_activo()
+	return Settings.es_teclado(player_number) and player_number <= 2 and KeyboardSetup.raw_input_activo()
