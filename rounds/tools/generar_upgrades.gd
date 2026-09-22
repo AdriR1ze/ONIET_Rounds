@@ -438,14 +438,14 @@ func _generar() -> void:
 		&"gravedad")
 
 	# 29. Propulsión: Nivel 2 (Rara)
-	_crear(&"propulsion", "Propulsión", "Retroceso masivo y cargador infinito", 2,
-		"Cada disparo genera un retroceso colosal (Rocket Jump extremo) y tus proyectiles no consumen munición del cargador.",
+	_crear(&"propulsion", "Propulsión", "Retroceso masivo y +2 balas en el cargador", 2,
+		"Cada disparo genera un retroceso colosal (Rocket Jump extremo) y amplía tu cargador en 2 balas.",
 		UpgradeDefinition.Rareza.RARA, 1.0, 1,
-		[_mod(&"damage", StatModifier.Op.MULT, 0.90)],
+		[_mod(&"damage", StatModifier.Op.MULT, 0.90), _mod(&"max_ammo", StatModifier.Op.ADD, 2.0)],
 		[PropulsionEffect.new()],
-		["Retroceso colosal hacia atrás (Rocket Jump extremo)", "Cargador infinito (nunca te quedás sin balas)"],
+		["Retroceso colosal hacia atrás (Rocket Jump extremo)", "+2 Balas en el cargador"],
 		["-10% Daño de bala"],
-		["Retroceso cinético masivo y munición infinita"],
+		["Retroceso cinético masivo y cargador ampliado"],
 		&"rapido")
 
 

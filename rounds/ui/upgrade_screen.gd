@@ -73,12 +73,12 @@ static func agrupar(activos: Array) -> Array:
 
 
 func _construir_grupos() -> Array:
-	return agrupar(RunManager.jugadores_activos())
+	return agrupar(RunManager.jugadores())
 
 
 func _ejecutar_fases() -> void:
 	if _grupos.is_empty():
-		_cerrar()
+		_cerrar.call_deferred()
 		return
 	for i in _grupos.size():
 		if i > 0:

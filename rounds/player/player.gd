@@ -113,8 +113,7 @@ var _last_sepultador_source: Node = null
 var active_barrier: Node2D = null
 var _still_timer: float = 0.0
 
-# Propulsión (Rocket Jump y munición)
-var has_propulsion: bool = false
+# Propulsión (Rocket Jump)
 
 
 func _ready() -> void:
@@ -532,7 +531,6 @@ func respawn() -> void:
 	_sepultador_timer = 0.0
 	_sepultador_damage = 0
 	_last_sepultador_source = null
-	has_propulsion = false
 	if is_instance_valid(active_barrier):
 		active_barrier.queue_free()
 		active_barrier = null
@@ -563,7 +561,6 @@ func aplicar_mejoras(upgrades: Array) -> void:
 	_stats.limpiar()
 	has_titanium_heart = false
 	has_blood_debt = false
-	has_propulsion = false
 	if is_instance_valid(active_barrier):
 		active_barrier.queue_free()
 		active_barrier = null

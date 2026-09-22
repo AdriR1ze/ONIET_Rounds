@@ -3,8 +3,6 @@ extends Control
 const NIVEL := "res://levels/test_level.tscn"
 const ESCENA_PERSONAJES := "res://ui/character_select.tscn"
 const OPCIONES_JUGADORES := [2, 3, 4]
-const OPCIONES_RONDAS := [1, 2, 3, 5, 7]
-const OPCIONES_VIDAS := [1, 2, 3, 4, 5]
 
 @onready var _menu: VBoxContainer = $Centro/Menu
 @onready var _controles: ColorRect = $Controles
@@ -15,8 +13,8 @@ const OPCIONES_VIDAS := [1, 2, 3, 4, 5]
 @onready var _boton_iniciar: Button = $ModalNombres/Centro/Marco/Margin/VBox/Botones/Comenzar
 @onready var _boton_volver_nombres: Button = $ModalNombres/Centro/Marco/Margin/VBox/Botones/Volver
 @onready var _jugadores: OptionButton = $Centro/Menu/Config/Jugadores/Valor
-@onready var _rondas: OptionButton = $Centro/Menu/Config/Rondas/Valor
-@onready var _vidas: OptionButton = $Centro/Menu/Config/Vidas/Valor
+@onready var _rondas: SpinBox = $Centro/Menu/Config/Rondas/Valor
+@onready var _vidas: SpinBox = $Centro/Menu/Config/Vidas/Valor
 @onready var _boton_jugar: Button = $Centro/Menu/Jugar
 @onready var _boton_indice: Button = $Centro/Menu/Indice
 @onready var _boton_controles: Button = $Centro/Menu/Controles
@@ -32,8 +30,8 @@ func _ready() -> void:
 	_controles.visible = false
 	_modal_nombres.visible = false
 	_poblar(_jugadores, OPCIONES_JUGADORES, RunManager.cantidad_jugadores)
-	_poblar(_rondas, OPCIONES_RONDAS, RunManager.rondas_para_ganar)
-	_poblar(_vidas, OPCIONES_VIDAS, RunManager.vidas_por_ronda)
+	_rondas.value = RunManager.rondas_para_ganar
+	_vidas.value = RunManager.vidas_por_ronda
 
 	_boton_jugar.pressed.connect(_mostrar_modal_nombres)
 	_boton_iniciar.pressed.connect(_iniciar_partida)
@@ -105,7 +103,7 @@ func _iniciar_partida() -> void:
 	for entrada in _inputs:
 		nombres.append(entrada.text)
 	RunManager.set_nombres(nombres)
-	RunManager.configurar_partida(_valor(_rondas, OPCIONES_RONDAS), _valor(_vidas, OPCIONES_VIDAS))
+	RunManager.configurar_partida(int(_rondas.value), int(_vidas.value))
 	RunManager.reiniciar()
 	Transition.cambiar_escena(ESCENA_PERSONAJES)
 

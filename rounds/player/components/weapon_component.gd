@@ -167,21 +167,26 @@ func try_fire() -> bool:
 		var rebotes := _stat_entero(&"bounces", 0)
 		var penetracion_pared := _stat_entero(&"wall_pierce", 0)
 		var escala_bala := _stat(&"bullet_scale", 1.0)
+		# Plantilla única por disparo: los efectos on_fire se aplican una sola vez
+		# y cada proyectil recibe una copia (evita repetir retrocesos como Propulsión).
+		var plantilla := Shot.new()
+		plantilla.direction = aim_direction
+		plantilla.damage = dano
+		plantilla.speed = velocidad
+		plantilla.lifetime = duracion
+		plantilla.knockback = empuje
+		plantilla.pierce = penetracion
+		plantilla.wall_pierce = penetracion_pared
+		plantilla.bounces = rebotes
+		plantilla.gravity = gravedad
+		plantilla.drag = rozamiento
+		for efecto in _effects:
+			efecto.on_fire(plantilla, _player)
+
 		for i in cantidad:
 			var angulo := base_angle + deg_to_rad(dispersion * (i - centro))
-			var s := Shot.new()
+			var s := plantilla.copy()
 			s.direction = Vector2.RIGHT.rotated(angulo)
-			s.damage = dano
-			s.speed = velocidad
-			s.lifetime = duracion
-			s.knockback = empuje
-			s.pierce = penetracion
-			s.wall_pierce = penetracion_pared
-			s.bounces = rebotes
-			s.gravity = gravedad
-			s.drag = rozamiento
-			for efecto in _effects:
-				efecto.on_fire(s, _player)
 
 			var bala := bullet_scene.instantiate()
 			bala.direction = s.direction
@@ -218,14 +223,10 @@ func try_fire() -> bool:
 					spawn_pos.y = max_allowed_y
 			bala.global_position = spawn_pos
 
-	if not _has_infinite_ammo():
-		current_ammo -= 1
-		ammo_changed.emit(current_ammo, max_ammo)
-		if current_ammo <= 0:
-			start_reload()
-	else:
-		current_ammo = max_ammo
-		ammo_changed.emit(current_ammo, max_ammo)
+	current_ammo -= 1
+	ammo_changed.emit(current_ammo, max_ammo)
+	if current_ammo <= 0:
+		start_reload()
 
 	_cooldown = 1.0 / maxf(_stat(&"fire_rate", 5.0), 0.1)
 	if is_roulette:
@@ -367,15 +368,6 @@ func _has_quickdraw() -> bool:
 func _has_russian_roulette() -> bool:
 	for ef in _effects:
 		if ef.get("is_russian_roulette") == true:
-			return true
-	return false
-
-
-func _has_infinite_ammo() -> bool:
-	if _player != null and "has_propulsion" in _player and _player.has_propulsion:
-		return true
-	for ef in _effects:
-		if ef.get("infinite_ammo") == true:
 			return true
 	return false
 

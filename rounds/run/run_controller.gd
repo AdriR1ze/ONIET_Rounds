@@ -30,13 +30,14 @@ func _ready() -> void:
 	await get_tree().process_frame
 	for jugador in RunManager.jugadores():
 		var salud: Node = jugador.get_node_or_null("HealthComponent")
-		if salud != null and not salud.died.is_connected(_on_jugador_muerto):
+		if salud != null and not salud.died.is_connected(_on_jugador_muerto.bind(jugador)):
 			salud.died.connect(_on_jugador_muerto.bind(jugador))
 	RunManager.iniciar_partida()
 	cargar_nuevo_mapa()
 	RunManager.iniciar_ronda(1)
 	if banner_intro != null and banner_intro.has_method("mostrar_intro"):
 		await banner_intro.mostrar_intro(1, _mapa_info_actual)
+	_revivir_caidos()
 	_ronda_activa = true
 
 
@@ -46,26 +47,31 @@ func _on_jugador_muerto(jugador: Node) -> void:
 	var numero: int = jugador.player_number
 	RunManager.perder_vida(numero)
 
-	# Free-for-all: la ronda sigue mientras haya más de un jugador vivo.
-	var vivos := _jugadores_vivos()
-	if vivos.size() > 1:
+	if RunManager.vidas_de(numero) > 0:
+		# Sigue en la ronda: respawnea tras la secuencia de muerte.
+		_programar_respawn(jugador)
+		return
+
+	# Se quedó sin vidas en esta ronda.
+	var con_vidas := RunManager.jugadores_con_vidas()
+	if con_vidas.size() > 1:
 		return
 
 	_procesando = true
 	_ronda_activa = false
 	_limpiar_proyectiles()
 
-	var ganador: int = vivos[0].player_number if vivos.size() == 1 else 0
+	var ganador: int = con_vidas[0].player_number if con_vidas.size() == 1 else 0
 	RunManager.terminar_ronda(ganador)
-
-	if banner_ganador != null and ganador > 0 and banner_ganador.has_method("mostrar_ganador"):
-		await banner_ganador.mostrar_ganador(ganador)
 
 	if RunManager.partida_ganada():
 		if pantalla_fin != null and pantalla_fin.has_method("mostrar"):
 			pantalla_fin.mostrar(RunManager.ganador_partida())
 		_procesando = false
 		return
+
+	if banner_ganador != null and ganador > 0 and banner_ganador.has_method("mostrar_ganador"):
+		await banner_ganador.mostrar_ganador(ganador)
 
 	if pantalla_mejoras != null and pantalla_mejoras.has_method("abrir"):
 		await pantalla_mejoras.abrir()
@@ -74,25 +80,29 @@ func _on_jugador_muerto(jugador: Node) -> void:
 	if MapManager.total_activos() > 1:
 		cargar_nuevo_mapa()
 
-	for jug in RunManager.jugadores():
-		if not is_instance_valid(jug):
-			continue
-		if RunManager.vidas_de(jug.player_number) > 0 and jug.has_method("respawn"):
-			jug.respawn()
-	var proxima_ronda: int = RunManager.ronda + 1
-	RunManager.iniciar_ronda(proxima_ronda)
+	RunManager.iniciar_ronda(RunManager.ronda + 1)
 	if banner_intro != null and banner_intro.has_method("mostrar_intro"):
-		await banner_intro.mostrar_intro(proxima_ronda, _mapa_info_actual)
+		await banner_intro.mostrar_intro(RunManager.ronda, _mapa_info_actual)
+	_revivir_caidos()
 	_ronda_activa = true
 	_procesando = false
 
 
-func _jugadores_vivos() -> Array:
-	var lista: Array = []
+func _programar_respawn(jugador: Node) -> void:
+	var numero: int = jugador.player_number
+	# La secuencia de muerte tarda ~0.55 s en restaurar Engine.time_scale; hay que
+	# esperar en tiempo real para no pisarla y revivir sin cortar la animación.
+	await get_tree().create_timer(0.6, true, false, true).timeout
+	if is_instance_valid(jugador) and _ronda_activa and RunManager.vidas_de(numero) > 0 and not jugador.is_alive():
+		jugador.respawn()
+
+
+func _revivir_caidos() -> void:
 	for jug in RunManager.jugadores():
-		if is_instance_valid(jug) and RunManager.vidas_de(jug.player_number) > 0 and jug.is_alive():
-			lista.append(jug)
-	return lista
+		if not is_instance_valid(jug):
+			continue
+		if RunManager.vidas_de(jug.player_number) > 0 and jug.has_method("respawn") and not jug.is_alive():
+			jug.respawn()
 
 
 func cargar_nuevo_mapa() -> void:
@@ -124,8 +134,6 @@ func cargar_nuevo_mapa() -> void:
 		if not is_instance_valid(jug):
 			continue
 		var numero: int = jug.player_number
-		if RunManager.vidas_de(numero) <= 0:
-			continue
 		var marker := _mapa_actual.get_node_or_null("SpawnP%d" % numero) as Marker2D
 		var spawn_pos: Vector2 = marker.global_position if marker != null else SPAWNS_FALLBACK.get(numero, Vector2(640, 600))
 

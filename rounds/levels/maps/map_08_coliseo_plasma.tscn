@@ -39,10 +39,10 @@ position = Vector2(240, 560)
 position = Vector2(1040, 560)
 
 [node name="SpawnP3" type="Marker2D" parent="."]
-position = Vector2(350, 560)
+position = Vector2(280, 560)
 
 [node name="SpawnP4" type="Marker2D" parent="."]
-position = Vector2(930, 560)
+position = Vector2(1000, 560)
 
 [node name="Grada1L" type="StaticBody2D" parent="."]
 position = Vector2(220, 600)

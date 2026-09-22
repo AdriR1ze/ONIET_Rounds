@@ -2,12 +2,6 @@ class_name PropulsionEffect
 extends UpgradeEffect
 
 @export var recoil_force: float = 950.0
-@export var infinite_ammo: bool = true
-
-
-func on_apply(player: Node, _stacks: int) -> void:
-	if player != null and "has_propulsion" in player:
-		player.has_propulsion = true
 
 
 func on_fire(shot: Shot, player: Node) -> void:

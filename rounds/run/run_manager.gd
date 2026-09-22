@@ -91,6 +91,17 @@ func jugadores() -> Array:
 
 
 func jugadores_activos() -> Array:
+	# OJO: con la nueva semántica, tras terminar una ronda el perdedor queda con 0
+	# vidas hasta que run_controller llame a iniciar_ronda(); el orden de llamadas
+	# es responsabilidad de run_controller.
+	var lista: Array = []
+	for numero in _jugadores:
+		if vidas_de(numero) > 0:
+			lista.append(_jugadores[numero])
+	return lista
+
+
+func jugadores_con_vidas() -> Array:
 	var lista: Array = []
 	for numero in _jugadores:
 		if vidas_de(numero) > 0:
@@ -103,9 +114,8 @@ func vidas_de(player_number: int) -> int:
 
 
 func nivel_desbloqueado(player_number: int) -> int:
-	var vidas_actuales: int = vidas_de(player_number)
-	var vidas_perdidas: int = maxi(vidas_por_ronda - vidas_actuales, 0)
-	return clampi(1 + vidas_perdidas, 1, 5)
+	# Las mejoras de nivel 2-5 escalan con el progreso de la partida (ronda alcanzada).
+	return clampi(ronda, 1, 5)
 
 
 func perder_vida(player_number: int) -> void:
@@ -115,11 +125,6 @@ func perder_vida(player_number: int) -> void:
 	actual = maxi(actual - 1, 0)
 	vidas[player_number] = actual
 	vidas_cambiadas.emit()
-	var ganador: int = ganador_partida()
-	if ganador != 0:
-		partida_finalizada = true
-		partida_terminada.emit(ganador)
-		print("FIN DE PARTIDA! Ganador: Jugador %d" % ganador)
 
 
 func mejoras_de(player_number: int) -> Array:
@@ -173,6 +178,8 @@ func iniciar_partida() -> void:
 
 func iniciar_ronda(numero: int) -> void:
 	ronda = numero
+	for jugador_numero in _jugadores:
+		vidas[jugador_numero] = vidas_por_ronda
 	ronda_iniciada.emit(ronda)
 	vidas_cambiadas.emit()
 
@@ -182,6 +189,9 @@ func terminar_ronda(ganador: int) -> void:
 		_marcador[ganador] = marcador_de(ganador) + 1
 		marcador_cambiado.emit()
 	ronda_terminada.emit(ronda, ganador)
+	if ganador > 0 and marcador_de(ganador) >= rondas_para_ganar:
+		partida_finalizada = true
+		partida_terminada.emit(ganador)
 
 
 func partida_ganada() -> bool:
@@ -189,12 +199,9 @@ func partida_ganada() -> bool:
 
 
 func ganador_partida() -> int:
-	var vivos: Array = []
 	for numero in _jugadores:
-		if vidas_de(numero) > 0:
-			vivos.append(numero)
-	if vivos.size() == 1:
-		return vivos[0]
+		if marcador_de(numero) >= rondas_para_ganar:
+			return numero
 	return 0
 
 

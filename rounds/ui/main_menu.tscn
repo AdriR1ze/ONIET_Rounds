@@ -71,8 +71,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Rondas para ganar"
 
-[node name="Valor" type="OptionButton" parent="Centro/Menu/Config/Rondas"]
+[node name="Valor" type="SpinBox" parent="Centro/Menu/Config/Rondas"]
 layout_mode = 2
+min_value = 1.0
+max_value = 99.0
+step = 1.0
+allow_greater = false
+allow_lesser = false
 
 [node name="Vidas" type="HBoxContainer" parent="Centro/Menu/Config"]
 layout_mode = 2
@@ -83,8 +88,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Vidas por ronda"
 
-[node name="Valor" type="OptionButton" parent="Centro/Menu/Config/Vidas"]
+[node name="Valor" type="SpinBox" parent="Centro/Menu/Config/Vidas"]
 layout_mode = 2
+min_value = 1.0
+max_value = 99.0
+step = 1.0
+allow_greater = false
+allow_lesser = false
 
 [node name="Jugar" type="Button" parent="Centro/Menu"]
 custom_minimum_size = Vector2(260, 0)

@@ -29,13 +29,18 @@ find_godot() {
 			return 0
 		fi
 	done
-	# Fallback: binario descargado en ~/Downloads (el más nuevo).
-	local f
-	f="$(ls -1 "$HOME"/Downloads/Godot_v*_linux.x86_64 2>/dev/null | sort -V | tail -1)"
-	if [[ -n "$f" && -x "$f" ]]; then
-		printf '%s' "$f"
-		return 0
-	fi
+	# Fallback: binario descargado en Downloads (el más nuevo).
+	# En WSL/Windows el binario queda en /mnt/c/Users/<usuario>/Downloads.
+	local pat dir f
+	for pat in 'Godot_v*_win64_console.exe' 'Godot_v*_win64.exe' 'Godot_v*_linux.x86_64'; do
+		for dir in "$HOME"/Downloads /mnt/c/Users/*/Downloads; do
+			f="$(ls -1 "$dir"/$pat 2>/dev/null | sort -V | tail -1)"
+			if [[ -n "$f" && -x "$f" ]]; then
+				printf '%s' "$f"
+				return 0
+			fi
+		done
+	done
 	return 1
 }
 
@@ -45,13 +50,19 @@ if [[ -z "$GODOT" || ! -x "$GODOT" ]]; then
 	exit 2
 fi
 
+# Godot de Windows no entiende rutas /mnt/c/...: se las traducimos con wslpath.
+PROJECT_ARG="$PROJECT"
+if [[ "$GODOT" == *.exe && "$PROJECT" == /* ]] && command -v wslpath >/dev/null 2>&1; then
+	PROJECT_ARG="$(wslpath -w "$PROJECT")"
+fi
+
 echo "Godot:   $GODOT"
 echo "Proyecto: $PROJECT"
 echo
 
 # 1) Todos los scripts del proyecto deben compilar (autoloads registrados).
 echo "== Validando scripts =="
-VALIDATE_OUT="$("$GODOT" --headless --path "$PROJECT" res://tools/validate_all.tscn 2>&1)"
+VALIDATE_OUT="$("$GODOT" --headless --path "$PROJECT_ARG" res://tools/validate_all.tscn 2>&1)"
 echo "$VALIDATE_OUT" | grep -E '^VALIDATE' || true
 if echo "$VALIDATE_OUT" | grep -q 'VALIDATE FAIL' || ! echo "$VALIDATE_OUT" | grep -q '^VALIDATE: checked'; then
 	echo "RESULT: FAIL (scripts que no compilan)" >&2
@@ -61,7 +72,12 @@ fi
 # 2) Smoke test: la escena de gameplay debe arrancar sin errores de script.
 echo
 echo "== Smoke test (test_level) =="
-SMOKE_OUT="$(timeout 90 "$GODOT" --headless --path "$PROJECT" res://levels/test_level.tscn --quit-after 120 2>&1)"
+# timeout no está garantizado en todos los entornos (p.ej. Git Bash): usarlo si existe.
+TIMEOUT=""
+if command -v timeout >/dev/null 2>&1; then
+	TIMEOUT="timeout 90"
+fi
+SMOKE_OUT="$($TIMEOUT "$GODOT" --headless --path "$PROJECT_ARG" res://levels/test_level.tscn --quit-after 120 2>&1)"
 if echo "$SMOKE_OUT" | grep -qE 'SCRIPT ERROR|Parse Error|Compile Error|Failed to load script'; then
 	echo "$SMOKE_OUT" | grep -E 'SCRIPT ERROR|Parse Error|Compile Error|Failed to load script'
 	echo "RESULT: FAIL (errores en runtime)" >&2

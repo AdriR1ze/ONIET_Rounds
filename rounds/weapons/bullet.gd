@@ -28,6 +28,8 @@ var shot: Shot = null
 
 var _time_alive: float = 0.0
 var _hit_targets: Array = []
+# Fuego amigo: la bala solo es inmune al dueño mientras siga dentro de su hurtbox.
+var _shooter_immune: bool = true
 var _trail_points: Array[Vector2] = []
 var bounce_count: int = 0
 var has_split: bool = false
@@ -107,6 +109,11 @@ func _draw() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# 0. Protección de spawn: en cuanto la bala sale del hurtbox del dueño, deja de
+	# ser inmune y puede dañarlo (fuego amigo). No se vuelve a armar si reingresa.
+	if _shooter_immune:
+		_shooter_immune = _is_inside_shooter_hurtbox()
+
 	# 1. Resistencia del aire / drag aerodinámico
 	if drag > 0.0:
 		velocity -= velocity * (drag * delta)
@@ -368,6 +375,8 @@ func _bounce_off(hit_pos: Vector2, hit_norm: Vector2) -> void:
 func _handle_body_collision(body: Node, hit_pos: Vector2, hit_norm: Vector2) -> void:
 	if not is_instance_valid(self) or is_queued_for_deletion():
 		return
+	# El cuerpo del dueño no está en la máscara de la bala (21 = Mundo|Hurtbox jugador|Hurtbox enemigo),
+	# así que este guard no bloquea el fuego amigo; solo evita autoimpactos sobre cuerpos del shooter.
 	if shooter != null and (body == shooter or shooter.is_ancestor_of(body)):
 		return
 	if body != null and (body in _phasing_bodies):
@@ -457,15 +466,27 @@ func parry(new_shooter: Node) -> void:
 	_trail_points.clear()
 	_phasing_bodies.clear()
 	_is_phasing_wall = false
+	# El nuevo dueño también queda protegido hasta que la bala salga de su hurtbox.
+	_shooter_immune = true
 	var visual := get_node_or_null("Visual") as CanvasItem
 	if visual != null:
 		visual.modulate = Color(1.5, 1.5, 1.5, 1.0)
 
 
+## Indica si la bala sigue solapando el hurtbox del dueño actual.
+func _is_inside_shooter_hurtbox() -> bool:
+	if shooter == null or not is_instance_valid(shooter):
+		return false
+	for area in get_overlapping_areas():
+		if area == shooter or shooter.is_ancestor_of(area):
+			return true
+	return false
+
+
 func _on_area_entered(area: Area2D) -> void:
 	if area in _hit_targets:
 		return
-	if shooter != null and (area == shooter or shooter.is_ancestor_of(area)):
+	if _shooter_immune and shooter != null and (area == shooter or shooter.is_ancestor_of(area)):
 		return
 
 	if area.has_method("try_parry") and area.try_parry(self):
