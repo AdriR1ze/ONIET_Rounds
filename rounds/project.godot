@@ -28,8 +28,9 @@ Transition="*res://ui/transition.gd"
 
 [display]
 
-window/size/viewport_width=1280
-window/size/viewport_height=720
+window/size/viewport_width=1920
+window/size/viewport_height=1028
+window/size/mode=3
 window/stretch/mode="canvas_items"
 
 [global_group]
