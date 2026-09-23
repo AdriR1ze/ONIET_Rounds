@@ -177,11 +177,14 @@ func _crear_panel(numero: int) -> void:
 	header_box.add_child(titulo_jugador)
 
 	var vidas_count: int = RunManager.vidas_de(numero)
+	var total_vidas: int = clampi(RunManager.vidas_por_ronda, 1, 20)
 	var max_nivel: int = RunManager.nivel_desbloqueado(numero)
 	var corazones := ""
-	for i in 5:
+	for i in total_vidas:
+		if i > 0 and i % 5 == 0:
+			corazones += " "
 		corazones += "♥" if i < vidas_count else "♡"
-	var controles_hint: String = "Moverse para elegir · X / Disparar para confirmar"
+	var controles_hint: String = "Moverse para elegir · Disparar / Enter para confirmar" if Settings.es_teclado(numero) else "Moverse para elegir · X / Disparar para confirmar"
 
 	var info_sub := Label.new()
 	info_sub.text = "%s  •  Nivel máx %d  •  %s" % [corazones, max_nivel, controles_hint]
@@ -380,6 +383,15 @@ func _crear_seccion_habilidades_actuales(v_box: VBoxContainer, numero: int, colo
 			floating_tag.reset_size()
 			var tag_x: float = badge.global_position.x + (badge.size.x * 0.5) - (floating_tag.size.x * 0.5)
 			var tag_y: float = badge.global_position.y - floating_tag.size.y - 6.0
+
+			# Evitar que la etiqueta flote fuera de la pantalla (especialmente para el jugador 1 a la izquierda)
+			var vp_size := floating_tag.get_viewport_rect().size
+			var margin_lat := 12.0
+			var max_x := maxf(vp_size.x - floating_tag.size.x - margin_lat, margin_lat)
+			tag_x = clampf(tag_x, margin_lat, max_x)
+			if tag_y < 8.0:
+				tag_y = badge.global_position.y + badge.size.y + 6.0
+
 			floating_tag.global_position = Vector2(tag_x, tag_y)
 
 			b_sb.border_color = Color(col_rareza.r, col_rareza.g, col_rareza.b, 1.0)

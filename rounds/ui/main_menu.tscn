@@ -94,7 +94,7 @@ custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 script = ExtResource("4_picker")
 min_value = 1
-max_value = 99
+max_value = 20
 value = 5
 
 [node name="Jugar" type="Button" parent="Centro/Menu"]

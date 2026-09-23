@@ -71,9 +71,12 @@ func personaje_de(player_number: int) -> String:
 	return personajes.get(player_number, "esqueleto")
 
 
+const MAX_VIDAS := 20
+
+
 func configurar_partida(rondas: int, vidas: int) -> void:
 	rondas_para_ganar = maxi(rondas, 1)
-	vidas_por_ronda = maxi(vidas, 1)
+	vidas_por_ronda = clampi(vidas, 1, MAX_VIDAS)
 
 
 func registrar_jugador(player: Node) -> void:

@@ -53,6 +53,9 @@ func _construir_esquinas() -> void:
 		add_child(esquina)
 
 
+const MAX_CORAS_POR_FILA := 5
+
+
 func _crear_esquina(numero: int) -> MarginContainer:
 	var color := RunManager.color_jugador(numero)
 	var izquierda := numero % 2 == 1
@@ -61,23 +64,22 @@ func _crear_esquina(numero: int) -> MarginContainer:
 	var esquina := MarginContainer.new()
 	if arriba:
 		esquina.set_anchors_preset(Control.PRESET_TOP_LEFT if izquierda else Control.PRESET_TOP_RIGHT)
+		esquina.offset_top = 18.0
+		esquina.offset_bottom = 125.0
 	else:
 		esquina.set_anchors_preset(Control.PRESET_BOTTOM_LEFT if izquierda else Control.PRESET_BOTTOM_RIGHT)
+		esquina.offset_top = -125.0
+		esquina.offset_bottom = -18.0
+
 	if izquierda:
-		esquina.offset_left = 32.0
+		esquina.offset_left = 28.0
 		esquina.offset_right = 260.0
 	else:
-		esquina.offset_left = -292.0
-		esquina.offset_right = -32.0
-	if arriba:
-		esquina.offset_top = 22.0
-		esquina.offset_bottom = 80.0
-	else:
-		esquina.offset_top = -80.0
-		esquina.offset_bottom = -22.0
+		esquina.offset_left = -260.0
+		esquina.offset_right = -28.0
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 6)
+	vbox.add_theme_constant_override("separation", 4)
 
 	var nombre := Label.new()
 	nombre.add_theme_font_size_override("font_size", 18)
@@ -89,9 +91,8 @@ func _crear_esquina(numero: int) -> MarginContainer:
 	vbox.add_child(nombre)
 	_nombres[numero] = nombre
 
-	var vidas := HBoxContainer.new()
-	vidas.add_theme_constant_override("separation", 8)
-	vidas.alignment = BoxContainer.ALIGNMENT_BEGIN if izquierda else BoxContainer.ALIGNMENT_END
+	var vidas := VBoxContainer.new()
+	vidas.add_theme_constant_override("separation", 3)
 	vbox.add_child(vidas)
 	_vidas[numero] = vidas
 
@@ -110,50 +111,101 @@ func _actualizar_hud() -> void:
 	var puntajes: Array = []
 	for i in RunManager.cantidad_jugadores:
 		var numero := i + 1
+		var izquierda := numero % 2 == 1
 		if _nombres.has(numero):
 			_nombres[numero].text = RunManager.nombre_jugador(numero)
 		if _vidas.has(numero):
-			_actualizar_vidas_container(_vidas[numero], RunManager.vidas_de(numero), total_vidas, numero)
+			_actualizar_vidas_container(_vidas[numero], RunManager.vidas_de(numero), total_vidas, numero, izquierda)
 		puntajes.append(str(RunManager.marcador_de(numero)))
 	if _marcador != null:
 		_marcador.text = "  -  ".join(puntajes)
 
 
-func _actualizar_vidas_container(contenedor: HBoxContainer, vidas_actuales: int, total: int, player_num: int) -> void:
+func _actualizar_vidas_container(contenedor: VBoxContainer, vidas_actuales: int, total: int, player_num: int, izquierda: bool) -> void:
 	if contenedor == null:
 		return
 
-	while contenedor.get_child_count() < total:
-		var pip := Control.new()
-		pip.custom_minimum_size = Vector2(18, 20)
-		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		pip.draw.connect(_dibujar_pip.bind(pip))
-		contenedor.add_child(pip)
+	total = clampi(total, 1, RunManager.MAX_VIDAS)
+	var filas_count := ceili(float(total) / float(MAX_CORAS_POR_FILA))
 
-	while contenedor.get_child_count() > total:
+	# Si hay muchas filas de corazones, se hacen más chicos para no molestar la vista
+	var escala := 1.0
+	var sep_h := 6
+	var sep_v := 4
+	if filas_count == 2:
+		escala = 0.85
+		sep_h = 5
+		sep_v = 3
+	elif filas_count == 3:
+		escala = 0.72
+		sep_h = 4
+		sep_v = 3
+	elif filas_count >= 4:
+		escala = 0.60
+		sep_h = 4
+		sep_v = 2
+
+	contenedor.add_theme_constant_override("separation", sep_v)
+
+	while contenedor.get_child_count() < filas_count:
+		var fila := HBoxContainer.new()
+		fila.alignment = BoxContainer.ALIGNMENT_BEGIN if izquierda else BoxContainer.ALIGNMENT_END
+		contenedor.add_child(fila)
+
+	while contenedor.get_child_count() > filas_count:
 		var extra := contenedor.get_child(contenedor.get_child_count() - 1)
 		contenedor.remove_child(extra)
 		extra.queue_free()
 
-	for i in total:
-		var pip := contenedor.get_child(i) as Control
-		var activa := (i < vidas_actuales)
-		var necesita_update := false
-		if not pip.has_meta("activa") or pip.get_meta("activa") != activa:
-			pip.set_meta("activa", activa)
-			necesita_update = true
-		if not pip.has_meta("player") or pip.get_meta("player") != player_num:
-			pip.set_meta("player", player_num)
-			necesita_update = true
-		if necesita_update:
-			pip.queue_redraw()
+	var pip_idx := 0
+	for r in filas_count:
+		var fila := contenedor.get_child(r) as HBoxContainer
+		fila.alignment = BoxContainer.ALIGNMENT_BEGIN if izquierda else BoxContainer.ALIGNMENT_END
+		fila.add_theme_constant_override("separation", sep_h)
+
+		var coras_en_esta_fila := mini(MAX_CORAS_POR_FILA, total - (r * MAX_CORAS_POR_FILA))
+
+		while fila.get_child_count() < coras_en_esta_fila:
+			var pip := Control.new()
+			pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			pip.draw.connect(_dibujar_pip.bind(pip))
+			fila.add_child(pip)
+
+		while fila.get_child_count() > coras_en_esta_fila:
+			var extra := fila.get_child(fila.get_child_count() - 1)
+			fila.remove_child(extra)
+			extra.queue_free()
+
+		for c in coras_en_esta_fila:
+			var pip := fila.get_child(c) as Control
+			pip.custom_minimum_size = Vector2(18.0 * escala, 20.0 * escala)
+			var activa := (pip_idx < vidas_actuales)
+			var necesita_update := false
+
+			if not pip.has_meta("activa") or pip.get_meta("activa") != activa:
+				pip.set_meta("activa", activa)
+				necesita_update = true
+			if not pip.has_meta("player") or pip.get_meta("player") != player_num:
+				pip.set_meta("player", player_num)
+				necesita_update = true
+			if not pip.has_meta("escala") or not is_equal_approx(float(pip.get_meta("escala")), escala):
+				pip.set_meta("escala", escala)
+				necesita_update = true
+
+			if necesita_update:
+				pip.queue_redraw()
+
+			pip_idx += 1
 
 
 func _dibujar_pip(pip: Control) -> void:
 	var activa: bool = pip.get_meta("activa") if pip.has_meta("activa") else true
 	var player_num: int = pip.get_meta("player") if pip.has_meta("player") else 1
+	var escala: float = pip.get_meta("escala") if pip.has_meta("escala") else 1.0
 
-	var pts := PackedVector2Array(HEART_POINTS)
+	var pts := PackedVector2Array()
+	for pt in HEART_POINTS:
+		pts.append(pt * escala)
 
 	if activa:
 		var col_base := RunManager.color_jugador(player_num)
@@ -161,8 +213,8 @@ func _dibujar_pip(pip: Control) -> void:
 
 		pip.draw_colored_polygon(pts, col_glow)
 		pip.draw_colored_polygon(pts, col_base)
-		pip.draw_polyline(pts, Color(1.0, 1.0, 1.0, 0.75), 1.2, true)
-		pip.draw_circle(Vector2(5.5, 4.5), 1.2, Color(1.0, 1.0, 1.0, 0.85))
+		pip.draw_polyline(pts, Color(1.0, 1.0, 1.0, 0.75), maxf(1.2 * escala, 0.8), true)
+		pip.draw_circle(Vector2(5.5, 4.5) * escala, maxf(1.2 * escala, 0.7), Color(1.0, 1.0, 1.0, 0.85))
 	else:
 		pip.draw_colored_polygon(pts, COLOR_EMPTY)
-		pip.draw_polyline(pts, COLOR_EMPTY_BORDER, 1.0, true)
+		pip.draw_polyline(pts, COLOR_EMPTY_BORDER, maxf(1.0 * escala, 0.8), true)

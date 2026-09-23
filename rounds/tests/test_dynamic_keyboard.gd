@@ -8,6 +8,7 @@ func _ready() -> void:
 	test_menu_principal()
 	test_number_picker_control()
 	test_w_no_confirma_teclado()
+	test_corazones_hud()
 	test_dynamic_keyboard_scenarios()
 	test_reiniciar_full()
 	test_joystick_existing()
@@ -31,6 +32,7 @@ func test_menu_principal() -> void:
 	var vidas_val: Node = menu.get_node_or_null("Centro/Menu/Config/Vidas/Valor")
 	assert(vidas_val is Button, "Vidas/Valor debe ser Button")
 	assert(not (vidas_val is SpinBox), "Vidas/Valor NO debe ser SpinBox")
+	assert(vidas_val.max_value == 20, "Vidas max_value debe ser 20")
 
 	menu.queue_free()
 	print("✓ Menú principal: botón renombrado, Controles removido y SpinBoxes reemplazados")
@@ -39,7 +41,7 @@ func test_menu_principal() -> void:
 func test_number_picker_control() -> void:
 	var picker = NumberPickerButton.new()
 	picker.min_value = 1
-	picker.max_value = 99
+	picker.max_value = 20
 	picker.value = 3
 	assert(picker.text == "3", "Texto inicial debe ser '3'")
 	assert(not picker.editando, "No debe estar editando inicialmente")
@@ -94,6 +96,37 @@ func test_w_no_confirma_teclado() -> void:
 	Settings.dispositivos[1] = Settings.DISPOSITIVO_TECLADO
 	Settings.aplicar_controles()
 	print("✓ Confirmación: la tecla W (salto) NO confirma ready para jugadores con teclado")
+
+
+func test_corazones_hud() -> void:
+	RunManager.configurar_partida(3, 30)
+	assert(RunManager.vidas_por_ronda == 20, "Vidas no debe superar el máximo de 20")
+
+	var hud_scene: PackedScene = load("res://ui/match_hud.tscn")
+	assert(hud_scene != null, "No se pudo cargar match_hud.tscn")
+	var hud = hud_scene.instantiate()
+
+	var contenedor := VBoxContainer.new()
+	# Probar con 20 vidas (4 filas de 5)
+	hud._actualizar_vidas_container(contenedor, 18, 20, 2, false)
+	assert(contenedor.get_child_count() == 4, "20 vidas debe generar 4 filas")
+	for i in 4:
+		var fila = contenedor.get_child(i) as HBoxContainer
+		assert(fila.alignment == BoxContainer.ALIGNMENT_END, "Jugador de la derecha (P2) debe alinear a la derecha")
+		assert(fila.get_child_count() == 5, "Cada fila debe tener 5 corazones")
+
+	# Probar con 7 vidas (2 filas: 5 y 2)
+	hud._actualizar_vidas_container(contenedor, 5, 7, 1, true)
+	assert(contenedor.get_child_count() == 2, "7 vidas debe generar 2 filas")
+	var fila0 = contenedor.get_child(0) as HBoxContainer
+	var fila1 = contenedor.get_child(1) as HBoxContainer
+	assert(fila0.get_child_count() == 5, "Fila 0 debe tener 5 corazones")
+	assert(fila1.get_child_count() == 2, "Fila 1 debe tener 2 corazones")
+	assert(fila0.alignment == BoxContainer.ALIGNMENT_BEGIN, "Jugador de la izquierda (P1) debe alinear a la izquierda")
+
+	hud.queue_free()
+	contenedor.queue_free()
+	print("✓ HUD de corazones: máximo 5 por fila, 20 vidas máximo y alineación correcta")
 
 
 func test_dynamic_keyboard_scenarios() -> void:
