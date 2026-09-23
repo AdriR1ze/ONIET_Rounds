@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="Material" path="res://effects/neon_tiles_verde_amarillo.tres" id="1_neon"]
 [ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
 
 [sub_resource type="RectangleShape2D" id="shape_1"]
@@ -42,7 +43,8 @@ position = Vector2(930, 550)
 position = Vector2(240, 590)
 
 [node name="Visual" type="Polygon2D" parent="BaseL"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-150, -14, 150, -14, 150, 14, -150, 14)
 
 [node name="Border" type="Line2D" parent="BaseL"]
@@ -58,7 +60,8 @@ shape = SubResource("shape_1")
 position = Vector2(1040, 590)
 
 [node name="Visual" type="Polygon2D" parent="BaseR"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-150, -14, 150, -14, 150, 14, -150, 14)
 
 [node name="Border" type="Line2D" parent="BaseR"]
@@ -75,7 +78,8 @@ position = Vector2(460, 440)
 rotation = -0.52
 
 [node name="Visual" type="Polygon2D" parent="RampaL"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-120, -12, 120, -12, 120, 12, -120, 12)
 
 [node name="Border" type="Line2D" parent="RampaL"]
@@ -92,7 +96,8 @@ position = Vector2(820, 440)
 rotation = 0.52
 
 [node name="Visual" type="Polygon2D" parent="RampaR"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-120, -12, 120, -12, 120, 12, -120, 12)
 
 [node name="Border" type="Line2D" parent="RampaR"]
@@ -108,7 +113,8 @@ shape = SubResource("shape_2")
 position = Vector2(640, 300)
 
 [node name="Visual" type="Polygon2D" parent="OrbeCima"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(44, 0, 43.1546, 8.584, 40.6507, 16.8381, 36.5847, 24.4451, 31.1127, 31.1127, 24.4451, 36.5847, 16.8381, 40.6507, 8.584, 43.1546, 0, 44, -8.584, 43.1546, -16.8381, 40.6507, -24.4451, 36.5847, -31.1127, 31.1127, -36.5847, 24.4451, -40.6507, 16.8381, -43.1546, 8.584, -44, 0, -43.1546, -8.584, -40.6507, -16.8381, -36.5847, -24.4451, -31.1127, -31.1127, -24.4451, -36.5847, -16.8381, -40.6507, -8.584, -43.1546, 0, -44, 8.584, -43.1546, 16.8381, -40.6507, 24.4451, -36.5847, 31.1127, -31.1127, 36.5847, -24.4451, 40.6507, -16.8381, 43.1546, -8.584)
 
 [node name="Border" type="Line2D" parent="OrbeCima"]
@@ -124,7 +130,8 @@ shape = SubResource("shape_3")
 position = Vector2(200, 380)
 
 [node name="Visual" type="Polygon2D" parent="OrbeAltoL"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(36, 0, 35.3083, 7.0233, 33.2597, 13.7766, 29.9329, 20.0005, 25.4558, 25.4558, 20.0005, 29.9329, 13.7766, 33.2597, 7.0233, 35.3083, 0, 36, -7.0233, 35.3083, -13.7766, 33.2597, -20.0005, 29.9329, -25.4558, 25.4558, -29.9329, 20.0005, -33.2597, 13.7766, -35.3083, 7.0233, -36, 0, -35.3083, -7.0233, -33.2597, -13.7766, -29.9329, -20.0005, -25.4558, -25.4558, -20.0005, -29.9329, -13.7766, -33.2597, -7.0233, -35.3083, 0, -36, 7.0233, -35.3083, 13.7766, -33.2597, 20.0005, -29.9329, 25.4558, -25.4558, 29.9329, -20.0005, 33.2597, -13.7766, 35.3083, -7.0233)
 
 [node name="Border" type="Line2D" parent="OrbeAltoL"]
@@ -140,7 +147,8 @@ shape = SubResource("shape_4")
 position = Vector2(1080, 380)
 
 [node name="Visual" type="Polygon2D" parent="OrbeAltoR"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(36, 0, 35.3083, 7.0233, 33.2597, 13.7766, 29.9329, 20.0005, 25.4558, 25.4558, 20.0005, 29.9329, 13.7766, 33.2597, 7.0233, 35.3083, 0, 36, -7.0233, 35.3083, -13.7766, 33.2597, -20.0005, 29.9329, -25.4558, 25.4558, -29.9329, 20.0005, -33.2597, 13.7766, -35.3083, 7.0233, -36, 0, -35.3083, -7.0233, -33.2597, -13.7766, -29.9329, -20.0005, -25.4558, -25.4558, -20.0005, -29.9329, -13.7766, -33.2597, -7.0233, -35.3083, 0, -36, 7.0233, -35.3083, 13.7766, -33.2597, 20.0005, -29.9329, 25.4558, -25.4558, 29.9329, -20.0005, 33.2597, -13.7766, 35.3083, -7.0233)
 
 [node name="Border" type="Line2D" parent="OrbeAltoR"]

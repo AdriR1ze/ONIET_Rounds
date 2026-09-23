@@ -1,4 +1,4 @@
-﻿extends Node
+extends Node
 
 const NumberPickerButton = preload("res://ui/number_picker_button.gd")
 
@@ -12,6 +12,7 @@ func _ready() -> void:
 	test_dynamic_keyboard_scenarios()
 	test_reiniciar_full()
 	test_joystick_existing()
+	test_mapas_materiales_nativos()
 	print("--- TODOS LOS TESTS PASARON EXITOSAMENTE ---")
 	get_tree().quit(0)
 
@@ -225,3 +226,40 @@ func _tiene_tecla(accion: String, tecla: Key) -> bool:
 			if code == tecla:
 				return true
 	return false
+
+
+func test_mapas_materiales_nativos() -> void:
+	var mapas := MapManager.obtener_mapas()
+	assert(mapas.size() == 12, "Debe haber 12 mapas registrados")
+
+	for info in mapas:
+		var mapa_id: StringName = info["id"]
+		var escena_path: String = info["escena"]
+
+		var escena: PackedScene = load(escena_path)
+		assert(escena != null, "No se pudo cargar la escena: %s" % escena_path)
+
+		var instancia: Node2D = escena.instantiate() as Node2D
+		assert(instancia != null, "No se pudo instanciar la escena: %s" % escena_path)
+
+		# Verificar que los spawns existan
+		for p in range(1, 5):
+			var sp_name := "SpawnP%d" % p
+			var sp: Marker2D = instancia.get_node_or_null(sp_name) as Marker2D
+			assert(sp != null, "El mapa %s debe tener %s como Marker2D" % [mapa_id, sp_name])
+
+		# En los mapas 03 a 12, verificar que cada Polygon2D tenga su material nativo asignado en la escena
+		if mapa_id != &"foso_acido" and mapa_id != &"tres_pisos":
+			var poligonos := 0
+			for hijo in instancia.get_children():
+				if hijo is StaticBody2D:
+					for subhijo in hijo.get_children():
+						if subhijo is Polygon2D:
+							poligonos += 1
+							assert(subhijo.material != null, "Polygon2D en %s debe tener material asignado desde la escena!" % mapa_id)
+			assert(poligonos > 0, "El mapa %s debe tener polígonos de plataformas" % mapa_id)
+
+		instancia.queue_free()
+
+	print("✓ Todos los 12 mapas cargan con materiales nativos y spawns configurados")
+

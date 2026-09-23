@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="Material" path="res://effects/neon_tiles_amarillo_cian.tres" id="1_neon"]
 [ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
 
 [sub_resource type="RectangleShape2D" id="shape_1"]
@@ -51,7 +52,8 @@ position = Vector2(870, 600)
 position = Vector2(640, 640)
 
 [node name="Visual" type="Polygon2D" parent="SueloPrincipal"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-480, -16, 480, -16, 480, 16, -480, 16)
 
 [node name="Border" type="Line2D" parent="SueloPrincipal"]
@@ -67,7 +69,8 @@ shape = SubResource("shape_1")
 position = Vector2(120, 480)
 
 [node name="Visual" type="Polygon2D" parent="TorreFlancoL"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-50, -145, 50, -145, 50, 145, -50, 145)
 
 [node name="Border" type="Line2D" parent="TorreFlancoL"]
@@ -83,7 +86,8 @@ shape = SubResource("shape_2")
 position = Vector2(80, 320)
 
 [node name="Visual" type="Polygon2D" parent="AlmenaTorreL"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-10, -15, 10, -15, 10, 15, -10, 15)
 
 [node name="Border" type="Line2D" parent="AlmenaTorreL"]
@@ -99,7 +103,8 @@ shape = SubResource("shape_3")
 position = Vector2(160, 320)
 
 [node name="Visual" type="Polygon2D" parent="AlmenaTorreL2"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-10, -15, 10, -15, 10, 15, -10, 15)
 
 [node name="Border" type="Line2D" parent="AlmenaTorreL2"]
@@ -115,7 +120,8 @@ shape = SubResource("shape_3")
 position = Vector2(1160, 480)
 
 [node name="Visual" type="Polygon2D" parent="TorreFlancoR"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-50, -145, 50, -145, 50, 145, -50, 145)
 
 [node name="Border" type="Line2D" parent="TorreFlancoR"]
@@ -131,7 +137,8 @@ shape = SubResource("shape_2")
 position = Vector2(1120, 320)
 
 [node name="Visual" type="Polygon2D" parent="AlmenaTorreR"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-10, -15, 10, -15, 10, 15, -10, 15)
 
 [node name="Border" type="Line2D" parent="AlmenaTorreR"]
@@ -147,7 +154,8 @@ shape = SubResource("shape_3")
 position = Vector2(1200, 320)
 
 [node name="Visual" type="Polygon2D" parent="AlmenaTorreR2"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-10, -15, 10, -15, 10, 15, -10, 15)
 
 [node name="Border" type="Line2D" parent="AlmenaTorreR2"]
@@ -163,7 +171,8 @@ shape = SubResource("shape_3")
 position = Vector2(380, 540)
 
 [node name="Visual" type="Polygon2D" parent="Paso1L"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-65, -12, 65, -12, 65, 12, -65, 12)
 
 [node name="Border" type="Line2D" parent="Paso1L"]
@@ -179,7 +188,8 @@ shape = SubResource("shape_4")
 position = Vector2(900, 540)
 
 [node name="Visual" type="Polygon2D" parent="Paso1R"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-65, -12, 65, -12, 65, 12, -65, 12)
 
 [node name="Border" type="Line2D" parent="Paso1R"]
@@ -195,7 +205,8 @@ shape = SubResource("shape_4")
 position = Vector2(470, 440)
 
 [node name="Visual" type="Polygon2D" parent="Paso2L"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-60, -12, 60, -12, 60, 12, -60, 12)
 
 [node name="Border" type="Line2D" parent="Paso2L"]
@@ -211,7 +222,8 @@ shape = SubResource("shape_5")
 position = Vector2(810, 440)
 
 [node name="Visual" type="Polygon2D" parent="Paso2R"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-60, -12, 60, -12, 60, 12, -60, 12)
 
 [node name="Border" type="Line2D" parent="Paso2R"]
@@ -227,7 +239,8 @@ shape = SubResource("shape_5")
 position = Vector2(550, 340)
 
 [node name="Visual" type="Polygon2D" parent="Paso3L"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-55, -12, 55, -12, 55, 12, -55, 12)
 
 [node name="Border" type="Line2D" parent="Paso3L"]
@@ -243,7 +256,8 @@ shape = SubResource("shape_6")
 position = Vector2(730, 340)
 
 [node name="Visual" type="Polygon2D" parent="Paso3R"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-55, -12, 55, -12, 55, 12, -55, 12)
 
 [node name="Border" type="Line2D" parent="Paso3R"]
@@ -259,7 +273,8 @@ shape = SubResource("shape_6")
 position = Vector2(640, 240)
 
 [node name="Visual" type="Polygon2D" parent="TorreCorona"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-75, -14, 75, -14, 75, 14, -75, 14)
 
 [node name="Border" type="Line2D" parent="TorreCorona"]
@@ -275,7 +290,8 @@ shape = SubResource("shape_7")
 position = Vector2(580, 215)
 
 [node name="Visual" type="Polygon2D" parent="AlmenaCoronaL"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-10, -12, 10, -12, 10, 12, -10, 12)
 
 [node name="Border" type="Line2D" parent="AlmenaCoronaL"]
@@ -291,7 +307,8 @@ shape = SubResource("shape_8")
 position = Vector2(700, 215)
 
 [node name="Visual" type="Polygon2D" parent="AlmenaCoronaR"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-10, -12, 10, -12, 10, 12, -10, 12)
 
 [node name="Border" type="Line2D" parent="AlmenaCoronaR"]

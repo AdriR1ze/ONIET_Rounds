@@ -1,5 +1,6 @@
 [gd_scene format=3]
 
+[ext_resource type="Material" path="res://effects/neon_tiles_coral_aqua.tres" id="1_neon"]
 [ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
 
 [sub_resource type="RectangleShape2D" id="shape_1"]
@@ -39,7 +40,8 @@ position = Vector2(770, 480)
 position = Vector2(510, 620)
 
 [node name="Visual" type="Polygon2D" parent="RepisaBajaL"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-140, -12, 140, -12, 140, 12, -140, 12)
 
 [node name="Border" type="Line2D" parent="RepisaBajaL"]
@@ -55,7 +57,8 @@ shape = SubResource("shape_1")
 position = Vector2(800, 520)
 
 [node name="Visual" type="Polygon2D" parent="RepisaBajaR"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-130, -12, 130, -12, 130, 12, -130, 12)
 
 [node name="Border" type="Line2D" parent="RepisaBajaR"]
@@ -71,7 +74,8 @@ shape = SubResource("shape_2")
 position = Vector2(490, 430)
 
 [node name="Visual" type="Polygon2D" parent="RepisaMediaL"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-130, -12, 130, -12, 130, 12, -130, 12)
 
 [node name="Border" type="Line2D" parent="RepisaMediaL"]
@@ -87,7 +91,8 @@ shape = SubResource("shape_2")
 position = Vector2(780, 350)
 
 [node name="Visual" type="Polygon2D" parent="RepisaMediaR"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-140, -12, 140, -12, 140, 12, -140, 12)
 
 [node name="Border" type="Line2D" parent="RepisaMediaR"]
@@ -103,7 +108,8 @@ shape = SubResource("shape_1")
 position = Vector2(470, 250)
 
 [node name="Visual" type="Polygon2D" parent="RepisaAltaL"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-120, -12, 120, -12, 120, 12, -120, 12)
 
 [node name="Border" type="Line2D" parent="RepisaAltaL"]
@@ -119,7 +125,8 @@ shape = SubResource("shape_3")
 position = Vector2(270, 540)
 
 [node name="Visual" type="Polygon2D" parent="OrbeL1"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(36, 0, 35.3083, 7.0233, 33.2597, 13.7766, 29.9329, 20.0005, 25.4558, 25.4558, 20.0005, 29.9329, 13.7766, 33.2597, 7.0233, 35.3083, 0, 36, -7.0233, 35.3083, -13.7766, 33.2597, -20.0005, 29.9329, -25.4558, 25.4558, -29.9329, 20.0005, -33.2597, 13.7766, -35.3083, 7.0233, -36, 0, -35.3083, -7.0233, -33.2597, -13.7766, -29.9329, -20.0005, -25.4558, -25.4558, -20.0005, -29.9329, -13.7766, -33.2597, -7.0233, -35.3083, 0, -36, 7.0233, -35.3083, 13.7766, -33.2597, 20.0005, -29.9329, 25.4558, -25.4558, 29.9329, -20.0005, 33.2597, -13.7766, 35.3083, -7.0233)
 
 [node name="Border" type="Line2D" parent="OrbeL1"]
@@ -135,7 +142,8 @@ shape = SubResource("shape_4")
 position = Vector2(270, 390)
 
 [node name="Visual" type="Polygon2D" parent="OrbeL2"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(36, 0, 35.3083, 7.0233, 33.2597, 13.7766, 29.9329, 20.0005, 25.4558, 25.4558, 20.0005, 29.9329, 13.7766, 33.2597, 7.0233, 35.3083, 0, 36, -7.0233, 35.3083, -13.7766, 33.2597, -20.0005, 29.9329, -25.4558, 25.4558, -29.9329, 20.0005, -33.2597, 13.7766, -35.3083, 7.0233, -36, 0, -35.3083, -7.0233, -33.2597, -13.7766, -29.9329, -20.0005, -25.4558, -25.4558, -20.0005, -29.9329, -13.7766, -33.2597, -7.0233, -35.3083, 0, -36, 7.0233, -35.3083, 13.7766, -33.2597, 20.0005, -29.9329, 25.4558, -25.4558, 29.9329, -20.0005, 33.2597, -13.7766, 35.3083, -7.0233)
 
 [node name="Border" type="Line2D" parent="OrbeL2"]
@@ -151,7 +159,8 @@ shape = SubResource("shape_4")
 position = Vector2(1020, 440)
 
 [node name="Visual" type="Polygon2D" parent="OrbeR1"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(36, 0, 35.3083, 7.0233, 33.2597, 13.7766, 29.9329, 20.0005, 25.4558, 25.4558, 20.0005, 29.9329, 13.7766, 33.2597, 7.0233, 35.3083, 0, 36, -7.0233, 35.3083, -13.7766, 33.2597, -20.0005, 29.9329, -25.4558, 25.4558, -29.9329, 20.0005, -33.2597, 13.7766, -35.3083, 7.0233, -36, 0, -35.3083, -7.0233, -33.2597, -13.7766, -29.9329, -20.0005, -25.4558, -25.4558, -20.0005, -29.9329, -13.7766, -33.2597, -7.0233, -35.3083, 0, -36, 7.0233, -35.3083, 13.7766, -33.2597, 20.0005, -29.9329, 25.4558, -25.4558, 29.9329, -20.0005, 33.2597, -13.7766, 35.3083, -7.0233)
 
 [node name="Border" type="Line2D" parent="OrbeR1"]
@@ -167,7 +176,8 @@ shape = SubResource("shape_4")
 position = Vector2(1020, 290)
 
 [node name="Visual" type="Polygon2D" parent="OrbeR2"]
-color = Color(0.04, 0.08, 0.14, 0.95)
+material = ExtResource("1_neon")
+color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(36, 0, 35.3083, 7.0233, 33.2597, 13.7766, 29.9329, 20.0005, 25.4558, 25.4558, 20.0005, 29.9329, 13.7766, 33.2597, 7.0233, 35.3083, 0, 36, -7.0233, 35.3083, -13.7766, 33.2597, -20.0005, 29.9329, -25.4558, 25.4558, -29.9329, 20.0005, -33.2597, 13.7766, -35.3083, 7.0233, -36, 0, -35.3083, -7.0233, -33.2597, -13.7766, -29.9329, -20.0005, -25.4558, -25.4558, -20.0005, -29.9329, -13.7766, -33.2597, -7.0233, -35.3083, 0, -36, 7.0233, -35.3083, 13.7766, -33.2597, 20.0005, -29.9329, 25.4558, -25.4558, 29.9329, -20.0005, 33.2597, -13.7766, 35.3083, -7.0233)
 
 [node name="Border" type="Line2D" parent="OrbeR2"]
