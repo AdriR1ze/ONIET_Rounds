@@ -14,6 +14,7 @@ func _ready() -> void:
 		var brain_script: Script = load("res://player/components/bot_brain.gd")
 		if brain_script != null:
 			_bot_brain = brain_script.new()
+			_bot_brain.name = "BotBrain"
 			add_child(_bot_brain)
 
 

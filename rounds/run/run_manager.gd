@@ -9,7 +9,7 @@ signal partida_terminada(ganador: int)
 
 var ronda: int = 0
 var rondas_para_ganar: int = 5
-var vidas_por_ronda: int = 5
+var vidas_por_ronda: int = 2
 var cantidad_jugadores: int = 2
 var rng := RandomNumberGenerator.new()
 
@@ -46,7 +46,7 @@ const PALETAS_ESQUELETO := {
 	4: [Color(1.0, 0.85, 0.95, 1.0), Color(1.0, 0.45, 0.80, 1.0), Color(0.45, 0.10, 0.30, 1.0)],
 }
 
-var vidas: Dictionary = { 1: 5, 2: 5 }
+var vidas: Dictionary = { 1: 2, 2: 2 }
 var nombres: Dictionary = { 1: "Jugador 1", 2: "Jugador 2" }
 var personajes: Dictionary = { 1: "esqueleto", 2: "esqueleto" }
 var partida_finalizada: bool = false

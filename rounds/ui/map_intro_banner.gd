@@ -9,11 +9,22 @@ signal terminado
 @onready var _subtexto: Label = $Centro/Marco/Margin/VBox/Subtexto
 
 
+func _asegurar_nodos() -> void:
+	if _centro == null:
+		_centro = $Centro
+		_panel = $Centro/Marco
+		_texto_ronda = $Centro/Marco/Margin/VBox/TextoRonda
+		_texto_mapa = $Centro/Marco/Margin/VBox/TextoMapa
+		_subtexto = $Centro/Marco/Margin/VBox/Subtexto
+
+
 func _ready() -> void:
+	_asegurar_nodos()
 	visible = false
 
 
 func mostrar_intro(ronda: int, mapa_info: Dictionary) -> void:
+	_asegurar_nodos()
 	var nombre_mapa: String = mapa_info.get("nombre", "ARENA")
 	var tipo_mapa: String = mapa_info.get("tipo", "COMBATE")
 	var color_mapa: Color = mapa_info.get("color", Color(0.2, 0.85, 1.0))

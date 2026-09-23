@@ -39,6 +39,21 @@ position = Vector2(350, 550)
 [node name="SpawnP4" type="Marker2D" parent="."]
 position = Vector2(930, 550)
 
+[node name="SpawnP5" type="Marker2D" parent="."]
+position = Vector2(460, 400)
+
+[node name="SpawnP6" type="Marker2D" parent="."]
+position = Vector2(820, 400)
+
+[node name="SpawnP7" type="Marker2D" parent="."]
+position = Vector2(200, 340)
+
+[node name="SpawnP8" type="Marker2D" parent="."]
+position = Vector2(1080, 340)
+
+[node name="SpawnP9" type="Marker2D" parent="."]
+position = Vector2(640, 260)
+
 [node name="BaseL" type="StaticBody2D" parent="."]
 position = Vector2(240, 590)
 

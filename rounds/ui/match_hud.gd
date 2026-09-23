@@ -6,20 +6,20 @@ const COLOR_EMPTY_BORDER := Color(0.28, 0.32, 0.4, 0.4)
 @onready var _ronda: Label = $CenterBadge/HBox/Ronda
 @onready var _marcador: Label = $CenterBadge/HBox/Marcador
 
-# Puntos del corazon estilizado (18x20)
-const HEART_POINTS := [
-	Vector2(9.0, 4.5),
-	Vector2(6.5, 1.5),
-	Vector2(2.5, 2.0),
-	Vector2(0.5, 5.5),
-	Vector2(1.5, 9.5),
-	Vector2(9.0, 18.0),
-	Vector2(16.5, 9.5),
-	Vector2(17.5, 5.5),
-	Vector2(15.5, 2.0),
-	Vector2(11.5, 1.5),
-	Vector2(9.0, 4.5)
-]
+const TEXTURAS_CORAZONES: Dictionary = {
+	"esqueleto": {
+		"lleno": preload("res://sprite_sheets/personajes/esqueleto/Corazones_esqueleto_lleno.png"),
+		"vacio": preload("res://sprite_sheets/personajes/esqueleto/Corazones_esqueleto_vacio.png"),
+	},
+	"sapo": {
+		"lleno": preload("res://sprite_sheets/personajes/sapo/Corazones_sapo_lleno.png"),
+		"vacio": preload("res://sprite_sheets/personajes/sapo/Corazones__sapo_vacio.png"),
+	},
+	"pajaro": {
+		"lleno": preload("res://sprite_sheets/personajes/pajaro/Corazones_pajaro_lleno.png"),
+		"vacio": preload("res://sprite_sheets/personajes/pajaro/Corazones_pajaro_vacio.png"),
+	},
+}
 
 var _nombres: Dictionary = {}
 var _vidas: Dictionary = {}
@@ -166,9 +166,11 @@ func _actualizar_vidas_container(contenedor: VBoxContainer, vidas_actuales: int,
 		var coras_en_esta_fila := mini(MAX_CORAS_POR_FILA, total - (r * MAX_CORAS_POR_FILA))
 
 		while fila.get_child_count() < coras_en_esta_fila:
-			var pip := Control.new()
+			var pip := TextureRect.new()
 			pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			pip.draw.connect(_dibujar_pip.bind(pip))
+			pip.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			pip.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			pip.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 			fila.add_child(pip)
 
 		while fila.get_child_count() > coras_en_esta_fila:
@@ -176,45 +178,18 @@ func _actualizar_vidas_container(contenedor: VBoxContainer, vidas_actuales: int,
 			fila.remove_child(extra)
 			extra.queue_free()
 
+		var personaje: String = RunManager.personaje_de(player_num)
+		var texturas: Dictionary = TEXTURAS_CORAZONES.get(personaje, TEXTURAS_CORAZONES["esqueleto"])
+		var tam_pip := Vector2(22.0 * escala, 22.0 * escala)
+
 		for c in coras_en_esta_fila:
-			var pip := fila.get_child(c) as Control
-			pip.custom_minimum_size = Vector2(18.0 * escala, 20.0 * escala)
+			var pip := fila.get_child(c) as TextureRect
+			if pip.custom_minimum_size != tam_pip:
+				pip.custom_minimum_size = tam_pip
+
 			var activa := (pip_idx < vidas_actuales)
-			var necesita_update := false
-
-			if not pip.has_meta("activa") or pip.get_meta("activa") != activa:
-				pip.set_meta("activa", activa)
-				necesita_update = true
-			if not pip.has_meta("player") or pip.get_meta("player") != player_num:
-				pip.set_meta("player", player_num)
-				necesita_update = true
-			if not pip.has_meta("escala") or not is_equal_approx(float(pip.get_meta("escala")), escala):
-				pip.set_meta("escala", escala)
-				necesita_update = true
-
-			if necesita_update:
-				pip.queue_redraw()
+			var tex: Texture2D = texturas["lleno"] if activa else texturas["vacio"]
+			if pip.texture != tex:
+				pip.texture = tex
 
 			pip_idx += 1
-
-
-func _dibujar_pip(pip: Control) -> void:
-	var activa: bool = pip.get_meta("activa") if pip.has_meta("activa") else true
-	var player_num: int = pip.get_meta("player") if pip.has_meta("player") else 1
-	var escala: float = pip.get_meta("escala") if pip.has_meta("escala") else 1.0
-
-	var pts := PackedVector2Array()
-	for pt in HEART_POINTS:
-		pts.append(pt * escala)
-
-	if activa:
-		var col_base := RunManager.color_jugador(player_num)
-		var col_glow := Color(col_base.r, col_base.g, col_base.b, 0.4)
-
-		pip.draw_colored_polygon(pts, col_glow)
-		pip.draw_colored_polygon(pts, col_base)
-		pip.draw_polyline(pts, Color(1.0, 1.0, 1.0, 0.75), maxf(1.2 * escala, 0.8), true)
-		pip.draw_circle(Vector2(5.5, 4.5) * escala, maxf(1.2 * escala, 0.7), Color(1.0, 1.0, 1.0, 0.85))
-	else:
-		pip.draw_colored_polygon(pts, COLOR_EMPTY)
-		pip.draw_polyline(pts, COLOR_EMPTY_BORDER, maxf(1.0 * escala, 0.8), true)
