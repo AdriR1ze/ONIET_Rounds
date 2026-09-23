@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://ui/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://ui/options_screen.tscn" id="2_opts"]
 [ext_resource type="PackedScene" path="res://ui/upgrade_index_screen.tscn" id="3_idx"]
+[ext_resource type="Script" path="res://ui/number_picker_button.gd" id="4_picker"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -71,13 +72,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Rondas para ganar"
 
-[node name="Valor" type="SpinBox" parent="Centro/Menu/Config/Rondas"]
+[node name="Valor" type="Button" parent="Centro/Menu/Config/Rondas"]
+custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
-min_value = 1.0
-max_value = 99.0
-step = 1.0
-allow_greater = false
-allow_lesser = false
+script = ExtResource("4_picker")
+min_value = 1
+max_value = 99
+value = 3
 
 [node name="Vidas" type="HBoxContainer" parent="Centro/Menu/Config"]
 layout_mode = 2
@@ -88,13 +89,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Vidas por ronda"
 
-[node name="Valor" type="SpinBox" parent="Centro/Menu/Config/Vidas"]
+[node name="Valor" type="Button" parent="Centro/Menu/Config/Vidas"]
+custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
-min_value = 1.0
-max_value = 99.0
-step = 1.0
-allow_greater = false
-allow_lesser = false
+script = ExtResource("4_picker")
+min_value = 1
+max_value = 99
+value = 5
 
 [node name="Jugar" type="Button" parent="Centro/Menu"]
 custom_minimum_size = Vector2(260, 0)

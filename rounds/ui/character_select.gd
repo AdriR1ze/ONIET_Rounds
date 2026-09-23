@@ -260,7 +260,7 @@ func _process(delta: float) -> void:
 				elif KeyboardSetup.raw_action_just_pressed(slot, "down"):
 					_mover_eleccion(numero, COLUMNAS_PERSONAJES)
 					AudioManager.reproducir("ui_mover", 0.05)
-			if KeyboardSetup.raw_action_just_pressed(slot, "fire") or KeyboardSetup.raw_action_just_pressed(slot, "jump"):
+			if KeyboardSetup.raw_action_just_pressed(slot, "fire"):
 				_toggle_ready(numero)
 			continue
 
@@ -280,7 +280,7 @@ func _process(delta: float) -> void:
 				AudioManager.reproducir("ui_mover", 0.05)
 
 		var fire_pressed: bool = Input.is_action_just_pressed("p%d_fire" % numero)
-		var jump_pressed: bool = Input.is_action_just_pressed("p%d_jump" % numero)
+		var jump_pressed: bool = not Settings.es_teclado(numero) and Input.is_action_just_pressed("p%d_jump" % numero)
 		if fire_pressed or jump_pressed:
 			_toggle_ready(numero)
 
@@ -331,7 +331,10 @@ func _actualizar_ui() -> void:
 			status.text = "¡LISTO PARA COMBATIR!"
 			status.modulate = COLOR_LISTO
 		else:
-			status.text = "Mové para elegir • X / Dispará para confirmar"
+			if Settings.es_teclado(numero):
+				status.text = "Mové para elegir • Dispará / Enter para confirmar"
+			else:
+				status.text = "Mové para elegir • X / Dispará para confirmar"
 			status.modulate = Color(0.7, 0.7, 0.7, 1.0)
 	_btn_iniciar.text = "¡A LUCHAR! (COMENZANDO...)" if _todos_listos() else "COMENZAR PARTIDA"
 

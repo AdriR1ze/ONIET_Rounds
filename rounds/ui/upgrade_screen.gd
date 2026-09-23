@@ -469,8 +469,9 @@ func _process(delta: float) -> void:
 		elif _accion_just_pressed(numero, "right") and absf(move_axis) < 0.35:
 			_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
 			_actualizar_seleccion()
-			AudioManager.reproducir("ui_mover", 0.05)
-		if _accion_just_pressed(numero, "fire") or _accion_just_pressed(numero, "jump"):
+		var fire_pressed: bool = _accion_just_pressed(numero, "fire")
+		var jump_pressed: bool = not Settings.es_teclado(numero) and _accion_just_pressed(numero, "jump")
+		if fire_pressed or jump_pressed:
 			_confirmar(numero)
 
 
@@ -553,7 +554,7 @@ func _procesar_raw_menu(numero: int, total: int, delta: float) -> bool:
 		_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
 		_actualizar_seleccion()
 		AudioManager.reproducir("ui_mover", 0.05)
-	if _raw_menu_action(slot, "fire", false, delta) or _raw_menu_action(slot, "jump", false, delta):
+	if _raw_menu_action(slot, "fire", false, delta):
 		_confirmar(numero)
 	return true
 

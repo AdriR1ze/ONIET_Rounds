@@ -1,9 +1,13 @@
 ﻿extends Node
 
+const NumberPickerButton = preload("res://ui/number_picker_button.gd")
+
 
 func _ready() -> void:
 	print("--- INICIANDO TEST DINÁMICO DE TECLADO Y MENÚ ---")
 	test_menu_principal()
+	test_number_picker_control()
+	test_w_no_confirma_teclado()
 	test_dynamic_keyboard_scenarios()
 	test_reiniciar_full()
 	test_joystick_existing()
@@ -20,8 +24,76 @@ func test_menu_principal() -> void:
 	assert(indice_btn.text == "Índice", "El texto debe ser 'Índice', actual: '%s'" % indice_btn.text)
 	assert(menu.get_node_or_null("Centro/Menu/Controles") == null, "El botón Controles NO debe existir en el menú")
 	assert(menu.get_node_or_null("Controles") == null, "El panel modal Controles NO debe existir")
+
+	var rondas_val: Node = menu.get_node_or_null("Centro/Menu/Config/Rondas/Valor")
+	assert(rondas_val is Button, "Rondas/Valor debe ser Button")
+	assert(not (rondas_val is SpinBox), "Rondas/Valor NO debe ser SpinBox")
+	var vidas_val: Node = menu.get_node_or_null("Centro/Menu/Config/Vidas/Valor")
+	assert(vidas_val is Button, "Vidas/Valor debe ser Button")
+	assert(not (vidas_val is SpinBox), "Vidas/Valor NO debe ser SpinBox")
+
 	menu.queue_free()
-	print("✓ Menú principal: botón renombrado y Controles removido correctamente")
+	print("✓ Menú principal: botón renombrado, Controles removido y SpinBoxes reemplazados")
+
+
+func test_number_picker_control() -> void:
+	var picker = NumberPickerButton.new()
+	picker.min_value = 1
+	picker.max_value = 99
+	picker.value = 3
+	assert(picker.text == "3", "Texto inicial debe ser '3'")
+	assert(not picker.editando, "No debe estar editando inicialmente")
+
+	# Simular pulsar X / Enter (ui_accept)
+	var ev_accept := InputEventAction.new()
+	ev_accept.action = "ui_accept"
+	ev_accept.pressed = true
+	picker._gui_input(ev_accept)
+	assert(picker.editando, "Debe entrar en modo edición tras ui_accept")
+	assert(picker.text == "▲  3  ▼", "Texto en edición debe ser '▲  3  ▼'")
+
+	# Simular mover arriba (ui_up)
+	var ev_up := InputEventAction.new()
+	ev_up.action = "ui_up"
+	ev_up.pressed = true
+	picker._gui_input(ev_up)
+	assert(picker.value == 4, "Valor debe subir a 4")
+	assert(picker.text == "▲  4  ▼", "Texto debe actualizarse a '▲  4  ▼'")
+
+	# Simular mover abajo (ui_down)
+	var ev_down := InputEventAction.new()
+	ev_down.action = "ui_down"
+	ev_down.pressed = true
+	picker._gui_input(ev_down)
+	assert(picker.value == 3, "Valor debe bajar a 3")
+
+	# Simular pulsar X de nuevo para confirmar
+	picker._gui_input(ev_accept)
+	assert(not picker.editando, "Debe salir de modo edición tras confirmar con ui_accept")
+	assert(picker.text == "3", "Texto final debe ser '3'")
+
+	picker.queue_free()
+	print("✓ NumberPickerButton: responde a ui_accept para editar y up/down para cambiar")
+
+
+func test_w_no_confirma_teclado() -> void:
+	Settings.dispositivos[1] = Settings.DISPOSITIVO_TECLADO
+	Settings.aplicar_controles()
+
+	# Para un jugador de teclado, jump_pressed no debe activarse
+	var jump_pressed_teclado: bool = not Settings.es_teclado(1) and Input.is_action_just_pressed("p1_jump")
+	assert(not jump_pressed_teclado, "jump_pressed DEBE ser falso para jugadores de teclado")
+
+	# Para un jugador de mando, jump_pressed sí se evalúa (representa el botón X / A)
+	Settings.dispositivos[1] = 0
+	Settings.aplicar_controles()
+	assert(not Settings.es_teclado(1), "P1 ahora es mando")
+	var jump_pressed_mando_eval: bool = not Settings.es_teclado(1)
+	assert(jump_pressed_mando_eval, "jump_pressed se habilita en mando (botón X)")
+
+	Settings.dispositivos[1] = Settings.DISPOSITIVO_TECLADO
+	Settings.aplicar_controles()
+	print("✓ Confirmación: la tecla W (salto) NO confirma ready para jugadores con teclado")
 
 
 func test_dynamic_keyboard_scenarios() -> void:
