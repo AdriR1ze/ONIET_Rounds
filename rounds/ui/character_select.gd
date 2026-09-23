@@ -238,27 +238,29 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		_volver_al_menu()
 	elif event is InputEventKey and event.pressed and not event.echo:
-		if (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE) and Settings.es_teclado(1):
-			_toggle_ready(1)
+		var p_teclado := Settings.primer_jugador_teclado()
+		if (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE) and p_teclado > 0:
+			_toggle_ready(p_teclado)
 
 
 func _process(delta: float) -> void:
 	for numero in _numeros:
 		if _usa_raw_keyboard(numero):
+			var slot := Settings.slot_teclado_de(numero)
 			if not _listo[numero]:
-				if KeyboardSetup.raw_action_just_pressed(numero, "left"):
+				if KeyboardSetup.raw_action_just_pressed(slot, "left"):
 					_mover_eleccion(numero, -1)
 					AudioManager.reproducir("ui_mover", 0.05)
-				elif KeyboardSetup.raw_action_just_pressed(numero, "right"):
+				elif KeyboardSetup.raw_action_just_pressed(slot, "right"):
 					_mover_eleccion(numero, 1)
 					AudioManager.reproducir("ui_mover", 0.05)
-				elif KeyboardSetup.raw_action_just_pressed(numero, "up"):
+				elif KeyboardSetup.raw_action_just_pressed(slot, "up"):
 					_mover_eleccion(numero, -COLUMNAS_PERSONAJES)
 					AudioManager.reproducir("ui_mover", 0.05)
-				elif KeyboardSetup.raw_action_just_pressed(numero, "down"):
+				elif KeyboardSetup.raw_action_just_pressed(slot, "down"):
 					_mover_eleccion(numero, COLUMNAS_PERSONAJES)
 					AudioManager.reproducir("ui_mover", 0.05)
-			if KeyboardSetup.raw_action_just_pressed(numero, "fire"):
+			if KeyboardSetup.raw_action_just_pressed(slot, "fire"):
 				_toggle_ready(numero)
 			continue
 
@@ -278,12 +280,14 @@ func _process(delta: float) -> void:
 				AudioManager.reproducir("ui_mover", 0.05)
 
 		var fire_pressed: bool = Input.is_action_just_pressed("p%d_fire" % numero)
-		if fire_pressed:
+		var jump_pressed: bool = not Settings.es_teclado(numero) and Input.is_action_just_pressed("p%d_jump" % numero)
+		if fire_pressed or jump_pressed:
 			_toggle_ready(numero)
 
 
 func _usa_raw_keyboard(numero: int) -> bool:
-	return Settings.es_teclado(numero) and numero <= 2 and KeyboardSetup.raw_input_activo()
+	var slot := Settings.slot_teclado_de(numero)
+	return slot >= 1 and slot <= 2 and KeyboardSetup.raw_input_activo()
 
 
 func _toggle_ready(numero: int) -> void:
@@ -327,7 +331,10 @@ func _actualizar_ui() -> void:
 			status.text = "¡LISTO PARA COMBATIR!"
 			status.modulate = COLOR_LISTO
 		else:
-			status.text = "Mové para elegir • X / Dispará para confirmar"
+			if Settings.es_teclado(numero):
+				status.text = "Mové para elegir • Dispará / Enter para confirmar"
+			else:
+				status.text = "Mové para elegir • X / Dispará para confirmar"
 			status.modulate = Color(0.7, 0.7, 0.7, 1.0)
 	_btn_iniciar.text = "¡A LUCHAR! (COMENZANDO...)" if _todos_listos() else "COMENZAR PARTIDA"
 

@@ -5,7 +5,6 @@ const ESCENA_PERSONAJES := "res://ui/character_select.tscn"
 const OPCIONES_JUGADORES := [2, 3, 4]
 
 @onready var _menu: VBoxContainer = $Centro/Menu
-@onready var _controles: ColorRect = $Controles
 @onready var _opciones: CanvasLayer = $OptionsScreen
 @onready var _indice: CanvasLayer = $UpgradeIndexScreen
 @onready var _modal_nombres: ColorRect = $ModalNombres
@@ -13,21 +12,18 @@ const OPCIONES_JUGADORES := [2, 3, 4]
 @onready var _boton_iniciar: Button = $ModalNombres/Centro/Marco/Margin/VBox/Botones/Comenzar
 @onready var _boton_volver_nombres: Button = $ModalNombres/Centro/Marco/Margin/VBox/Botones/Volver
 @onready var _jugadores: OptionButton = $Centro/Menu/Config/Jugadores/Valor
-@onready var _rondas: SpinBox = $Centro/Menu/Config/Rondas/Valor
-@onready var _vidas: SpinBox = $Centro/Menu/Config/Vidas/Valor
+@onready var _rondas: Button = $Centro/Menu/Config/Rondas/Valor
+@onready var _vidas: Button = $Centro/Menu/Config/Vidas/Valor
 @onready var _boton_jugar: Button = $Centro/Menu/Jugar
 @onready var _boton_indice: Button = $Centro/Menu/Indice
-@onready var _boton_controles: Button = $Centro/Menu/Controles
 @onready var _boton_opciones: Button = $Centro/Menu/Opciones
 @onready var _boton_salir: Button = $Centro/Menu/Salir
-@onready var _boton_volver: Button = $Controles/Centro/Marco/Margin/VBox/Volver
 
 var _inputs: Array[LineEdit] = []
 
 
 func _ready() -> void:
 	get_tree().paused = false
-	_controles.visible = false
 	_modal_nombres.visible = false
 	_poblar(_jugadores, OPCIONES_JUGADORES, RunManager.cantidad_jugadores)
 	_rondas.value = RunManager.rondas_para_ganar
@@ -40,10 +36,8 @@ func _ready() -> void:
 	_boton_indice.pressed.connect(_mostrar_indice)
 	_indice.cerrado.connect(_ocultar_indice)
 
-	_boton_controles.pressed.connect(_mostrar_controles)
 	_boton_opciones.pressed.connect(_mostrar_opciones)
 	_boton_salir.pressed.connect(_salir)
-	_boton_volver.pressed.connect(_ocultar_controles)
 	_opciones.cerrado.connect(_ocultar_opciones)
 
 	_menu.visible = true
@@ -117,17 +111,6 @@ func _ocultar_indice() -> void:
 	_menu.visible = true
 	_boton_indice.grab_focus()
 
-
-func _mostrar_controles() -> void:
-	_menu.visible = false
-	_controles.visible = true
-	_boton_volver.grab_focus()
-
-
-func _ocultar_controles() -> void:
-	_controles.visible = false
-	_menu.visible = true
-	_boton_controles.grab_focus()
 
 
 func _mostrar_opciones() -> void:
