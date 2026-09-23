@@ -297,6 +297,7 @@ func _centrar_ventana() -> void:
 func aplicar_controles() -> void:
 	for jugador in JUGADORES:
 		var device := dispositivo_de(jugador)
+		var slot := slot_teclado_de(jugador)
 		for sufijo in SUFIJOS:
 			var accion := "p%d_%s" % [jugador, sufijo]
 			if not InputMap.has_action(accion):
@@ -305,7 +306,7 @@ func aplicar_controles() -> void:
 			if sufijo in SUFIJOS_ANALOGOS:
 				InputMap.action_set_deadzone(accion, DEADZONE_ANALOGO)
 			if device == DISPOSITIVO_TECLADO:
-				_aplicar_teclado(accion)
+				_aplicar_teclado(accion, sufijo, slot)
 			else:
 				_aplicar_mando(accion, sufijo, device)
 		_aplicar_aim(jugador, device)
@@ -319,19 +320,62 @@ func es_teclado(jugador: int) -> bool:
 	return dispositivo_de(jugador) == DISPOSITIVO_TECLADO
 
 
+func jugadores_con_teclado() -> Array[int]:
+	var lista: Array[int] = []
+	for j in JUGADORES:
+		if es_teclado(j):
+			lista.append(j)
+	return lista
+
+
+func slot_teclado_de(jugador: int) -> int:
+	if not es_teclado(jugador):
+		return 0
+	var slot := 0
+	for j in JUGADORES:
+		if es_teclado(j):
+			slot += 1
+			if j == jugador:
+				return slot
+	return 0
+
+
+func primer_jugador_teclado() -> int:
+	for j in JUGADORES:
+		if es_teclado(j):
+			return j
+	return 0
+
+
 func set_dispositivo(jugador: int, device: int) -> void:
 	dispositivos[jugador] = clampi(device, DISPOSITIVO_TECLADO, MAX_MANDOS - 1)
 	aplicar_controles()
 	guardar()
 
 
-func _aplicar_teclado(accion: String) -> void:
+func _aplicar_teclado(accion: String, sufijo: String, slot_teclado: int) -> void:
+	# 1. Remap específico para esta acción (ej. p2_left)
 	var remap: Dictionary = _remaps.get(accion, {})
 	var tr := String(remap.get("t", ""))
 	if tr == "key" or tr == "mouse_button":
 		_agregar_evento(accion, remap)
 		return
-	for d in _defaults.get(accion, []):
+
+	# 2. Si no hay remap directo, revisar si hay remap en el slot de teclado asignado
+	var slot_valido := clampi(slot_teclado, 1, 4)
+	var accion_slot := "p%d_%s" % [slot_valido, sufijo]
+	if _remaps.has(accion_slot):
+		var remap_slot: Dictionary = _remaps[accion_slot]
+		var trs := String(remap_slot.get("t", ""))
+		if trs == "key" or trs == "mouse_button":
+			_agregar_evento(accion, remap_slot)
+			return
+
+	# 3. Defaults del slot asignado (Slot 1 = WASD, Slot 2 = Flechas, Slot 3 = Numpad, Slot 4 = TFGH)
+	var eventos_default: Array = _defaults.get(accion_slot, [])
+	if eventos_default.is_empty():
+		eventos_default = _defaults.get(accion, [])
+	for d in eventos_default:
 		var td := String(d.get("t", ""))
 		if td == "key" or td == "mouse_button":
 			_agregar_evento(accion, d)

@@ -12,13 +12,13 @@ func _ready() -> void:
 
 func move_axis() -> float:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_move_axis(player_number)
+		return KeyboardSetup.raw_move_axis(_slot_teclado())
 	return Input.get_axis(_action("left"), _action("right"))
 
 
 func aim() -> Vector2:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_aim(player_number)
+		return KeyboardSetup.raw_aim(_slot_teclado())
 
 	# Stick derecho: apuntado analogico libre (si el dispositivo lo tiene).
 	if InputMap.has_action(_action("aim_left")):
@@ -49,56 +49,56 @@ func aim() -> Vector2:
 
 func is_jump_just_pressed() -> bool:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_action_just_pressed(player_number, "jump")
+		return KeyboardSetup.raw_action_just_pressed(_slot_teclado(), "jump")
 	return Input.is_action_just_pressed(_action("jump"))
 
 
 func is_jump_just_released() -> bool:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_action_just_released(player_number, "jump")
+		return KeyboardSetup.raw_action_just_released(_slot_teclado(), "jump")
 	return Input.is_action_just_released(_action("jump"))
 
 
 func is_crouch_pressed() -> bool:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_action_pressed(player_number, "down")
+		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "down")
 	return Input.is_action_pressed(_action("down"))
 
 
 func is_strafe_pressed() -> bool:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_action_pressed(player_number, "strafe")
+		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "strafe")
 	return Input.is_action_pressed(_action("strafe"))
 
 
 func is_fire_pressed() -> bool:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_action_pressed(player_number, "fire")
+		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "fire")
 	return Input.is_action_pressed(_action("fire"))
 
 
 func is_grab_just_pressed() -> bool:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_action_just_pressed(player_number, "grab")
+		return KeyboardSetup.raw_action_just_pressed(_slot_teclado(), "grab")
 	return Input.is_action_just_pressed(_action("grab"))
 
 
 func is_ragdoll_just_pressed() -> bool:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_action_just_pressed(player_number, "ragdoll")
+		return KeyboardSetup.raw_action_just_pressed(_slot_teclado(), "ragdoll")
 	return Input.is_action_just_pressed(_action("ragdoll"))
 
 
 func is_quack_just_pressed() -> bool:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_action_just_pressed(player_number, "quack")
+		return KeyboardSetup.raw_action_just_pressed(_slot_teclado(), "quack")
 	var act := _action("quack")
 	return InputMap.has_action(act) and Input.is_action_just_pressed(act)
 
 
 func is_lock_pressed() -> bool:
 	if _usa_raw_keyboard():
-		return KeyboardSetup.raw_action_pressed(player_number, "lock")
+		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "lock")
 	return Input.is_action_pressed(_action("lock"))
 
 
@@ -106,5 +106,10 @@ func _action(name: String) -> String:
 	return "p%d_%s" % [player_number, name]
 
 
+func _slot_teclado() -> int:
+	return Settings.slot_teclado_de(player_number)
+
+
 func _usa_raw_keyboard() -> bool:
-	return Settings.es_teclado(player_number) and player_number <= 2 and KeyboardSetup.raw_input_activo()
+	var slot := _slot_teclado()
+	return slot >= 1 and slot <= 2 and KeyboardSetup.raw_input_activo()

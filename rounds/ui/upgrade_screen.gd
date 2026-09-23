@@ -475,11 +475,12 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not _activo or _confirmados.get(1, false):
+	var p_teclado := Settings.primer_jugador_teclado()
+	if not _activo or p_teclado <= 0 or _confirmados.get(p_teclado, false):
 		return
 	elif event is InputEventKey and event.pressed and not event.echo:
-		if (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE) and Settings.es_teclado(1):
-			_confirmar(1)
+		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE:
+			_confirmar(p_teclado)
 
 
 func _confirmar(numero: int) -> void:
@@ -534,23 +535,25 @@ func _accion(numero: int, nombre: String) -> String:
 
 
 func _accion_just_pressed(numero: int, nombre: String) -> bool:
-	if numero <= 2 and KeyboardSetup.raw_input_activo():
-		return KeyboardSetup.raw_action_just_pressed(numero, nombre)
+	var slot := Settings.slot_teclado_de(numero)
+	if slot >= 1 and slot <= 2 and KeyboardSetup.raw_input_activo():
+		return KeyboardSetup.raw_action_just_pressed(slot, nombre)
 	return Input.is_action_just_pressed(_accion(numero, nombre))
 
 
 func _procesar_raw_menu(numero: int, total: int, delta: float) -> bool:
-	if numero > 2 or not KeyboardSetup.raw_input_activo():
+	var slot := Settings.slot_teclado_de(numero)
+	if slot < 1 or slot > 2 or not KeyboardSetup.raw_input_activo():
 		return false
-	if _raw_menu_action(numero, "left", true, delta):
+	if _raw_menu_action(slot, "left", true, delta):
 		_indices[numero] = wrapi(_indices[numero] - 1, 0, total)
 		_actualizar_seleccion()
 		AudioManager.reproducir("ui_mover", 0.05)
-	if _raw_menu_action(numero, "right", true, delta):
+	if _raw_menu_action(slot, "right", true, delta):
 		_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
 		_actualizar_seleccion()
 		AudioManager.reproducir("ui_mover", 0.05)
-	if _raw_menu_action(numero, "fire", false, delta) or _raw_menu_action(numero, "jump", false, delta):
+	if _raw_menu_action(slot, "fire", false, delta) or _raw_menu_action(slot, "jump", false, delta):
 		_confirmar(numero)
 	return true
 
@@ -578,10 +581,11 @@ func _preparar_raw_menu_estado() -> void:
 		return
 	for jugador in _jugadores:
 		var numero: int = jugador.player_number
-		if numero > 2:
+		var slot := Settings.slot_teclado_de(numero)
+		if slot < 1 or slot > 2:
 			continue
 		for nombre in ["left", "right", "fire", "jump"]:
-			var key := "%d_%s" % [numero, nombre]
-			var pressed := KeyboardSetup.raw_action_pressed(numero, nombre)
+			var key := "%d_%s" % [slot, nombre]
+			var pressed := KeyboardSetup.raw_action_pressed(slot, nombre)
 			_raw_menu_prev[key] = pressed
 			_raw_menu_cooldowns[key] = RAW_MENU_REPEAT_DELAY if pressed else 0.0
