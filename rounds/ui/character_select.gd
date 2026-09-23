@@ -258,7 +258,7 @@ func _process(delta: float) -> void:
 				elif KeyboardSetup.raw_action_just_pressed(numero, "down"):
 					_mover_eleccion(numero, COLUMNAS_PERSONAJES)
 					AudioManager.reproducir("ui_mover", 0.05)
-			if KeyboardSetup.raw_action_just_pressed(numero, "fire") or KeyboardSetup.raw_action_just_pressed(numero, "jump"):
+			if KeyboardSetup.raw_action_just_pressed(numero, "fire"):
 				_toggle_ready(numero)
 			continue
 
@@ -278,8 +278,7 @@ func _process(delta: float) -> void:
 				AudioManager.reproducir("ui_mover", 0.05)
 
 		var fire_pressed: bool = Input.is_action_just_pressed("p%d_fire" % numero)
-		var jump_pressed: bool = Input.is_action_just_pressed("p%d_jump" % numero)
-		if fire_pressed or jump_pressed:
+		if fire_pressed:
 			_toggle_ready(numero)
 
 

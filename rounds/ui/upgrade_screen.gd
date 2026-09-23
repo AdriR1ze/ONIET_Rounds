@@ -470,7 +470,7 @@ func _process(delta: float) -> void:
 			_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
 			_actualizar_seleccion()
 			AudioManager.reproducir("ui_mover", 0.05)
-		if _accion_just_pressed(numero, "fire") or _accion_just_pressed(numero, "jump"):
+		if _accion_just_pressed(numero, "fire"):
 			_confirmar(numero)
 
 
@@ -550,7 +550,7 @@ func _procesar_raw_menu(numero: int, total: int, delta: float) -> bool:
 		_indices[numero] = wrapi(_indices[numero] + 1, 0, total)
 		_actualizar_seleccion()
 		AudioManager.reproducir("ui_mover", 0.05)
-	if _raw_menu_action(numero, "fire", false, delta) or _raw_menu_action(numero, "jump", false, delta):
+	if _raw_menu_action(numero, "fire", false, delta):
 		_confirmar(numero)
 	return true
 
@@ -580,7 +580,7 @@ func _preparar_raw_menu_estado() -> void:
 		var numero: int = jugador.player_number
 		if numero > 2:
 			continue
-		for nombre in ["left", "right", "fire", "jump"]:
+		for nombre in ["left", "right", "fire"]:
 			var key := "%d_%s" % [numero, nombre]
 			var pressed := KeyboardSetup.raw_action_pressed(numero, nombre)
 			_raw_menu_prev[key] = pressed

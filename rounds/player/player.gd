@@ -66,6 +66,7 @@ var _spawn_position: Vector2
 var _hit_stop_remaining: float = 0.0
 var _hit_stop_active: bool = false
 var _death_tween: Tween = null
+var _fade_tween: Tween = null
 
 # Modificadores de físicas dinámicos (auras / campos)
 var gravity_scale: float = 1.0
@@ -453,18 +454,20 @@ func _on_died() -> void:
 	_death_tween.tween_property(self, "modulate", Color(0.72, 0.72, 0.78, 1.0), 0.3)
 
 	# Desvanecer y ocultar el cadáver tras una breve pausa
-	var fade_tween := create_tween()
-	fade_tween.tween_interval(0.8)
-	fade_tween.tween_property(self, "modulate:a", 0.0, 0.4)
-	fade_tween.tween_callback(func():
+	# Se guarda para poder cancelarlo en respawn(): si el jugador revive antes de
+	# que termine, un tween huérfano dejaría vivo pero invisible al personaje.
+	_fade_tween = create_tween()
+	_fade_tween.tween_interval(0.8)
+	_fade_tween.tween_property(self, "modulate:a", 0.0, 0.4)
+	_fade_tween.tween_callback(func():
 		if current_state == PlayerState.DEAD:
 			visible = false
 	)
 
 	# Desactivar colisión con proyectiles para no deflectar ni recibir más impactos
-	var hurtbox_col := get_node_or_null("HurtboxComponent/CollisionShape2D") as CollisionShape2D
-	if hurtbox_col != null:
-		hurtbox_col.set_deferred("disabled", true)
+	var hurtbox := get_node_or_null("HurtboxComponent") as HurtboxComponent
+	if hurtbox != null:
+		hurtbox.set_active(false)
 
 	_spawn_blood()
 
@@ -546,6 +549,9 @@ func respawn() -> void:
 	if _death_tween != null and _death_tween.is_valid():
 		_death_tween.kill()
 	_death_tween = null
+	if _fade_tween != null and _fade_tween.is_valid():
+		_fade_tween.kill()
+	_fade_tween = null
 	$Visual.rotation = 0.0
 	$Visual.position = Vector2.ZERO
 	_body_animation.play("stand")
@@ -553,9 +559,11 @@ func respawn() -> void:
 		_skeleton_sprite.play("idle")
 	_update_visual_facing()
 	_health.reset()
-	var hurtbox_col := get_node_or_null("HurtboxComponent/CollisionShape2D") as CollisionShape2D
-	if hurtbox_col != null:
-		hurtbox_col.set_deferred("disabled", false)
+	# Reactivar el hurtbox. set_active() reconcilia el shape en el próximo frame
+	# físico, así no compite con el disable encolado por _on_died.
+	var hurtbox := get_node_or_null("HurtboxComponent") as HurtboxComponent
+	if hurtbox != null:
+		hurtbox.set_active(true)
 	if _weapon != null and _weapon.has_method("reset_cooldown"):
 		_weapon.reset_cooldown(0.35)
 	if _weapon != null and _weapon.has_method("reset_ammo"):
