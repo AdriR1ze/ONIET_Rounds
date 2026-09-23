@@ -24,6 +24,10 @@ var _current_spread: float = 0.0
 var _spread_timer: float = 0.0
 var _blocked_time: float = 0.0
 
+# Behavior Tree
+var _tree: BTNode = null
+var _target: CharacterBody2D = null
+
 
 func _ready() -> void:
 	var p = get_parent().get_parent()
@@ -32,6 +36,18 @@ func _ready() -> void:
 		player_number = int(player.get("player_number"))
 	dificultad = RunManager.dificultad_bot
 	_tactical_jump_timer = randf_range(1.0, 2.5)
+
+	_tree = BTSelector.new([
+		BTSequence.new([
+			BTLeaf.new(Callable(self, "_bt_can_act")),
+			BTLeaf.new(Callable(self, "_bt_check_parry")),
+			BTLeaf.new(Callable(self, "_bt_has_target")),
+			BTLeaf.new(Callable(self, "_bt_update_movement")),
+			BTLeaf.new(Callable(self, "_bt_update_aim")),
+			BTLeaf.new(Callable(self, "_bt_update_shooting")),
+		]),
+		BTLeaf.new(Callable(self, "_bt_stop")),
+	])
 
 
 func get_move_axis() -> float:
@@ -62,47 +78,53 @@ func _physics_process(delta: float) -> void:
 	_jump_just_pressed = false
 	_jump_just_released = false
 	_ragdoll_just_pressed = false
+	if _tree != null:
+		_tree.tick(delta)
 
+
+func _bt_can_act(_delta: float) -> int:
 	if player == null or not is_instance_valid(player):
-		_move_axis = 0.0
-		_fire_pressed = false
-		return
-
+		return BTNode.Status.FAILURE
 	if player.has_method("is_alive") and not player.is_alive():
-		_move_axis = 0.0
-		_fire_pressed = false
-		return
-
+		return BTNode.Status.FAILURE
 	if player.get("can_control") == false:
-		_move_axis = 0.0
-		_fire_pressed = false
-		return
+		return BTNode.Status.FAILURE
+	return BTNode.Status.SUCCESS
 
+
+func _bt_stop(_delta: float) -> int:
+	_move_axis = 0.0
+	_fire_pressed = false
+	return BTNode.Status.SUCCESS
+
+
+func _bt_check_parry(delta: float) -> int:
 	dificultad = RunManager.dificultad_bot
 	_parry_cooldown_timer = maxf(_parry_cooldown_timer - delta, 0.0)
-
-	# Limpiar registro de balas periódicamente
 	if _bullet_parry_decisions.size() > 40:
 		_limpiar_registro_balas()
-
-	# 1. Chequeo de Parry reactivo calibrado (evaluación única por bala + cooldown)
 	_check_parry(delta)
+	return BTNode.Status.SUCCESS
 
-	# 2. Búsqueda de objetivo enemigo vivo
-	var target: CharacterBody2D = _find_target()
-	if target == null:
-		_move_axis = 0.0
-		_fire_pressed = false
-		return
 
-	# 3. Navegación, movimiento y prevención de caídas al vacío
-	_update_movement(target, delta)
+func _bt_has_target(_delta: float) -> int:
+	_target = _find_target()
+	return BTNode.Status.SUCCESS if _target != null else BTNode.Status.FAILURE
 
-	# 4. Apuntado predictivo según dificultad
-	_update_aim(target, delta)
 
-	# 5. Lógica de disparo
-	_update_shooting(target, delta)
+func _bt_update_movement(delta: float) -> int:
+	_update_movement(_target, delta)
+	return BTNode.Status.SUCCESS
+
+
+func _bt_update_aim(delta: float) -> int:
+	_update_aim(_target, delta)
+	return BTNode.Status.SUCCESS
+
+
+func _bt_update_shooting(delta: float) -> int:
+	_update_shooting(_target, delta)
+	return BTNode.Status.SUCCESS
 
 
 func _limpiar_registro_balas() -> void:
