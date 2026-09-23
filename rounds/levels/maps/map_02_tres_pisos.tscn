@@ -28,6 +28,21 @@ position = Vector2(350, 520)
 [node name="SpawnP4" type="Marker2D" parent="."]
 position = Vector2(930, 520)
 
+[node name="SpawnP5" type="Marker2D" parent="."]
+position = Vector2(360, 420)
+
+[node name="SpawnP6" type="Marker2D" parent="."]
+position = Vector2(880, 420)
+
+[node name="SpawnP7" type="Marker2D" parent="."]
+position = Vector2(250, 290)
+
+[node name="SpawnP8" type="Marker2D" parent="."]
+position = Vector2(990, 290)
+
+[node name="SpawnP9" type="Marker2D" parent="."]
+position = Vector2(640, 100)
+
 [node name="DeadZone" type="Area2D" parent="."]
 script = ExtResource("2_haz")
 

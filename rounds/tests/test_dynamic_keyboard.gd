@@ -27,10 +27,14 @@ func test_menu_principal() -> void:
 	assert(menu.get_node_or_null("Centro/Menu/Controles") == null, "El botón Controles NO debe existir en el menú")
 	assert(menu.get_node_or_null("Controles") == null, "El panel modal Controles NO debe existir")
 
-	var rondas_val: Node = menu.get_node_or_null("Centro/Menu/Config/Rondas/Valor")
+	var rondas_val: Node = menu.get_node_or_null("ModalPartida/Centro/Marco/Margin/VBox/Config/Rondas/Valor")
+	if rondas_val == null:
+		rondas_val = menu.get_node_or_null("Centro/Menu/Config/Rondas/Valor")
 	assert(rondas_val is Button, "Rondas/Valor debe ser Button")
 	assert(not (rondas_val is SpinBox), "Rondas/Valor NO debe ser SpinBox")
-	var vidas_val: Node = menu.get_node_or_null("Centro/Menu/Config/Vidas/Valor")
+	var vidas_val: Node = menu.get_node_or_null("ModalPartida/Centro/Marco/Margin/VBox/Config/Vidas/Valor")
+	if vidas_val == null:
+		vidas_val = menu.get_node_or_null("Centro/Menu/Config/Vidas/Valor")
 	assert(vidas_val is Button, "Vidas/Valor debe ser Button")
 	assert(not (vidas_val is SpinBox), "Vidas/Valor NO debe ser SpinBox")
 	assert(vidas_val.max_value == 20, "Vidas max_value debe ser 20")

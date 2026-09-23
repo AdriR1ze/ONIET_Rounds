@@ -121,7 +121,7 @@ func _find_target() -> CharacterBody2D:
 	var my_pos := player.global_position
 
 	for p in RunManager.jugadores_activos():
-		if p == player or not (p is CharacterBody2D):
+		if not is_instance_valid(p) or p == player or not (p is CharacterBody2D):
 			continue
 		if p.has_method("is_alive") and not p.is_alive():
 			continue
@@ -410,16 +410,19 @@ func _update_movement(target: CharacterBody2D, delta: float) -> void:
 
 	# 4. Salto vertical si el objetivo está en plataformas más altas
 	if target_pos.y < my_pos.y - 70.0 and absf(target_pos.x - my_pos.x) < 380.0:
-		if player.is_on_floor() and randf() < (0.85 if dificultad >= RunManager.DificultadBot.DIFICIL else 0.4):
+		if player.is_on_floor() and _hay_suelo(my_pos, 80.0) and randf() < (0.85 if dificultad >= RunManager.DificultadBot.DIFICIL else 0.4):
 			_jump_just_pressed = true
 
-	# 5. Salto táctico periódico en dificultades altas
+	# 5. Salto táctico periódico en dificultades altas (solo si está seguro en el centro de la plataforma)
 	if dificultad >= RunManager.DificultadBot.DIFICIL:
 		_tactical_jump_timer -= delta
 		if _tactical_jump_timer <= 0.0:
-			_tactical_jump_timer = randf_range(1.2, 2.8)
-			if player.is_on_floor() and randf() < 0.75:
+			_tactical_jump_timer = randf_range(1.4, 3.0)
+			if player.is_on_floor() and _hay_suelo(my_pos + Vector2(-45.0, 12.0), 90.0) and _hay_suelo(my_pos + Vector2(45.0, 12.0), 90.0) and randf() < 0.70:
 				_jump_just_pressed = true
+
+
+const Y_LIMITE_MUERTE := 635.0
 
 
 func _evitar_abismo(_delta: float) -> void:
@@ -427,51 +430,64 @@ func _evitar_abismo(_delta: float) -> void:
 	var move_dir := signf(_move_axis)
 
 	# Límites extremos del mapa (bordes de pantalla)
-	if my_pos.x < 170.0 and move_dir < 0.0:
+	if my_pos.x < 190.0 and move_dir < 0.0:
 		_move_axis = 1.0
-		if player.is_on_floor():
-			_jump_just_pressed = true
+		if player.is_on_floor() and player.velocity.x < -30.0:
+			player.velocity.x = 0.0
 		return
-	elif my_pos.x > 1110.0 and move_dir > 0.0:
+	elif my_pos.x > 1090.0 and move_dir > 0.0:
 		_move_axis = -1.0
-		if player.is_on_floor():
-			_jump_just_pressed = true
+		if player.is_on_floor() and player.velocity.x > 30.0:
+			player.velocity.x = 0.0
 		return
 
 	# Si está en el suelo y moviéndose: sondear si hay suelo delante
 	if player.is_on_floor() and not is_zero_approx(move_dir):
-		# Sonda 28 píxeles por delante a la altura de los pies
-		var probe_pos := Vector2(my_pos.x + move_dir * 28.0, my_pos.y + 12.0)
-		var hay_suelo_inmediato := _hay_suelo(probe_pos, 150.0)
+		# Lookahead dinámico según velocidad
+		var lookahead: float = clampf(absf(player.velocity.x) * 0.28 + 36.0, 36.0, 80.0)
+		var probe_cerca := Vector2(my_pos.x + move_dir * 22.0, my_pos.y + 12.0)
+		var probe_lejos := Vector2(my_pos.x + move_dir * lookahead, my_pos.y + 12.0)
 
-		if not hay_suelo_inmediato:
-			# Se acerca a un borde / precipicio!
-			# Comprobar si hay una plataforma aterrizaje al alcance de un salto
+		var hay_suelo_cerca := _hay_suelo(probe_cerca, 130.0)
+		var hay_suelo_lejos := _hay_suelo(probe_lejos, 130.0)
+
+		if not hay_suelo_cerca or not hay_suelo_lejos:
+			# Detectó precipicio o final de plataforma
+			# Comprobar si hay una plataforma accesible para un salto seguro
 			var salto_seguro := false
-			for d_salto in [120.0, 170.0, 220.0]:
-				var test_landing := Vector2(my_pos.x + move_dir * d_salto, my_pos.y - 10.0)
-				if _hay_suelo(test_landing, 180.0):
+			for d_salto in [110.0, 150.0]:
+				var test_landing := Vector2(my_pos.x + move_dir * d_salto, my_pos.y - 20.0)
+				if _hay_suelo(test_landing, 100.0):
 					salto_seguro = true
 					break
 
-			if salto_seguro:
-				# Hueco pequeño o plataforma accesible: saltar
+			if salto_seguro and absf(player.velocity.x) > 100.0:
+				# Solo saltar si tiene inercia hacia adelante y la plataforma está confirmada
 				_jump_just_pressed = true
 			else:
-				# Es un ABISMO profundo o inalcanzable (ej. medio de El Abismo):
-				# FRENAR EN SECO y dar medio paso atrás para no caerse
-				_move_axis = -move_dir * 0.35
+				# Si no hay salto seguro garantizado: FRENAR DE FORMA ROTUNDA
+				_move_axis = -move_dir
+				if absf(player.velocity.x) > 20.0 and signf(player.velocity.x) == move_dir:
+					player.velocity.x *= 0.25 # Frenar inercia para no resbalar
 
-	# Si está en el aire y cayendo hacia un abismo sin suelo debajo:
-	elif not player.is_on_floor() and player.velocity.y > 60.0:
-		var suelo_debajo := _hay_suelo(my_pos, 280.0)
+	# Si está en el aire (saltando o empujado):
+	elif not player.is_on_floor():
+		var suelo_debajo := _hay_suelo(my_pos, 220.0)
 		if not suelo_debajo:
-			var suelo_izq := _hay_suelo(Vector2(my_pos.x - 50.0, my_pos.y), 280.0)
-			var suelo_der := _hay_suelo(Vector2(my_pos.x + 50.0, my_pos.y), 280.0)
-			if suelo_izq and not suelo_der:
+			# Está sobre el vacío: buscar la plataforma más cercana a los lados
+			var hay_izq := _hay_suelo(Vector2(my_pos.x - 70.0, my_pos.y), 220.0)
+			var hay_der := _hay_suelo(Vector2(my_pos.x + 70.0, my_pos.y), 220.0)
+			if hay_izq and not hay_der:
 				_move_axis = -1.0
-			elif suelo_der and not suelo_izq:
+			elif hay_der and not hay_izq:
 				_move_axis = 1.0
+			elif not hay_izq and not hay_der:
+				var hay_izq_lejos := _hay_suelo(Vector2(my_pos.x - 140.0, my_pos.y), 240.0)
+				var hay_der_lejos := _hay_suelo(Vector2(my_pos.x + 140.0, my_pos.y), 240.0)
+				if hay_izq_lejos and not hay_der_lejos:
+					_move_axis = -1.0
+				elif hay_der_lejos and not hay_izq_lejos:
+					_move_axis = 1.0
 
 
 func _hay_suelo(origen: Vector2, distancia_abajo: float) -> bool:
@@ -483,4 +499,9 @@ func _hay_suelo(origen: Vector2, distancia_abajo: float) -> bool:
 	var query := PhysicsRayQueryParameters2D.create(origen, origen + Vector2(0.0, distancia_abajo), 1)
 	query.exclude = [player.get_rid()]
 	var res := space.intersect_ray(query)
-	return not res.is_empty()
+	if res.is_empty():
+		return false
+	var hit_pos: Vector2 = res.get("position", Vector2.ZERO)
+	if hit_pos.y >= Y_LIMITE_MUERTE:
+		return false
+	return true

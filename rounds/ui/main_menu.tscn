@@ -137,7 +137,7 @@ layout_mode = 2
 script = ExtResource("4_picker")
 min_value = 1
 max_value = 99
-value = 3
+value = 5
 
 [node name="Vidas" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox/Config"]
 layout_mode = 2
@@ -154,7 +154,7 @@ layout_mode = 2
 script = ExtResource("4_picker")
 min_value = 1
 max_value = 20
-value = 5
+value = 2
 
 [node name="DificultadBot" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox/Config"]
 layout_mode = 2
