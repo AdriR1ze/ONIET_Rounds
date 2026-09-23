@@ -3,20 +3,31 @@ extends Node
 
 @export var player_number: int = 1
 
+var _bot_brain: Node = null
+
 
 func _ready() -> void:
 	var value: Variant = get_parent().get("player_number")
 	if value != null:
 		player_number = int(value)
+	if Settings.es_bot(player_number):
+		var brain_script: Script = load("res://player/components/bot_brain.gd")
+		if brain_script != null:
+			_bot_brain = brain_script.new()
+			add_child(_bot_brain)
 
 
 func move_axis() -> float:
+	if _bot_brain != null:
+		return _bot_brain.get_move_axis()
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_move_axis(_slot_teclado())
 	return Input.get_axis(_action("left"), _action("right"))
 
 
 func aim() -> Vector2:
+	if _bot_brain != null:
+		return _bot_brain.get_aim()
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_aim(_slot_teclado())
 
@@ -48,48 +59,64 @@ func aim() -> Vector2:
 
 
 func is_jump_just_pressed() -> bool:
+	if _bot_brain != null:
+		return _bot_brain.is_jump_just_pressed()
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_just_pressed(_slot_teclado(), "jump")
 	return Input.is_action_just_pressed(_action("jump"))
 
 
 func is_jump_just_released() -> bool:
+	if _bot_brain != null:
+		return _bot_brain.is_jump_just_released()
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_just_released(_slot_teclado(), "jump")
 	return Input.is_action_just_released(_action("jump"))
 
 
 func is_crouch_pressed() -> bool:
+	if _bot_brain != null:
+		return false
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "down")
 	return Input.is_action_pressed(_action("down"))
 
 
 func is_strafe_pressed() -> bool:
+	if _bot_brain != null:
+		return false
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "strafe")
 	return Input.is_action_pressed(_action("strafe"))
 
 
 func is_fire_pressed() -> bool:
+	if _bot_brain != null:
+		return _bot_brain.is_fire_pressed()
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "fire")
 	return Input.is_action_pressed(_action("fire"))
 
 
 func is_grab_just_pressed() -> bool:
+	if _bot_brain != null:
+		return false
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_just_pressed(_slot_teclado(), "grab")
 	return Input.is_action_just_pressed(_action("grab"))
 
 
 func is_ragdoll_just_pressed() -> bool:
+	if _bot_brain != null:
+		return _bot_brain.is_ragdoll_just_pressed()
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_just_pressed(_slot_teclado(), "ragdoll")
 	return Input.is_action_just_pressed(_action("ragdoll"))
 
 
 func is_quack_just_pressed() -> bool:
+	if _bot_brain != null:
+		return false
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_just_pressed(_slot_teclado(), "quack")
 	var act := _action("quack")
@@ -97,6 +124,8 @@ func is_quack_just_pressed() -> bool:
 
 
 func is_lock_pressed() -> bool:
+	if _bot_brain != null:
+		return false
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "lock")
 	return Input.is_action_pressed(_action("lock"))

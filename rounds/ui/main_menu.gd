@@ -7,13 +7,14 @@ const OPCIONES_JUGADORES := [2, 3, 4]
 @onready var _menu: VBoxContainer = $Centro/Menu
 @onready var _opciones: CanvasLayer = $OptionsScreen
 @onready var _indice: CanvasLayer = $UpgradeIndexScreen
-@onready var _modal_nombres: ColorRect = $ModalNombres
-@onready var _campos: VBoxContainer = $ModalNombres/Centro/Marco/Margin/VBox/Campos
-@onready var _boton_iniciar: Button = $ModalNombres/Centro/Marco/Margin/VBox/Botones/Comenzar
-@onready var _boton_volver_nombres: Button = $ModalNombres/Centro/Marco/Margin/VBox/Botones/Volver
-@onready var _jugadores: OptionButton = $Centro/Menu/Config/Jugadores/Valor
-@onready var _rondas: Button = $Centro/Menu/Config/Rondas/Valor
-@onready var _vidas: Button = $Centro/Menu/Config/Vidas/Valor
+@onready var _modal_partida: ColorRect = $ModalPartida
+@onready var _campos: VBoxContainer = $ModalPartida/Centro/Marco/Margin/VBox/Campos
+@onready var _boton_iniciar: Button = $ModalPartida/Centro/Marco/Margin/VBox/Botones/Comenzar
+@onready var _boton_volver_partida: Button = $ModalPartida/Centro/Marco/Margin/VBox/Botones/Volver
+@onready var _jugadores: OptionButton = $ModalPartida/Centro/Marco/Margin/VBox/Config/Jugadores/Valor
+@onready var _rondas: Button = $ModalPartida/Centro/Marco/Margin/VBox/Config/Rondas/Valor
+@onready var _vidas: Button = $ModalPartida/Centro/Marco/Margin/VBox/Config/Vidas/Valor
+@onready var _dificultad_bot: OptionButton = $ModalPartida/Centro/Marco/Margin/VBox/Config/DificultadBot/Valor
 @onready var _boton_jugar: Button = $Centro/Menu/Jugar
 @onready var _boton_indice: Button = $Centro/Menu/Indice
 @onready var _boton_opciones: Button = $Centro/Menu/Opciones
@@ -24,14 +25,16 @@ var _inputs: Array[LineEdit] = []
 
 func _ready() -> void:
 	get_tree().paused = false
-	_modal_nombres.visible = false
+	_modal_partida.visible = false
 	_poblar(_jugadores, OPCIONES_JUGADORES, RunManager.cantidad_jugadores)
 	_rondas.value = RunManager.rondas_para_ganar
 	_vidas.value = RunManager.vidas_por_ronda
+	_poblar_dificultad_bot()
 
-	_boton_jugar.pressed.connect(_mostrar_modal_nombres)
+	_jugadores.item_selected.connect(_on_jugadores_changed)
+	_boton_jugar.pressed.connect(_mostrar_modal_partida)
 	_boton_iniciar.pressed.connect(_iniciar_partida)
-	_boton_volver_nombres.pressed.connect(_ocultar_modal_nombres)
+	_boton_volver_partida.pressed.connect(_ocultar_modal_partida)
 
 	_boton_indice.pressed.connect(_mostrar_indice)
 	_indice.cerrado.connect(_ocultar_indice)
@@ -44,15 +47,26 @@ func _ready() -> void:
 	_boton_jugar.grab_focus()
 
 
-func _mostrar_modal_nombres() -> void:
+func _poblar_dificultad_bot() -> void:
+	_dificultad_bot.clear()
+	for i in RunManager.DIFICULTADES_BOT.size():
+		_dificultad_bot.add_item(RunManager.DIFICULTADES_BOT[i], i)
+	_dificultad_bot.selected = RunManager.dificultad_bot
+
+
+func _mostrar_modal_partida() -> void:
 	var cantidad: int = _valor(_jugadores, OPCIONES_JUGADORES)
 	RunManager.set_cantidad_jugadores(cantidad)
 	_construir_campos(cantidad)
 	_menu.visible = false
-	_modal_nombres.visible = true
-	if not _inputs.is_empty():
-		_inputs[0].grab_focus()
-		_inputs[0].select_all()
+	_modal_partida.visible = true
+	_jugadores.grab_focus()
+
+
+func _on_jugadores_changed(_indice: int) -> void:
+	var cantidad: int = _valor(_jugadores, OPCIONES_JUGADORES)
+	RunManager.set_cantidad_jugadores(cantidad)
+	_construir_campos(cantidad)
 
 
 func _construir_campos(cantidad: int) -> void:
@@ -86,8 +100,8 @@ func _on_nombre_submitted(_texto: String, indice: int) -> void:
 		_iniciar_partida()
 
 
-func _ocultar_modal_nombres() -> void:
-	_modal_nombres.visible = false
+func _ocultar_modal_partida() -> void:
+	_modal_partida.visible = false
 	_menu.visible = true
 	_boton_jugar.grab_focus()
 
@@ -97,7 +111,7 @@ func _iniciar_partida() -> void:
 	for entrada in _inputs:
 		nombres.append(entrada.text)
 	RunManager.set_nombres(nombres)
-	RunManager.configurar_partida(int(_rondas.value), int(_vidas.value))
+	RunManager.configurar_partida(int(_rondas.value), int(_vidas.value), _dificultad_bot.selected)
 	RunManager.reiniciar()
 	Transition.cambiar_escena(ESCENA_PERSONAJES)
 
@@ -110,7 +124,6 @@ func _mostrar_indice() -> void:
 func _ocultar_indice() -> void:
 	_menu.visible = true
 	_boton_indice.grab_focus()
-
 
 
 func _mostrar_opciones() -> void:

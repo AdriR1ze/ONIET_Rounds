@@ -13,6 +13,26 @@ var vidas_por_ronda: int = 5
 var cantidad_jugadores: int = 2
 var rng := RandomNumberGenerator.new()
 
+enum DificultadBot {
+	MUY_FACIL,
+	FACIL,
+	MEDIO,
+	DIFICIL,
+	MUY_DIFICIL,
+	HACKER,
+}
+
+const DIFICULTADES_BOT := [
+	"Muy Fácil",
+	"Fácil",
+	"Medio",
+	"Difícil",
+	"Muy Difícil",
+	"Hacker",
+]
+
+var dificultad_bot: int = DificultadBot.MEDIO
+
 const COLORES_JUGADOR := {
 	1: Color(1.0, 0.85, 0.2, 1.0),
 	2: Color(0.35, 0.75, 1.0, 1.0),
@@ -74,9 +94,21 @@ func personaje_de(player_number: int) -> String:
 const MAX_VIDAS := 20
 
 
-func configurar_partida(rondas: int, vidas: int) -> void:
+func configurar_partida(rondas: int, vidas: int, dif_bot: int = -1) -> void:
 	rondas_para_ganar = maxi(rondas, 1)
 	vidas_por_ronda = clampi(vidas, 1, MAX_VIDAS)
+	if dif_bot >= 0:
+		set_dificultad_bot(dif_bot)
+
+
+func set_dificultad_bot(dificultad: int) -> void:
+	dificultad_bot = clampi(dificultad, 0, DIFICULTADES_BOT.size() - 1)
+
+
+func dificultad_bot_nombre() -> String:
+	if dificultad_bot >= 0 and dificultad_bot < DIFICULTADES_BOT.size():
+		return DIFICULTADES_BOT[dificultad_bot]
+	return "Medio"
 
 
 func registrar_jugador(player: Node) -> void:

@@ -143,8 +143,6 @@ func _crear_selector_dispositivo(numero: int) -> HBoxContainer:
 	fila.add_child(etiqueta)
 	var selector := OptionButton.new()
 	selector.focus_mode = Control.FOCUS_NONE
-	# ids del menu: 0 = teclado, 1..MAX = device 0..MAX-1 (Godot auto-genera
-	# ids para -1, por eso no se puede usar DISPOSITIVO_TECLADO como id).
 	selector.add_item("Teclado", 0)
 	var conectados := Input.get_connected_joypads()
 	for m in Settings.MAX_MANDOS:
@@ -152,7 +150,12 @@ func _crear_selector_dispositivo(numero: int) -> HBoxContainer:
 		if conectados.has(m):
 			texto += " (conectado)"
 		selector.add_item(texto, m + 1)
-	selector.select(selector.get_item_index(Settings.dispositivo_de(numero) + 1))
+	selector.add_item("Bot (%s)" % RunManager.dificultad_bot_nombre(), 99)
+	if Settings.es_bot(numero):
+		selector.select(selector.get_item_index(99))
+		_listo[numero] = true
+	else:
+		selector.select(selector.get_item_index(Settings.dispositivo_de(numero) + 1))
 	selector.item_selected.connect(_on_dispositivo_seleccionado.bind(numero))
 	fila.add_child(selector)
 	_disp_sel[numero] = selector
@@ -161,7 +164,17 @@ func _crear_selector_dispositivo(numero: int) -> HBoxContainer:
 
 func _on_dispositivo_seleccionado(indice: int, numero: int) -> void:
 	var selector: OptionButton = _disp_sel[numero]
-	Settings.set_dispositivo(numero, selector.get_item_id(indice) - 1)
+	var id := selector.get_item_id(indice)
+	if id == 99:
+		Settings.set_dispositivo(numero, Settings.DISPOSITIVO_BOT)
+		_listo[numero] = true
+	else:
+		var prev_bot: bool = Settings.es_bot(numero)
+		Settings.set_dispositivo(numero, id - 1)
+		if prev_bot:
+			_listo[numero] = false
+	_actualizar_ui()
+	_comprobar_inicio_automatico()
 
 
 func _crear_card_sprite(numero: int, color: Color, personaje: String, indice: int) -> PanelContainer:
@@ -245,6 +258,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	for numero in _numeros:
+		if Settings.es_bot(numero):
+			continue
+
 		if _usa_raw_keyboard(numero):
 			var slot := Settings.slot_teclado_de(numero)
 			if not _listo[numero]:
@@ -291,6 +307,9 @@ func _usa_raw_keyboard(numero: int) -> bool:
 
 
 func _toggle_ready(numero: int) -> void:
+	if Settings.es_bot(numero):
+		_mover_eleccion(numero, 1)
+		return
 	_listo[numero] = not _listo[numero]
 	AudioManager.reproducir("salto", 0.05)
 	_actualizar_ui()
@@ -325,12 +344,17 @@ func _actualizar_ui() -> void:
 		for indice in cards.size():
 			cards[indice].add_theme_stylebox_override("panel", _estilo_card(color, elegido == indice))
 		var boton: Button = _ready_btn[numero]
-		boton.text = "CANCELAR" if _listo[numero] else "¡LISTO!"
 		var status: Label = _status_lbl[numero]
-		if _listo[numero]:
+		if Settings.es_bot(numero):
+			boton.text = "CAMBIAR BOT"
+			status.text = "BOT (%s) • ¡LISTO!" % RunManager.dificultad_bot_nombre().to_upper()
+			status.modulate = Color(0.35, 0.8, 1.0, 1.0)
+		elif _listo[numero]:
+			boton.text = "CANCELAR"
 			status.text = "¡LISTO PARA COMBATIR!"
 			status.modulate = COLOR_LISTO
 		else:
+			boton.text = "¡LISTO!"
 			if Settings.es_teclado(numero):
 				status.text = "Mové para elegir • Dispará / Enter para confirmar"
 			else:

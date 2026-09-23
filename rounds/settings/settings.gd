@@ -41,7 +41,8 @@ const AIM_EJES := {
 const DEADZONE_ANALOGO := 0.2
 const SUFIJOS_ANALOGOS := ["left", "right", "up", "down"]
 const ACCIONES_PROTEGIDAS := ["pause", "ui_cancel"]
-# -1 = teclado; >= 0 = indice del joystick (device de Godot).
+# -2 = bot; -1 = teclado; >= 0 = indice del joystick (device de Godot).
+const DISPOSITIVO_BOT := -2
 const DISPOSITIVO_TECLADO := -1
 const MAX_MANDOS := 4
 # Teclas por defecto para los jugadores 3 y 4 (los 1 y 2 se definen en project.godot).
@@ -305,11 +306,19 @@ func aplicar_controles() -> void:
 			InputMap.action_erase_events(accion)
 			if sufijo in SUFIJOS_ANALOGOS:
 				InputMap.action_set_deadzone(accion, DEADZONE_ANALOGO)
-			if device == DISPOSITIVO_TECLADO:
+			if device == DISPOSITIVO_BOT:
+				pass
+			elif device == DISPOSITIVO_TECLADO:
 				_aplicar_teclado(accion, sufijo, slot)
 			else:
 				_aplicar_mando(accion, sufijo, device)
-		_aplicar_aim(jugador, device)
+		if device == DISPOSITIVO_BOT:
+			for sufijo in AIM_EJES:
+				var accion_aim := "p%d_%s" % [jugador, sufijo]
+				if InputMap.has_action(accion_aim):
+					InputMap.action_erase_events(accion_aim)
+		else:
+			_aplicar_aim(jugador, device)
 
 
 func dispositivo_de(jugador: int) -> int:
@@ -318,6 +327,10 @@ func dispositivo_de(jugador: int) -> int:
 
 func es_teclado(jugador: int) -> bool:
 	return dispositivo_de(jugador) == DISPOSITIVO_TECLADO
+
+
+func es_bot(jugador: int) -> bool:
+	return dispositivo_de(jugador) == DISPOSITIVO_BOT
 
 
 func jugadores_con_teclado() -> Array[int]:
@@ -348,7 +361,7 @@ func primer_jugador_teclado() -> int:
 
 
 func set_dispositivo(jugador: int, device: int) -> void:
-	dispositivos[jugador] = clampi(device, DISPOSITIVO_TECLADO, MAX_MANDOS - 1)
+	dispositivos[jugador] = clampi(device, DISPOSITIVO_BOT, MAX_MANDOS - 1)
 	aplicar_controles()
 	guardar()
 

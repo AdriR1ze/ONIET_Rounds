@@ -123,6 +123,7 @@ func _mostrar_grupo(grupo: Array) -> void:
 	_contenedor.modulate.a = 0.0
 	var tween := create_tween()
 	tween.tween_property(_contenedor, "modulate:a", 1.0, 0.3)
+	_procesar_bots_en_grupo()
 
 
 func _transicion(proximo_grupo: Array) -> void:
@@ -184,7 +185,13 @@ func _crear_panel(numero: int) -> void:
 		if i > 0 and i % 5 == 0:
 			corazones += " "
 		corazones += "♥" if i < vidas_count else "♡"
-	var controles_hint: String = "Moverse para elegir · Disparar / Enter para confirmar" if Settings.es_teclado(numero) else "Moverse para elegir · X / Disparar para confirmar"
+	var controles_hint: String = ""
+	if Settings.es_bot(numero):
+		controles_hint = "BOT (%s) eligiendo mejora..." % RunManager.dificultad_bot_nombre().to_upper()
+	elif Settings.es_teclado(numero):
+		controles_hint = "Moverse para elegir · Disparar / Enter para confirmar"
+	else:
+		controles_hint = "Moverse para elegir · X / Disparar para confirmar"
 
 	var info_sub := Label.new()
 	info_sub.text = "%s  •  Nivel máx %d  •  %s" % [corazones, max_nivel, controles_hint]
@@ -458,6 +465,8 @@ func _process(delta: float) -> void:
 		var numero: int = jugador.player_number
 		if _confirmados.get(numero, false):
 			continue
+		if Settings.es_bot(numero):
+			continue
 		var total: int = _opciones[numero].size()
 		if total == 0:
 			_confirmar(numero)
@@ -602,3 +611,58 @@ func _preparar_raw_menu_estado() -> void:
 			var pressed := KeyboardSetup.raw_action_pressed(slot, nombre)
 			_raw_menu_prev[key] = pressed
 			_raw_menu_cooldowns[key] = RAW_MENU_REPEAT_DELAY if pressed else 0.0
+
+
+func _procesar_bots_en_grupo() -> void:
+	for jugador in _jugadores:
+		var numero: int = jugador.player_number
+		if Settings.es_bot(numero) and not _confirmados.get(numero, false):
+			_elegir_mejora_bot(numero)
+
+
+func _elegir_mejora_bot(numero: int) -> void:
+	var opciones: Array = _opciones.get(numero, [])
+	if opciones.is_empty():
+		_confirmar(numero)
+		return
+
+	var dif := RunManager.dificultad_bot
+	var delay: float = 0.8
+	match dif:
+		RunManager.DificultadBot.HACKER:
+			delay = 0.2
+		RunManager.DificultadBot.MUY_DIFICIL:
+			delay = 0.4
+		RunManager.DificultadBot.DIFICIL:
+			delay = 0.6
+		RunManager.DificultadBot.MEDIO:
+			delay = 0.8
+		RunManager.DificultadBot.FACIL:
+			delay = 1.0
+		RunManager.DificultadBot.MUY_FACIL:
+			delay = 1.2
+
+	await get_tree().create_timer(delay, true, false, true).timeout
+	if not _activo or not _esperando_fase or _confirmados.get(numero, false):
+		return
+
+	# Elegir la mejor opción según dificultad
+	var mejor_idx := 0
+	if dif >= RunManager.DificultadBot.DIFICIL:
+		# Hacker, Muy Difícil, Difícil prioriza rareza alta (Legendaria > Épica > Rara > Común)
+		var mejor_peso := -1
+		for idx in opciones.size():
+			var def: UpgradeDefinition = opciones[idx]
+			var peso := int(def.rareza) * 10 + def.nivel * 2
+			if peso > mejor_peso:
+				mejor_peso = peso
+				mejor_idx = idx
+	else:
+		mejor_idx = randi() % opciones.size()
+
+	_indices[numero] = mejor_idx
+	_actualizar_seleccion()
+	AudioManager.reproducir("ui_mover", 0.05)
+	await get_tree().create_timer(0.25, true, false, true).timeout
+	if _activo and _esperando_fase and not _confirmados.get(numero, false):
+		_confirmar(numero)
