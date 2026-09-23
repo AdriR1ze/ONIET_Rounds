@@ -147,9 +147,9 @@ func _physics_process(delta: float) -> void:
 		$Visual.rotation = 0.0
 	_apply_gravity(delta)
 	_update_jump_timers(delta)
-	# Comprobación de límites del mapa (caída al abismo o salir fuera de pantalla)
-	if is_alive() and (global_position.y > 850.0 or global_position.y < -400.0 or absf(global_position.x - 640.0) > 950.0):
-		_health.apply_damage(_health.health, null)
+	# La muerte por salir de la arena (abismo / bordes) la gestiona el DeadZone de
+	# cada mapa (hazard_zone.gd). El límite hardcodeado de antes asumía un mapa fijo
+	# de 1280x720 y mataba a los jugadores en mapas grandes.
 
 	match current_state:
 		PlayerState.DEAD:

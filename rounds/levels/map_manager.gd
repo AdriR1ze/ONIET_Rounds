@@ -111,6 +111,15 @@ const DEFINICIONES_MAPAS: Array[Dictionary] = [
 		"color": Color(0.4, 0.65, 1.0),
 		"atlas_id": 2,
 	},
+	{
+		"id": &"arena_abierta",
+		"nombre": "Arena Abierta",
+		"tipo": "Grande / Multi-zona",
+		"descripcion": "Arena enorme de tres zonas conectadas por pasillos, con plataformas a distintas alturas para combate vertical.",
+		"escena": "res://levels/maps/map_13_arena_abierta.tscn",
+		"color": Color(1.0, 0.65, 0.15),
+		"atlas_id": 0,
+	},
 ]
 
 var desactivados: Dictionary = {}

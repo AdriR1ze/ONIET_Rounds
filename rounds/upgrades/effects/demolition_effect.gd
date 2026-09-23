@@ -29,8 +29,10 @@ func _destroy_tiles(layer: Node, world_pos: Vector2, dir: Vector2) -> void:
 
 
 func _erase(layer: Node, coords: Vector2i) -> void:
-	# Los bordes perimetrales del mapa (paredes, suelo y techo) son irrompibles
-	if coords.x <= 0 or coords.x >= 39 or coords.y <= 0 or coords.y >= 21:
+	# Los bordes perimetrales del mapa (paredes, suelo y techo) son irrompibles.
+	# Se calculan dinámicamente desde el rect usado del tilemap, para soportar
+	# mapas de cualquier tamaño (los antiguos 40x22 y los nuevos más grandes).
+	if coords in _borde_perimetral(layer):
 		return
 	if layer.has_meta("indestructible_coords"):
 		var no_romper: Array = layer.get_meta("indestructible_coords")
@@ -40,3 +42,29 @@ func _erase(layer: Node, coords: Vector2i) -> void:
 		layer.set_cell(coords, -1)
 	elif layer.has_method("erase_cell"):
 		layer.erase_cell(coords)
+
+
+## Devuelve las coordenadas del borde perimetral del tilemap (paredes, techo y
+## suelo), que deben ser irrompibles. Usa el rect usado real para soportar
+## mapas de cualquier tamaño.
+func _borde_perimetral(layer: Node) -> Array:
+	var rect := Rect2i()
+	if layer is TileMapLayer:
+		rect = (layer as TileMapLayer).get_used_rect()
+	elif layer.has_method("get_used_rect"):
+		rect = layer.get_used_rect()
+	if rect.size.x <= 0 or rect.size.y <= 0:
+		# Fallback conservador si no hay rect disponible.
+		return []
+	var perimetro := []
+	var x0: int = rect.position.x
+	var y0: int = rect.position.y
+	var x1: int = rect.position.x + rect.size.x - 1
+	var y1: int = rect.position.y + rect.size.y - 1
+	for x in range(x0, x1 + 1):
+		perimetro.append(Vector2i(x, y0))
+		perimetro.append(Vector2i(x, y1))
+	for y in range(y0, y1 + 1):
+		perimetro.append(Vector2i(x0, y))
+		perimetro.append(Vector2i(x1, y))
+	return perimetro
