@@ -88,6 +88,21 @@ GODOT_BIN=/home/adriano/Downloads/Godot_v4.7.2-stable_linux.x86_64 \
   - `test_death_loop_and_bot_abyss.tscn` (headless) → 2 ✓ + `TODOS LOS TESTS...` , exit 0.
 - Gotcha de toolchain: agregar `class_name` nuevos requiere `godot --headless --path rounds --import` una vez, porque el class cache vive en `rounds/.godot/` (gitignored). En el editor se resuelve solo al abrir el proyecto.
 
+## Review outcome (RDD)
+
+- Candidate: commit `b208ff1` (10 paths, 234 líneas, riesgo MEDIO).
+- Lineage `review-48a10866ffa47ecd`, lens `review-reliability` → **APPROVED**.
+- Autoridad quemada: `gentle-ai.review-acknowledged/v1`.
+
+### Hallazgos no bloqueantes (trabajo posterior, NO reabren esta review)
+
+| ID | Sev | Ubicación | Qué |
+|----|-----|-----------|-----|
+| R3-1 | WARNING | `bt_leaf.gd:15` | `tick` coacciona un retorno que no sea int/bool a SUCCESS; un callback void (null) se reporta como éxito en vez de fallar ruidosamente. Hoy ningún callback cae ahí, por eso no se ejerce. |
+| R3-2 | WARNING | `odd/tasks/bot-behavior-tree.md:72` | No hay ningún test que cubra el cableado/orden del árbol; solo corre el test preexistente de abismo. |
+| R3-3 | SUGGESTION | `bt_selector.gd:11-13` | Se declara `RUNNING` de 3 valores, pero el consumidor descarta el resultado del tick y nunca llama `reset()`. Si un leaf devolviera RUNNING, se saltearían los pasos siguientes y persistiría estado viejo en silencio. |
+| R3-4 | SUGGESTION | `odd/tasks/...:74-81` | Los comandos de verificación incrustan una ruta absoluta de máquina; no son reproducibles en CI/otra máquina. |
+
 ## Next step
 
-Comportamiento preservado. Conductas nuevas (dodge, HP-aware, ammo, targeting) quedan para un cambio aparte.
+Comportamiento preservado y review aprobada. Conductas nuevas (dodge, HP-aware, ammo, targeting) quedan para un cambio aparte; los hallazgos R3-* también, como trabajo posterior.
