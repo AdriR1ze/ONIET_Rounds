@@ -518,6 +518,12 @@ func parry(new_shooter: Node) -> void:
 	shooter = new_shooter
 	player = new_shooter
 	velocity = -velocity * PARRY_SPEED_MULT
+	# La bala parada viaja hacia donde apunta quien la parreó, no al revés de la
+	# trayectoria de llegada.
+	if new_shooter != null and new_shooter.has_method("get_parry_direction"):
+		var aim: Vector2 = new_shooter.get_parry_direction()
+		if not aim.is_zero_approx():
+			velocity = aim * PARRY_SPEED_MULT
 	direction = velocity.normalized()
 	rotation = velocity.angle()
 	global_position += direction * 8.0
@@ -553,7 +559,7 @@ func _on_area_entered(area: Area2D) -> void:
 	if area.has_method("try_parry") and area.try_parry(self):
 		return
 	var parent: Node = area.get_parent()
-	if parent != null and parent.has_method("can_parry") and parent.can_parry():
+	if parent != null and parent.has_method("can_parry") and parent.can_parry(self):
 		parry(parent)
 		if parent.has_method("on_parry"):
 			parent.on_parry(self)

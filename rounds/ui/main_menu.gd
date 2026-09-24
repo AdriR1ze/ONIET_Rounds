@@ -2,6 +2,7 @@ extends Control
 
 const NIVEL := "res://levels/test_level.tscn"
 const ESCENA_PERSONAJES := "res://ui/character_select.tscn"
+const ESCENA_TUTORIAL := "res://levels/tutorial_level.tscn"
 const OPCIONES_JUGADORES := [2, 3, 4]
 
 @onready var _menu: VBoxContainer = $Centro/Menu
@@ -16,6 +17,7 @@ const OPCIONES_JUGADORES := [2, 3, 4]
 @onready var _vidas: Button = $ModalPartida/Centro/Marco/Margin/VBox/Config/Vidas/Valor
 @onready var _dificultad_bot: OptionButton = $ModalPartida/Centro/Marco/Margin/VBox/Config/DificultadBot/Valor
 @onready var _boton_jugar: Button = $Centro/Menu/Jugar
+@onready var _boton_tutorial: Button = $Centro/Menu/Tutorial
 @onready var _boton_indice: Button = $Centro/Menu/Indice
 @onready var _boton_opciones: Button = $Centro/Menu/Opciones
 @onready var _boton_salir: Button = $Centro/Menu/Salir
@@ -33,6 +35,7 @@ func _ready() -> void:
 
 	_jugadores.item_selected.connect(_on_jugadores_changed)
 	_boton_jugar.pressed.connect(_mostrar_modal_partida)
+	_boton_tutorial.pressed.connect(_abrir_tutorial)
 	_boton_iniciar.pressed.connect(_iniciar_partida)
 	_boton_volver_partida.pressed.connect(_ocultar_modal_partida)
 
@@ -134,6 +137,10 @@ func _mostrar_opciones() -> void:
 func _ocultar_opciones() -> void:
 	_menu.visible = true
 	_boton_opciones.grab_focus()
+
+
+func _abrir_tutorial() -> void:
+	Transition.cambiar_escena(ESCENA_TUTORIAL)
 
 
 func _salir() -> void:

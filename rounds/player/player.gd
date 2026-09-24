@@ -41,7 +41,11 @@ enum PlayerState {
 @export var air_control: float = 0.70
 @export var gravity: float = 1800.0
 @export var max_fall_speed: float = 1100.0
-@export var ragdoll_time: float = 0.35
+@export var ragdoll_time: float = 0.175
+
+@export_group("Parry")
+@export var parry_cooldown_time: float = 6.0
+@export var parry_arc_deg: float = 90.0
 
 @export_group("Jump Game Feel")
 @export var coyote_time: float = 0.12
@@ -79,6 +83,7 @@ var _active_dots: Array = []
 var _toxic_cloud_count: int = 0
 var _poison_flash_timer: float = 0.0
 var _ragdoll_timer: float = 0.0
+var _parry_cooldown: float = 0.0
 var _stun_timer: float = 0.0
 var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
@@ -171,6 +176,7 @@ func _physics_process(delta: float) -> void:
 	_update_buffs(delta)
 	_swing_release_timer = maxf(_swing_release_timer - delta, 0.0)
 	_rope_grace_timer = maxf(_rope_grace_timer - delta, 0.0)
+	_parry_cooldown = maxf(_parry_cooldown - delta, 0.0)
 	_update_state()
 	# Vivo y fuera del trompezar: el visual nunca debe quedar tumbado.
 	if current_state != PlayerState.DEAD and _ragdoll_timer <= 0.0:
@@ -537,7 +543,7 @@ func _handle_actions() -> void:
 		_weapon.try_fire()
 	if _input.is_grab_just_pressed():
 		grabbed.emit(player_number)
-	if _input.is_ragdoll_just_pressed():
+	if _input.is_ragdoll_just_pressed() and _parry_cooldown <= 0.0:
 		_start_ragdoll()
 	if _input.is_quack_just_pressed():
 		quacked.emit(player_number)
@@ -555,6 +561,7 @@ func _update_visual_facing() -> void:
 
 
 func _start_ragdoll() -> void:
+	_parry_cooldown = parry_cooldown_time
 	current_state = PlayerState.RAGDOLL
 	_ragdoll_timer = ragdoll_time
 	can_control = false
@@ -580,8 +587,29 @@ func is_spinning() -> bool:
 	return is_alive() and _ragdoll_timer > 0.0
 
 
-func can_parry() -> bool:
-	return is_spinning()
+func can_parry(bullet: Node = null) -> bool:
+	if not is_spinning():
+		return false
+	if bullet == null:
+		return true
+	return _bullet_in_parry_arc(bullet)
+
+
+# Dirección a la que se desvía la bala parada: el aim actual del arma.
+func get_parry_direction() -> Vector2:
+	if _weapon != null and not _weapon.aim_direction.is_zero_approx():
+		return _weapon.aim_direction.normalized()
+	return Vector2(facing, 0.0)
+
+
+# Solo se parrea una bala que viene dentro del cono del aim (apuntar donde parrear).
+func _bullet_in_parry_arc(bullet: Node) -> bool:
+	var aim := get_parry_direction()
+	var b_vel: Vector2 = bullet.get("velocity") if bullet != null and "velocity" in bullet else Vector2.ZERO
+	if b_vel.length_squared() < 1.0:
+		return false
+	var from := -b_vel.normalized()
+	return from.dot(aim) >= cos(deg_to_rad(parry_arc_deg * 0.5))
 
 
 func on_parry(bullet: Node) -> void:
@@ -728,6 +756,7 @@ func respawn() -> void:
 	can_control = true
 	current_state = PlayerState.IDLE
 	_ragdoll_timer = 0.0
+	_parry_cooldown = 0.0
 	_stun_timer = 0.0
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
