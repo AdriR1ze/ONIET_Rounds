@@ -72,6 +72,7 @@ enum PlayerState {
 @onready var _wall_ray_right: RayCast2D = $WallRayRight
 @onready var _skeleton_sprite: AnimatedSprite2D = $Visual.get_node_or_null("SkeletonSprite")
 @onready var _floating_hp: Node2D = get_node_or_null("FloatingHealthBar")
+@onready var _parry_effect: AnimatedSprite2D = get_node_or_null("ParryEffect")
 
 var facing: int = 1
 var can_control: bool = true
@@ -165,6 +166,11 @@ func _ready() -> void:
 	if _floating_hp != null:
 		_floating_hp.setup(player_number, _health.health, _health.max_health)
 		_health.health_changed.connect(_floating_hp.update_health)
+	if _parry_effect != null:
+		_parry_effect.visible = false
+		_parry_effect.animation_finished.connect(func() -> void:
+			_parry_effect.visible = false
+		)
 
 
 func _physics_process(delta: float) -> void:
@@ -176,7 +182,10 @@ func _physics_process(delta: float) -> void:
 	_update_buffs(delta)
 	_swing_release_timer = maxf(_swing_release_timer - delta, 0.0)
 	_rope_grace_timer = maxf(_rope_grace_timer - delta, 0.0)
+	var prev_parry_cooldown := _parry_cooldown
 	_parry_cooldown = maxf(_parry_cooldown - delta, 0.0)
+	if prev_parry_cooldown > 0.0 and _parry_cooldown <= 0.0 and is_alive():
+		_on_parry_recharged()
 	_update_state()
 	# Vivo y fuera del trompezar: el visual nunca debe quedar tumbado.
 	if current_state != PlayerState.DEAD and _ragdoll_timer <= 0.0:
@@ -539,7 +548,7 @@ func _handle_aim() -> void:
 
 
 func _handle_actions() -> void:
-	if _input.is_fire_pressed():
+	if _input.is_fire_pressed() and _ragdoll_timer <= 0.0:
 		_weapon.try_fire()
 	if _input.is_grab_just_pressed():
 		grabbed.emit(player_number)
@@ -562,21 +571,51 @@ func _update_visual_facing() -> void:
 
 func _start_ragdoll() -> void:
 	_parry_cooldown = parry_cooldown_time
-	current_state = PlayerState.RAGDOLL
 	_ragdoll_timer = ragdoll_time
-	can_control = false
-	velocity.x *= 0.4
-	_body_animation.play("ragdoll")
+	_play_parry_animation()
+
+
+func _play_parry_animation() -> void:
+	if _parry_effect == null:
+		return
+	var aim := get_parry_direction()
+	_parry_effect.rotation = aim.angle() + deg_to_rad(45.0)
+	_parry_effect.visible = true
+	_parry_effect.frame = 0
+	_parry_effect.play(&"parry")
 
 
 func _update_ragdoll(delta: float) -> void:
 	if _ragdoll_timer <= 0.0:
 		return
-	_ragdoll_timer -= delta
-	if _ragdoll_timer <= 0.0:
-		can_control = true
-		$Visual.rotation = 0.0
-		_body_animation.play("stand")
+	_ragdoll_timer = maxf(_ragdoll_timer - delta, 0.0)
+
+
+func _on_parry_recharged() -> void:
+	if not is_inside_tree() or not is_alive():
+		return
+	var tw_flash := create_tween()
+	$Visual.modulate = Color(1.3, 1.8, 2.5, 1.0)
+	tw_flash.tween_property($Visual, "modulate", Color.WHITE, 0.25)
+
+	var ring := Line2D.new()
+	ring.width = 2.5
+	ring.default_color = Color(0.45, 0.9, 1.0, 0.85)
+	ring.z_index = 6
+	var pts := PackedVector2Array()
+	for a in 24:
+		var ang := float(a) / 24.0 * TAU
+		pts.append(Vector2(cos(ang), sin(ang)) * 12.0)
+	pts.append(pts[0])
+	ring.points = pts
+	ring.position = Vector2.ZERO
+	add_child(ring)
+
+	var tw_ring := ring.create_tween()
+	tw_ring.set_parallel(true)
+	tw_ring.tween_property(ring, "scale", Vector2(2.8, 2.8), 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tw_ring.tween_property(ring, "modulate:a", 0.0, 0.3)
+	tw_ring.chain().tween_callback(ring.queue_free)
 
 
 func is_alive() -> bool:
@@ -690,6 +729,9 @@ func _on_died() -> void:
 	current_state = PlayerState.DEAD
 	_ragdoll_timer = 0.0
 	_body_animation.stop()
+	if _parry_effect != null:
+		_parry_effect.visible = false
+		_parry_effect.stop()
 
 	if _floating_hp != null:
 		_floating_hp.update_health(0, _health.max_health)
@@ -757,6 +799,9 @@ func respawn() -> void:
 	current_state = PlayerState.IDLE
 	_ragdoll_timer = 0.0
 	_parry_cooldown = 0.0
+	if _parry_effect != null:
+		_parry_effect.visible = false
+		_parry_effect.stop()
 	_stun_timer = 0.0
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0

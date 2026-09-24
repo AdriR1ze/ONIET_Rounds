@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://do8arn6mfiypy"]
+[gd_scene format=3 uid="uid://do8arn6mfiypy"]
 
 [ext_resource type="Script" path="res://world/life_circle.gd" id="1_life"]
 [ext_resource type="Texture2D" uid="uid://dtk8mgtjx1yk0" path="res://sprite_sheets/vids_extra.png" id="2_vida"]

@@ -517,13 +517,19 @@ func _on_body_exited(body: Node) -> void:
 func parry(new_shooter: Node) -> void:
 	shooter = new_shooter
 	player = new_shooter
-	velocity = -velocity * PARRY_SPEED_MULT
+	var parry_speed: float = velocity.length() * PARRY_SPEED_MULT
+	if parry_speed < 100.0 and speed > 0.0:
+		parry_speed = speed * PARRY_SPEED_MULT
 	# La bala parada viaja hacia donde apunta quien la parreó, no al revés de la
 	# trayectoria de llegada.
 	if new_shooter != null and new_shooter.has_method("get_parry_direction"):
 		var aim: Vector2 = new_shooter.get_parry_direction()
 		if not aim.is_zero_approx():
-			velocity = aim * PARRY_SPEED_MULT
+			velocity = aim.normalized() * parry_speed
+		else:
+			velocity = -velocity.normalized() * parry_speed
+	else:
+		velocity = -velocity.normalized() * parry_speed
 	direction = velocity.normalized()
 	rotation = velocity.angle()
 	global_position += direction * 8.0
