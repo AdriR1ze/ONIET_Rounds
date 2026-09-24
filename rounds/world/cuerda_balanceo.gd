@@ -11,7 +11,7 @@ const AMORTIGUACION := 0.7      # 1/s; sólo cuando no hay jugador colgado
 const ANGULO_INICIAL := deg_to_rad(70.0)
 const MAX_ANGULO := deg_to_rad(90.0)   # límite de altura (no pasa de este ángulo)
 const VELOCIDAD_MAX := 780.0           # límite de velocidad de la pesa (px/s)
-const IMPULSO := 3.0                   # rad/s^2; mover izq/der empuja el columpio
+const IMPULSO := 2.0                   # rad/s^2; mover izq/der empuja el columpio
 const REAGARRE_ESPERA := 0.45          # s; no re-engancha al instante tras soltarse
 
 var _es_ancla := false
