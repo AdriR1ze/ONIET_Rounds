@@ -574,6 +574,9 @@ func _on_area_entered(area: Area2D) -> void:
 	var hit_damage := damage
 	if ricochet_bonus > 0.0 and bounce_count > 0:
 		hit_damage = int(round(damage * (1.0 + ricochet_bonus * bounce_count)))
+	for efecto in effects:
+		if "damage_growth_per_sec" in efecto and float(efecto.damage_growth_per_sec) > 0.0:
+			hit_damage = int(round(float(hit_damage) * (1.0 + float(efecto.damage_growth_per_sec) * _time_alive)))
 	damage = hit_damage
 
 	for efecto in effects:

@@ -17,7 +17,7 @@ value = 2.0
 script = ExtResource("4_4pc1y")
 stat = &"damage"
 op = 1
-value = 0.85
+value = 0.8
 
 [resource]
 script = ExtResource("3_4owid")
@@ -29,7 +29,7 @@ descripcion = "+2 rebotes. Cada rebote que realiza la bala antes de tocar al riv
 rareza = 1
 tema = &"rebote"
 ventajas = Array[String](["+2 Rebotes adicionales"])
-desventajas = Array[String](["-15% Daño base sin rebotar"])
+desventajas = Array[String](["-20% Daño base sin rebotar"])
 mecanicas = Array[String](["+45% Daño por cada rebote previo al hit"])
 stats = Array[ExtResource("4_4pc1y")]([SubResource("Resource_ec62q"), SubResource("Resource_hly8f")])
 efectos = Array[ExtResource("1_e3chg")]([SubResource("Resource_bsmcb")])

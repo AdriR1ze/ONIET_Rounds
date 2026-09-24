@@ -12,7 +12,7 @@ script = ExtResource("2_rjw71")
 script = ExtResource("4_ibp0d")
 stat = &"damage"
 op = 1
-value = 0.9
+value = 0.85
 
 [sub_resource type="Resource" id="Resource_prvg3"]
 script = ExtResource("4_ibp0d")
@@ -24,11 +24,11 @@ id = &"phantom_rounds"
 titulo = "Balas Fantasma"
 subtitulo = "Atraviesan la primera pared"
 nivel = 2
-descripcion = "Las balas atraviesan la primera pared o estructura sólida del escenario sin destruirse (-10% de daño)."
+descripcion = "Las balas atraviesan la primera pared o estructura sólida del escenario sin destruirse (-15% de daño)."
 rareza = 1
 tema = &"fantasma"
 ventajas = Array[String](["Atraviesa coberturas enemigas"])
-desventajas = Array[String](["-10% Daño de impacto"])
+desventajas = Array[String](["-15% Daño de impacto"])
 mecanicas = Array[String](["Perfora la primera pared sólida"])
 stats = Array[ExtResource("4_ibp0d")]([SubResource("Resource_lws18"), SubResource("Resource_prvg3")])
 efectos = Array[ExtResource("1_uxqh2")]([SubResource("Resource_c4qq5")])

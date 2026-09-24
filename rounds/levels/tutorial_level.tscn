@@ -1,63 +1,116 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://levels/tutorial_level.gd" id="1_level"]
-[ext_resource type="PackedScene" path="res://levels/maps/map_13_arena_abierta.tscn" id="2_map"]
+[ext_resource type="PackedScene" path="res://levels/maps/map_02_tres_pisos.tscn" id="2_map"]
 [ext_resource type="PackedScene" path="res://player/player_1.tscn" id="3_p1"]
 [ext_resource type="Script" path="res://effects/combat_camera.gd" id="4_camera"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="5_pause"]
+[ext_resource type="PackedScene" path="res://levels/training_target.tscn" id="6_blanco"]
+[ext_resource type="PackedScene" path="res://ui/upgrade_screen.tscn" id="7_upgrade"]
 
 [node name="TutorialLevel" type="Node2D"]
 script = ExtResource("1_level")
 
 [node name="MapContainer" type="Node2D" parent="."]
 
-[node name="MapArenaAbierta" parent="MapContainer" instance=ExtResource("2_map")]
+[node name="MapTresPisos" parent="MapContainer" instance=ExtResource("2_map")]
 
 [node name="Player1" parent="." instance=ExtResource("3_p1")]
-position = Vector2(480, 1400)
+position = Vector2(258, 451)
 
 [node name="Camera" type="Camera2D" parent="."]
-position = Vector2(640, 360)
+position = Vector2(640, 368)
 anchor_mode = 1
 script = ExtResource("4_camera")
+min_zoom = 0.35
+max_zoom = 0.85
 
 [node name="PauseMenu" parent="." instance=ExtResource("5_pause")]
 visible = false
 
+[node name="Meta" type="Marker2D" parent="."]
+position = Vector2(410, 451)
+
+[node name="Visual" type="Node2D" parent="Meta"]
+
+[node name="Poste" type="Polygon2D" parent="Meta/Visual"]
+color = Color(0.25, 0.9, 1, 1)
+polygon = PackedVector2Array(-3, -170, 3, -170, 3, 0, -3, 0)
+
+[node name="Flecha" type="Polygon2D" parent="Meta/Visual"]
+color = Color(0.4, 1, 0.55, 1)
+polygon = PackedVector2Array(0, -132, 28, -104, 0, -76, -28, -104)
+
+[node name="Placement" type="Node2D" parent="."]
+
+[node name="Blanco" parent="Placement" instance=ExtResource("6_blanco")]
+position = Vector2(475, 419)
+
+[node name="DrillTimer" type="Timer" parent="."]
+one_shot = true
+
+[node name="UpgradeScreen" parent="." instance=ExtResource("7_upgrade")]
+visible = false
+
 [node name="TutorialHUD" type="CanvasLayer" parent="."]
 
-[node name="Fondo" type="ColorRect" parent="TutorialHUD"]
-layout_mode = 1
-anchors_preset = 15
+[node name="Arriba" type="MarginContainer" parent="TutorialHUD"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = 16.0
+offset_right = -24.0
+offset_bottom = 168.0
+grow_horizontal = 2
+
+[node name="Info" type="VBoxContainer" parent="TutorialHUD/Arriba"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Paso" type="Label" parent="TutorialHUD/Arriba/Info"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+autowrap_mode = 3
+text = "Movete hasta la marca"
+
+[node name="Progreso" type="Label" parent="TutorialHUD/Arriba/Info"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+text = "1 / 6"
+
+[node name="Aviso" type="Label" parent="TutorialHUD/Arriba/Info"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+text = ""
+
+[node name="Abajo" type="MarginContainer" parent="TutorialHUD"]
+anchors_preset = 12
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -80.0
+offset_right = -24.0
+offset_bottom = -24.0
 grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.04, 0.05, 0.08, 0.72)
+grow_vertical = 0
 
-[node name="Panel" type="VBoxContainer" parent="TutorialHUD/Fondo"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 12
-
-[node name="Titulo" type="Label" parent="TutorialHUD/Fondo/Panel"]
+[node name="Botones" type="HBoxContainer" parent="TutorialHUD/Abajo"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-horizontal_alignment = 1
-text = "Tutorial"
+alignment = 1
+theme_override_constants/separation = 24
 
-[node name="Controles" type="Label" parent="TutorialHUD/Fondo/Panel"]
+[node name="Saltear" type="Button" parent="TutorialHUD/Abajo/Botones"]
+custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-horizontal_alignment = 1
+focus_mode = 0
+text = "SALTAR PASO"
 
-[node name="Volver" type="Button" parent="TutorialHUD/Fondo/Panel"]
-custom_minimum_size = Vector2(260, 0)
+[node name="Volver" type="Button" parent="TutorialHUD/Abajo/Botones"]
+custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
-text = "Volver al menú"
+focus_mode = 0
+text = "VOLVER AL MENÚ"

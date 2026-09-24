@@ -1,0 +1,33 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://levels/training_target.gd" id="1_target"]
+[ext_resource type="Script" path="res://player/components/health_component.gd" id="2_health"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_target"]
+size = Vector2(120, 122)
+
+[node name="Blanco" type="Area2D"]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1_target")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_target")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Cuerpo" type="Polygon2D" parent="Visual"]
+color = Color(0.85, 0.32, 0.28, 1)
+polygon = PackedVector2Array(-60, -61, 60, -61, 60, 61, -60, 61)
+
+[node name="Aro" type="Polygon2D" parent="Visual"]
+color = Color(0.95, 0.9, 0.35, 1)
+polygon = PackedVector2Array(0, -42, 42, 0, 0, 42, -42, 0)
+
+[node name="Centro" type="Polygon2D" parent="Visual"]
+color = Color(0.18, 0.22, 0.32, 1)
+polygon = PackedVector2Array(0, -16, 16, 0, 0, 16, -16, 0)
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_health")
+max_health = 25
