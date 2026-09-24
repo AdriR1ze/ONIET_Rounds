@@ -414,6 +414,11 @@ func detach_swing() -> void:
 	_swing = null
 
 
+func swing_input() -> float:
+	# -1 izquierda, +1 derecha; se usa para bombear el columpio.
+	return _input.move_axis()
+
+
 func _is_climbing() -> bool:
 	if not can_control or current_state == PlayerState.DEAD or _swing != null:
 		return false

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bsl4djfg5gppf"]
+
+[ext_resource type="TileSet" uid="uid://dvdcgus4kg6tn" path="res://effects/neon_tileset.tres" id="1_tiles"]
+
+[node name="Puertas" type="TileMapLayer" unique_id=192316956]
+tile_set = ExtResource("1_tiles")

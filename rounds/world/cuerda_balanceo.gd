@@ -11,6 +11,7 @@ const AMORTIGUACION := 0.7      # 1/s; sólo cuando no hay jugador colgado
 const ANGULO_INICIAL := deg_to_rad(60.0)
 const MAX_ANGULO := deg_to_rad(80.0)   # límite de altura (no pasa de este ángulo)
 const VELOCIDAD_MAX := 780.0           # límite de velocidad de la pesa (px/s)
+const IMPULSO := 6.0                   # rad/s^2; mover izq/der empuja el columpio
 const REAGARRE_ESPERA := 0.45          # s; no re-engancha al instante tras soltarse
 
 var _es_ancla := false
@@ -83,6 +84,9 @@ func _physics_process(delta: float) -> void:
 	_omega += -(GRAVEDAD / _largo) * sin(_theta) * delta
 	if _jugador == null:
 		_omega *= exp(-AMORTIGUACION * delta)
+	elif is_instance_valid(_jugador) and _jugador.has_method("swing_input"):
+		# Moverte para un lado acelera el columpio hacia ese lado.
+		_omega -= _jugador.swing_input() * IMPULSO * delta
 	# Límite de velocidad y de altura.
 	var max_omega := VELOCIDAD_MAX / maxf(_largo, 1.0)
 	_omega = clampf(_omega, -max_omega, max_omega)

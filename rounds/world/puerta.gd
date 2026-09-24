@@ -1,16 +1,18 @@
 extends Node2D
 
-## Puerta: se pinta apilando celdas del TileSet; todas las celdas contiguas de
-## una columna forman UNA sola puerta (la celda de abajo ancla y el alto sale de
-## cuántas pongas). Es sólida cerrada y se abre cuando un jugador se acerca.
+## Puerta: se pinta con celdas del TileSet en un TileMapLayer. UNA celda ya
+## ocupa 2 tiles de alto (la celda de abajo ancla y crece hacia arriba); si
+## apilás más celdas contiguas, la puerta crece a ese alto. Es sólida cerrada
+## y se abre cuando un jugador se acerca.
 
 const FRAME_CERRADA := 0
 const FRAME_ABIERTA := 3
 const TILE := 32.0
 const MARGEN_DETECTOR := 18.0
+const ALTO_MINIMO := 2
 
 var _es_ancla := false
-var _alto := 1.0
+var _alto := 2.0
 var _abierta := false
 
 @onready var _cuerpo: StaticBody2D = $Cuerpo
@@ -35,7 +37,7 @@ func _ready() -> void:
 	var n := 1
 	while tm.get_cell_source_id(cell + Vector2i(0, -n)) == sid:
 		n += 1
-	_alto = float(n)
+	_alto = float(maxi(n, ALTO_MINIMO))
 	var desplazamiento := 16.0 * (1.0 - _alto)
 	_sprite.position.y = desplazamiento
 	_sprite.scale.y = _alto
