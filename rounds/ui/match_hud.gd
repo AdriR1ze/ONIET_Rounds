@@ -107,6 +107,10 @@ func _actualizar_hud() -> void:
 	var total_vidas: int = RunManager.vidas_por_ronda
 	if total_vidas <= 0:
 		total_vidas = 5
+	# Una vida extra (objeto de vida) supera el tope inicial: mostramos al menos
+	# tantos corazones como vidas tenga cualquier jugador.
+	for i in RunManager.cantidad_jugadores:
+		total_vidas = maxi(total_vidas, RunManager.vidas_de(i + 1))
 
 	var puntajes: Array = []
 	for i in RunManager.cantidad_jugadores:

@@ -106,5 +106,8 @@ void fragment() {
 	float mixv = 0.5 + 0.5 * sin(TIME * color_speed + base * 6.2831853);
 
 	vec3 col = texture(palette, vec2(mixv, 0.5)).rgb;
-	COLOR = vec4(col, 1.0);
+	// El alpha lo aporta la textura del tile: un tile cuya textura sea opaca se
+	// dibuja entero; uno cuya textura sólo sea opaca arriba se recorta, lo que
+	// permite plataformas de una sola cara sin tocar la paleta ni el material.
+	COLOR = vec4(col, texture(TEXTURE, UV).a);
 }

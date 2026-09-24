@@ -11,6 +11,8 @@ const JUMP_UP_CELLS: int = 5
 const JUMP_REACH_CELLS: int = 6
 const MAX_FALL_CELLS: int = 7
 const CLEARANCE_SAMPLES: int = 6
+# World (1) + Plataforma (64): las plataformas de una sola cara tambien son piso.
+const WORLD_MASK: int = 1 | 64
 
 var tile_size: int = 32
 var _astar: AStar2D
@@ -87,7 +89,7 @@ func _is_free(space: PhysicsDirectSpaceState2D, center: Vector2) -> bool:
 	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = _probe_shape
 	query.transform = Transform2D(0.0, center)
-	query.collision_mask = 1
+	query.collision_mask = WORLD_MASK
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
 	return space.intersect_shape(query, 1).is_empty()
@@ -96,7 +98,7 @@ func _is_free(space: PhysicsDirectSpaceState2D, center: Vector2) -> bool:
 func _has_ground_below(space: PhysicsDirectSpaceState2D, center: Vector2) -> bool:
 	var from := center + Vector2(0.0, tile_size * 0.3)
 	var to := center + Vector2(0.0, tile_size * 1.4)
-	var query := PhysicsRayQueryParameters2D.create(from, to, 1)
+	var query := PhysicsRayQueryParameters2D.create(from, to, WORLD_MASK)
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
 	return not space.intersect_ray(query).is_empty()
@@ -104,7 +106,7 @@ func _has_ground_below(space: PhysicsDirectSpaceState2D, center: Vector2) -> boo
 
 func _clearance_ok(space: PhysicsDirectSpaceState2D, a: Vector2, b: Vector2) -> bool:
 	var query := PhysicsPointQueryParameters2D.new()
-	query.collision_mask = 1
+	query.collision_mask = WORLD_MASK
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
 	for i in range(1, CLEARANCE_SAMPLES + 1):

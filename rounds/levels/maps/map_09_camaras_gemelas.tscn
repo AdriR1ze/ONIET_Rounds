@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://ci8pwjs3kfbgh"]
 
-[ext_resource type="Material" path="res://effects/neon_tiles_cian_magenta.tres" id="1_neon"]
-[ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_haz"]
+[ext_resource type="Material" uid="uid://435w48jnru8a" path="res://effects/neon_tiles_cian_magenta.tres" id="1_neon"]
+[ext_resource type="Script" uid="uid://dcoec2tkt01vf" path="res://world/hazard_zone.gd" id="2_haz"]
 
 [sub_resource type="RectangleShape2D" id="shape_1"]
 size = Vector2(300, 28)
@@ -26,213 +26,203 @@ size = Vector2(240, 1200)
 [sub_resource type="RectangleShape2D" id="DeadZone_bottom"]
 size = Vector2(1280, 80)
 
-[node name="MapCamarasGemelas" type="Node2D"]
+[node name="MapCamarasGemelas" type="Node2D" unique_id=1612110999]
 
-[node name="SpawnP1" type="Marker2D" parent="."]
+[node name="SpawnP1" type="Marker2D" parent="." unique_id=2000357959]
 position = Vector2(240, 540)
 
-[node name="SpawnP2" type="Marker2D" parent="."]
+[node name="SpawnP2" type="Marker2D" parent="." unique_id=832738249]
 position = Vector2(1040, 540)
 
-[node name="SpawnP3" type="Marker2D" parent="."]
+[node name="SpawnP3" type="Marker2D" parent="." unique_id=1143819252]
 position = Vector2(350, 540)
 
-[node name="SpawnP4" type="Marker2D" parent="."]
+[node name="SpawnP4" type="Marker2D" parent="." unique_id=1382853552]
 position = Vector2(930, 540)
 
-[node name="SpawnP5" type="Marker2D" parent="."]
+[node name="SpawnP5" type="Marker2D" parent="." unique_id=411892168]
 position = Vector2(260, 360)
 
-[node name="SpawnP6" type="Marker2D" parent="."]
+[node name="SpawnP6" type="Marker2D" parent="." unique_id=725953410]
 position = Vector2(1020, 360)
 
-[node name="SpawnP7" type="Marker2D" parent="."]
+[node name="SpawnP7" type="Marker2D" parent="." unique_id=1111613833]
 position = Vector2(640, 430)
 
-[node name="SpawnP8" type="Marker2D" parent="."]
+[node name="SpawnP8" type="Marker2D" parent="." unique_id=1886968677]
 position = Vector2(640, 590)
 
-[node name="BunkerPisoL" type="StaticBody2D" parent="."]
+[node name="BunkerPisoL" type="StaticBody2D" parent="." unique_id=156012623]
 position = Vector2(260, 580)
 
-[node name="Visual" type="Polygon2D" parent="BunkerPisoL"]
+[node name="Visual" type="Polygon2D" parent="BunkerPisoL" unique_id=956862156]
 material = ExtResource("1_neon")
-color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-150, -14, 150, -14, 150, 14, -150, 14)
 
-[node name="Border" type="Line2D" parent="BunkerPisoL"]
-width = 3.0
-default_color = Color(0.15, 0.9, 0.85, 1.0)
-closed = true
+[node name="Border" type="Line2D" parent="BunkerPisoL" unique_id=899097888]
 points = PackedVector2Array(-150, -14, 150, -14, 150, 14, -150, 14)
+closed = true
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1)
 
-[node name="Shape" type="CollisionShape2D" parent="BunkerPisoL"]
+[node name="Shape" type="CollisionShape2D" parent="BunkerPisoL" unique_id=2011832166]
 shape = SubResource("shape_1")
 
-[node name="BunkerTechoL" type="StaticBody2D" parent="."]
+[node name="BunkerTechoL" type="StaticBody2D" parent="." unique_id=731020031]
 position = Vector2(260, 400)
 
-[node name="Visual" type="Polygon2D" parent="BunkerTechoL"]
+[node name="Visual" type="Polygon2D" parent="BunkerTechoL" unique_id=1210413539]
 material = ExtResource("1_neon")
-color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-150, -12, 150, -12, 150, 12, -150, 12)
 
-[node name="Border" type="Line2D" parent="BunkerTechoL"]
-width = 3.0
-default_color = Color(0.15, 0.9, 0.85, 1.0)
-closed = true
+[node name="Border" type="Line2D" parent="BunkerTechoL" unique_id=198066703]
 points = PackedVector2Array(-150, -12, 150, -12, 150, 12, -150, 12)
+closed = true
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1)
 
-[node name="Shape" type="CollisionShape2D" parent="BunkerTechoL"]
+[node name="Shape" type="CollisionShape2D" parent="BunkerTechoL" unique_id=50879575]
 shape = SubResource("shape_2")
 
-[node name="BunkerPilarL" type="StaticBody2D" parent="."]
+[node name="BunkerPilarL" type="StaticBody2D" parent="." unique_id=421994267]
 position = Vector2(120, 490)
 
-[node name="Visual" type="Polygon2D" parent="BunkerPilarL"]
+[node name="Visual" type="Polygon2D" parent="BunkerPilarL" unique_id=1617844703]
 material = ExtResource("1_neon")
-color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-14, -80, 14, -80, 14, 80, -14, 80)
 
-[node name="Border" type="Line2D" parent="BunkerPilarL"]
-width = 3.0
-default_color = Color(0.15, 0.9, 0.85, 1.0)
-closed = true
+[node name="Border" type="Line2D" parent="BunkerPilarL" unique_id=338856112]
 points = PackedVector2Array(-14, -80, 14, -80, 14, 80, -14, 80)
+closed = true
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1)
 
-[node name="Shape" type="CollisionShape2D" parent="BunkerPilarL"]
+[node name="Shape" type="CollisionShape2D" parent="BunkerPilarL" unique_id=1319244587]
 shape = SubResource("shape_3")
 
-[node name="BunkerPisoR" type="StaticBody2D" parent="."]
+[node name="BunkerPisoR" type="StaticBody2D" parent="." unique_id=670295923]
 position = Vector2(1020, 580)
 
-[node name="Visual" type="Polygon2D" parent="BunkerPisoR"]
+[node name="Visual" type="Polygon2D" parent="BunkerPisoR" unique_id=1510288748]
 material = ExtResource("1_neon")
-color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-150, -14, 150, -14, 150, 14, -150, 14)
 
-[node name="Border" type="Line2D" parent="BunkerPisoR"]
-width = 3.0
-default_color = Color(0.15, 0.9, 0.85, 1.0)
-closed = true
+[node name="Border" type="Line2D" parent="BunkerPisoR" unique_id=314591095]
 points = PackedVector2Array(-150, -14, 150, -14, 150, 14, -150, 14)
+closed = true
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1)
 
-[node name="Shape" type="CollisionShape2D" parent="BunkerPisoR"]
+[node name="Shape" type="CollisionShape2D" parent="BunkerPisoR" unique_id=1349171295]
 shape = SubResource("shape_1")
 
-[node name="BunkerTechoR" type="StaticBody2D" parent="."]
+[node name="BunkerTechoR" type="StaticBody2D" parent="." unique_id=1917159437]
 position = Vector2(1020, 400)
 
-[node name="Visual" type="Polygon2D" parent="BunkerTechoR"]
+[node name="Visual" type="Polygon2D" parent="BunkerTechoR" unique_id=551805636]
 material = ExtResource("1_neon")
-color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-150, -12, 150, -12, 150, 12, -150, 12)
 
-[node name="Border" type="Line2D" parent="BunkerTechoR"]
-width = 3.0
-default_color = Color(0.15, 0.9, 0.85, 1.0)
-closed = true
+[node name="Border" type="Line2D" parent="BunkerTechoR" unique_id=1366151776]
 points = PackedVector2Array(-150, -12, 150, -12, 150, 12, -150, 12)
+closed = true
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1)
 
-[node name="Shape" type="CollisionShape2D" parent="BunkerTechoR"]
+[node name="Shape" type="CollisionShape2D" parent="BunkerTechoR" unique_id=1452118834]
 shape = SubResource("shape_2")
 
-[node name="BunkerPilarR" type="StaticBody2D" parent="."]
+[node name="BunkerPilarR" type="StaticBody2D" parent="." unique_id=1423948626]
 position = Vector2(1160, 490)
 
-[node name="Visual" type="Polygon2D" parent="BunkerPilarR"]
+[node name="Visual" type="Polygon2D" parent="BunkerPilarR" unique_id=264092808]
 material = ExtResource("1_neon")
-color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-14, -80, 14, -80, 14, 80, -14, 80)
 
-[node name="Border" type="Line2D" parent="BunkerPilarR"]
-width = 3.0
-default_color = Color(0.15, 0.9, 0.85, 1.0)
-closed = true
+[node name="Border" type="Line2D" parent="BunkerPilarR" unique_id=226170766]
 points = PackedVector2Array(-14, -80, 14, -80, 14, 80, -14, 80)
+closed = true
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1)
 
-[node name="Shape" type="CollisionShape2D" parent="BunkerPilarR"]
+[node name="Shape" type="CollisionShape2D" parent="BunkerPilarR" unique_id=2002348501]
 shape = SubResource("shape_3")
 
-[node name="PuenteElevado" type="StaticBody2D" parent="."]
+[node name="PuenteElevado" type="StaticBody2D" parent="." unique_id=830182724]
 position = Vector2(640, 470)
 
-[node name="Visual" type="Polygon2D" parent="PuenteElevado"]
+[node name="Visual" type="Polygon2D" parent="PuenteElevado" unique_id=1891973666]
 material = ExtResource("1_neon")
-color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-160, -12, 160, -12, 160, 12, -160, 12)
 
-[node name="Border" type="Line2D" parent="PuenteElevado"]
-width = 3.0
-default_color = Color(0.15, 0.9, 0.85, 1.0)
-closed = true
+[node name="Border" type="Line2D" parent="PuenteElevado" unique_id=2001043197]
 points = PackedVector2Array(-160, -12, 160, -12, 160, 12, -160, 12)
+closed = true
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1)
 
-[node name="Shape" type="CollisionShape2D" parent="PuenteElevado"]
+[node name="Shape" type="CollisionShape2D" parent="PuenteElevado" unique_id=1060458924]
 shape = SubResource("shape_4")
 
-[node name="ValleBajo" type="StaticBody2D" parent="."]
+[node name="ValleBajo" type="StaticBody2D" parent="." unique_id=819828905]
 position = Vector2(640, 630)
 
-[node name="Visual" type="Polygon2D" parent="ValleBajo"]
+[node name="Visual" type="Polygon2D" parent="ValleBajo" unique_id=483124112]
 material = ExtResource("1_neon")
-color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-130, -12, 130, -12, 130, 12, -130, 12)
 
-[node name="Border" type="Line2D" parent="ValleBajo"]
-width = 3.0
-default_color = Color(0.15, 0.9, 0.85, 1.0)
-closed = true
+[node name="Border" type="Line2D" parent="ValleBajo" unique_id=1343140814]
 points = PackedVector2Array(-130, -12, 130, -12, 130, 12, -130, 12)
+closed = true
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1)
 
-[node name="Shape" type="CollisionShape2D" parent="ValleBajo"]
+[node name="Shape" type="CollisionShape2D" parent="ValleBajo" unique_id=949810801]
 shape = SubResource("shape_5")
 
-[node name="AlmenaTechoL" type="StaticBody2D" parent="."]
+[node name="AlmenaTechoL" type="StaticBody2D" parent="." unique_id=760940841]
 position = Vector2(360, 380)
 
-[node name="Visual" type="Polygon2D" parent="AlmenaTechoL"]
+[node name="Visual" type="Polygon2D" parent="AlmenaTechoL" unique_id=1400210815]
 material = ExtResource("1_neon")
-color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
 
-[node name="Border" type="Line2D" parent="AlmenaTechoL"]
-width = 3.0
-default_color = Color(0.15, 0.9, 0.85, 1.0)
-closed = true
+[node name="Border" type="Line2D" parent="AlmenaTechoL" unique_id=981833454]
 points = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
+closed = true
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1)
 
-[node name="Shape" type="CollisionShape2D" parent="AlmenaTechoL"]
+[node name="Shape" type="CollisionShape2D" parent="AlmenaTechoL" unique_id=100853032]
 shape = SubResource("shape_6")
 
-[node name="AlmenaTechoR" type="StaticBody2D" parent="."]
+[node name="AlmenaTechoR" type="StaticBody2D" parent="." unique_id=453522023]
 position = Vector2(920, 380)
 
-[node name="Visual" type="Polygon2D" parent="AlmenaTechoR"]
+[node name="Visual" type="Polygon2D" parent="AlmenaTechoR" unique_id=1217965262]
 material = ExtResource("1_neon")
-color = Color(1, 1, 1, 1)
 polygon = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
 
-[node name="Border" type="Line2D" parent="AlmenaTechoR"]
-width = 3.0
-default_color = Color(0.15, 0.9, 0.85, 1.0)
-closed = true
+[node name="Border" type="Line2D" parent="AlmenaTechoR" unique_id=1974953399]
 points = PackedVector2Array(-10, -10, 10, -10, 10, 10, -10, 10)
+closed = true
+width = 3.0
+default_color = Color(0.15, 0.9, 0.85, 1)
 
-[node name="Shape" type="CollisionShape2D" parent="AlmenaTechoR"]
+[node name="Shape" type="CollisionShape2D" parent="AlmenaTechoR" unique_id=363570758]
 shape = SubResource("shape_6")
 
-[node name="DeadZone" type="Area2D" parent="."]
+[node name="DeadZone" type="Area2D" parent="." unique_id=1149883073]
 script = ExtResource("2_haz")
 
-[node name="Left" type="CollisionShape2D" parent="DeadZone"]
+[node name="Left" type="CollisionShape2D" parent="DeadZone" unique_id=1575192017]
 position = Vector2(-120, 360)
 shape = SubResource("DeadZone_side")
 
-[node name="Right" type="CollisionShape2D" parent="DeadZone"]
+[node name="Right" type="CollisionShape2D" parent="DeadZone" unique_id=856587151]
 position = Vector2(1400, 360)
 shape = SubResource("DeadZone_side")
 
-[node name="Bottom" type="CollisionShape2D" parent="DeadZone"]
+[node name="Bottom" type="CollisionShape2D" parent="DeadZone" unique_id=1503244558]
 position = Vector2(640, 760)
 shape = SubResource("DeadZone_bottom")
