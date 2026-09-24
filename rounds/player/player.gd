@@ -10,12 +10,16 @@ const CHARACTER_FRAMES := {
 	"esqueleto": preload("res://player/skeleton_frames.tres"),
 	"sapo": preload("res://player/sapo_frames.tres"),
 	"pajaro": preload("res://player/pajaro_frames.tres"),
+	"fantasma": preload("res://player/fantasma_frames.tres"),
 }
 
 # Bajar atravesando plataformas de una sola cara (one-way).
 const ONE_WAY_LAYER := 7
 const DROP_THROUGH_TIME := 0.22
 const DROP_THROUGH_SPEED := 120.0
+
+# Cuerdas: trepar (subir/bajar) y balanceo (colgarse y columpiarse).
+const CLIMB_SPEED := 150.0
 
 enum PlayerState {
 	IDLE,
@@ -42,6 +46,12 @@ enum PlayerState {
 @export var corner_correction_step: float = 1.0
 @export var corner_correction_max: float = 6.0
 
+@export_group("Wall Jump Game Feel")
+@export var wall_slide_speed: float = 200.0
+@export var wall_jump_velocity_mult: float = 0.9
+@export var wall_jump_push: float = 340.0
+@export var wall_jump_lockout: float = 0.15
+
 @onready var _input: PlayerInput = $PlayerInput
 @onready var _weapon: WeaponComponent = $WeaponComponent
 @onready var _health: HealthComponent = $HealthComponent
@@ -51,6 +61,8 @@ enum PlayerState {
 @onready var _corner_ray_left: RayCast2D = $CornerRayLeft
 @onready var _corner_ray_right: RayCast2D = $CornerRayRight
 @onready var _ground_ray: RayCast2D = $GroundRay
+@onready var _wall_ray_left: RayCast2D = $WallRayLeft
+@onready var _wall_ray_right: RayCast2D = $WallRayRight
 @onready var _skeleton_sprite: AnimatedSprite2D = $Visual.get_node_or_null("SkeletonSprite")
 @onready var _floating_hp: Node2D = get_node_or_null("FloatingHealthBar")
 
@@ -67,7 +79,11 @@ var _ragdoll_timer: float = 0.0
 var _stun_timer: float = 0.0
 var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
+var _wall_jump_lockout_timer: float = 0.0
+var _last_wall_jump_side: int = 0
 var _drop_through_timer: float = 0.0
+var _climb_ropes: Array = []
+var _swing: Node = null
 var _spawn_position: Vector2
 var _hit_stop_remaining: float = 0.0
 var _hit_stop_active: bool = false
@@ -157,18 +173,28 @@ func _physics_process(delta: float) -> void:
 	# cada mapa (hazard_zone.gd). El límite hardcodeado de antes asumía un mapa fijo
 	# de 1280x720 y mataba a los jugadores en mapas grandes.
 
-	match current_state:
-		PlayerState.DEAD:
-			velocity.x = move_toward(velocity.x, 0.0, friction * 0.4 * delta)
-		PlayerState.RAGDOLL:
-			velocity.x = move_toward(velocity.x, 0.0, friction * delta)
-		PlayerState.IDLE, PlayerState.WALKING, PlayerState.AIRBORNE:
-			_handle_horizontal(delta)
-			_handle_jump()
-			_handle_aim()
-			_handle_actions()
+	if _swing != null and is_instance_valid(_swing):
+		_handle_swing(delta)
+		_check_sepultador_collision()
+		return
 
-	_handle_drop_through(delta)
+	if _is_climbing():
+		_handle_climb(delta)
+		_handle_aim()
+		_handle_actions()
+	else:
+		match current_state:
+			PlayerState.DEAD:
+				velocity.x = move_toward(velocity.x, 0.0, friction * 0.4 * delta)
+			PlayerState.RAGDOLL:
+				velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+			PlayerState.IDLE, PlayerState.WALKING, PlayerState.AIRBORNE:
+				_handle_horizontal(delta)
+				_handle_jump()
+				_handle_aim()
+				_handle_actions()
+		_handle_drop_through(delta)
+
 	_apply_corner_correction()
 	move_and_slide()
 	_check_sepultador_collision()
@@ -226,12 +252,16 @@ func _update_character_visual() -> void:
 
 
 func _update_jump_timers(delta: float) -> void:
+	if _wall_jump_lockout_timer > 0.0:
+		_wall_jump_lockout_timer = maxf(_wall_jump_lockout_timer - delta, 0.0)
 	if not can_control or current_state == PlayerState.DEAD:
 		_coyote_timer = 0.0
 		_jump_buffer_timer = 0.0
 		return
 
 	_ground_ray.force_raycast_update()
+	if is_on_floor():
+		_last_wall_jump_side = 0
 	if is_on_floor() or (_ground_ray.is_colliding() and velocity.y >= 0.0):
 		_coyote_timer = coyote_time
 	else:
@@ -247,11 +277,42 @@ func _apply_gravity(delta: float) -> void:
 	if not is_on_floor():
 		var total_gravity_scale: float = gravity_scale * (_gravity_mult if _gravity_mult_timer > 0.0 else 1.0)
 		velocity.y = minf(velocity.y + (gravity * total_gravity_scale) * delta, max_fall_speed)
+		_apply_wall_slide()
 	elif velocity.y > 0.0:
 		velocity.y = 0.0
 
 
+func _apply_wall_slide() -> void:
+	if velocity.y <= 0.0 or _wall_jump_lockout_timer > 0.0:
+		return
+	var wall_dir := _wall_direction()
+	if wall_dir == 0 or not is_equal_approx(signf(_input.move_axis()), float(wall_dir)):
+		return
+	velocity.y = minf(velocity.y, wall_slide_speed)
+
+
+func _wall_direction() -> int:
+	_wall_ray_left.force_raycast_update()
+	_wall_ray_right.force_raycast_update()
+	var left := _wall_ray_left.is_colliding()
+	var right := _wall_ray_right.is_colliding()
+	if left and right:
+		var axis := _input.move_axis()
+		if axis < 0.0:
+			return -1
+		if axis > 0.0:
+			return 1
+		return -facing
+	if left:
+		return -1
+	if right:
+		return 1
+	return 0
+
+
 func _handle_horizontal(delta: float) -> void:
+	if _wall_jump_lockout_timer > 0.0:
+		return
 	if _input.is_lock_pressed():
 		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 		return
@@ -271,14 +332,43 @@ func _handle_horizontal(delta: float) -> void:
 func _handle_jump() -> void:
 	if _input.is_lock_pressed():
 		return
-	if _jump_buffer_timer > 0.0 and _coyote_timer > 0.0:
-		var total_jump_mult: float = jump_force_multiplier * (_jump_mult if _jump_mult_timer > 0.0 else 1.0)
-		velocity.y = _stats.get_stat(&"jump_velocity") * total_jump_mult
-		_jump_buffer_timer = 0.0
-		_coyote_timer = 0.0
-		AudioManager.reproducir("salto", 0.05)
+	if _jump_buffer_timer > 0.0:
+		if _coyote_timer > 0.0:
+			var total_jump_mult: float = jump_force_multiplier * (_jump_mult if _jump_mult_timer > 0.0 else 1.0)
+			velocity.y = _stats.get_stat(&"jump_velocity") * total_jump_mult
+			_jump_buffer_timer = 0.0
+			_coyote_timer = 0.0
+			AudioManager.reproducir("salto", 0.05)
+		elif _try_wall_jump():
+			return
 	if _input.is_jump_just_released() and velocity.y < 0.0:
 		velocity.y *= 0.5
+
+
+func _try_wall_jump() -> bool:
+	if _wall_jump_lockout_timer > 0.0:
+		return false
+	var wall_dir := _wall_direction()
+	if wall_dir == 0 or wall_dir == _last_wall_jump_side:
+		return false
+	var total_jump_mult: float = jump_force_multiplier * (_jump_mult if _jump_mult_timer > 0.0 else 1.0)
+	# Dirección horizontal del salto: manda el input (permite saltar hacia
+	# arriba, en diagonal, alejándose o pegado a la pared). Sin input
+	# horizontal, empuja alejándose como el salto clásico.
+	var aim := _input.aim()
+	var push_dir := aim.x
+	if aim.is_zero_approx():
+		push_dir = float(-wall_dir)
+	velocity.y = _stats.get_stat(&"jump_velocity") * wall_jump_velocity_mult * total_jump_mult
+	velocity.x = push_dir * wall_jump_push
+	facing = 1 if push_dir > 0.0 else -1
+	_update_visual_facing()
+	_wall_jump_lockout_timer = wall_jump_lockout
+	_last_wall_jump_side = wall_dir
+	_jump_buffer_timer = 0.0
+	_coyote_timer = 0.0
+	AudioManager.reproducir("salto", 0.05)
+	return true
 
 
 func _handle_drop_through(delta: float) -> void:
@@ -300,6 +390,83 @@ func _handle_drop_through(delta: float) -> void:
 	velocity.y = DROP_THROUGH_SPEED
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
+
+
+func enter_climb_rope(rope: Node) -> void:
+	if not _climb_ropes.has(rope):
+		_climb_ropes.append(rope)
+
+
+func exit_climb_rope(rope: Node) -> void:
+	_climb_ropes.erase(rope)
+
+
+func attach_swing(rope: Node) -> void:
+	if _swing == rope:
+		return
+	if _swing != null and is_instance_valid(_swing) and _swing.has_method("release_player"):
+		_swing.release_player()
+	_swing = rope
+	velocity = Vector2.ZERO
+
+
+func detach_swing() -> void:
+	_swing = null
+
+
+func _is_climbing() -> bool:
+	if not can_control or current_state == PlayerState.DEAD or _swing != null:
+		return false
+	if _climb_ropes.is_empty():
+		return false
+	# En el aire se agarra solo; parado en el piso, sólo si aprieta arriba/abajo.
+	if is_on_floor() and not (_input.is_up_pressed() or _input.is_crouch_pressed()):
+		return false
+	return true
+
+
+func _handle_climb(delta: float) -> void:
+	var up := _input.is_up_pressed()
+	var down := _input.is_crouch_pressed()
+	if up and not down:
+		velocity.y = -CLIMB_SPEED
+	elif down and not up:
+		velocity.y = CLIMB_SPEED
+	else:
+		velocity.y = 0.0
+	var hx := _input.move_axis()
+	velocity.x = hx * CLIMB_SPEED * 0.7
+	if not is_zero_approx(hx):
+		facing = 1 if hx > 0.0 else -1
+		_update_visual_facing()
+	# Saltar para soltarse de la cuerda.
+	if _input.is_jump_just_pressed():
+		_climb_ropes.clear()
+		velocity.y = _stats.get_stat(&"jump_velocity") * 0.9
+		_coyote_timer = 0.0
+		_jump_buffer_timer = 0.0
+
+
+func _handle_swing(_delta: float) -> void:
+	if _swing == null or not is_instance_valid(_swing):
+		_swing = null
+		return
+	current_state = PlayerState.AIRBORNE
+	if _input.is_jump_just_pressed():
+		# Salir con la inercia del columpio.
+		if _swing.has_method("release_player"):
+			_swing.release_player()
+		_swing = null
+		_coyote_timer = 0.0
+		_jump_buffer_timer = 0.0
+	elif _input.is_crouch_pressed():
+		# Bajarse: soltarse y caer (más fácil que saltar).
+		if _swing.has_method("release_player"):
+			_swing.release_player()
+		_swing = null
+		velocity = Vector2(0.0, 60.0)
+		_coyote_timer = 0.0
+		_jump_buffer_timer = 0.0
 
 
 func _apply_corner_correction() -> void:
@@ -534,6 +701,8 @@ func respawn() -> void:
 	_stun_timer = 0.0
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
+	_wall_jump_lockout_timer = 0.0
+	_last_wall_jump_side = 0
 	_toxic_cloud_count = 0
 	_poison_flash_timer = 0.0
 	_active_dots.clear()

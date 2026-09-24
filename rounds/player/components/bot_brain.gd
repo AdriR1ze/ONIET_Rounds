@@ -444,24 +444,9 @@ func _update_movement(target: CharacterBody2D, delta: float) -> void:
 				_jump_just_pressed = true
 
 
-const Y_LIMITE_MUERTE := 635.0
-
-
 func _evitar_abismo(_delta: float) -> void:
 	var my_pos := player.global_position
 	var move_dir := signf(_move_axis)
-
-	# Límites extremos del mapa (bordes de pantalla)
-	if my_pos.x < 190.0 and move_dir < 0.0:
-		_move_axis = 1.0
-		if player.is_on_floor() and player.velocity.x < -30.0:
-			player.velocity.x = 0.0
-		return
-	elif my_pos.x > 1090.0 and move_dir > 0.0:
-		_move_axis = -1.0
-		if player.is_on_floor() and player.velocity.x > 30.0:
-			player.velocity.x = 0.0
-		return
 
 	# Si está en el suelo y moviéndose: sondear si hay suelo delante
 	if player.is_on_floor() and not is_zero_approx(move_dir):
@@ -521,10 +506,4 @@ func _hay_suelo(origen: Vector2, distancia_abajo: float) -> bool:
 	# World (1) + Plataforma (64): cuenta tambien las plataformas de una sola cara.
 	var query := PhysicsRayQueryParameters2D.create(origen, origen + Vector2(0.0, distancia_abajo), 1 | 64)
 	query.exclude = [player.get_rid()]
-	var res := space.intersect_ray(query)
-	if res.is_empty():
-		return false
-	var hit_pos: Vector2 = res.get("position", Vector2.ZERO)
-	if hit_pos.y >= Y_LIMITE_MUERTE:
-		return false
-	return true
+	return not space.intersect_ray(query).is_empty()

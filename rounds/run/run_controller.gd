@@ -108,9 +108,13 @@ func _on_jugador_muerto(jugador: Node) -> void:
 	else:
 		_asignar_spawns_distribuidos()
 
+	# Resetear las vidas ANTES de revivir: los eliminados de la ronda anterior
+	# tienen vidas == 0 y _revivir_caidos() los dejaría muertos e invisibles
+	# durante toda la ronda nueva (y el safety net de _process les descontaría
+	# una vida al detectarlos). Con las vidas reiniciadas, todos respawnean.
+	RunManager.iniciar_ronda(RunManager.ronda + 1)
 	_revivir_caidos()
 	_congelar_jugadores(true)
-	RunManager.iniciar_ronda(RunManager.ronda + 1)
 
 	if banner_intro != null and banner_intro.has_method("mostrar_intro"):
 		await banner_intro.mostrar_intro(RunManager.ronda, _mapa_info_actual)

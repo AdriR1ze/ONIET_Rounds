@@ -30,6 +30,15 @@ const DEFINICIONES_MAPAS: Array[Dictionary] = [
 		"color": Color(0.2, 0.9, 1.0),
 		"atlas_id": 1,
 	},
+		{
+		"id": &"el_pendulo",
+		"nombre": "El Péndulo",
+		"tipo": "Boceto 1 / Geometría",
+		"descripcion": "Viga central inclinada a 45 grados rodeada por un arco de elipses flotantes y base de combate.",
+		"escena": "res://levels/maps/map_03_el_pendulo.tscn",
+		"color": Color(0.2, 0.9, 1.0),
+		"atlas_id": 1,
+	},
 	
 	{
 		"id": &"arena_abierta",

@@ -19,6 +19,10 @@ const TEXTURAS_CORAZONES: Dictionary = {
 		"lleno": preload("res://sprite_sheets/personajes/pajaro/Corazones_pajaro_lleno.png"),
 		"vacio": preload("res://sprite_sheets/personajes/pajaro/Corazones_pajaro_vacio.png"),
 	},
+	"fantasma": {
+		"lleno": preload("res://sprite_sheets/personajes/fantasma/corazon_fantasma_lleno.png"),
+		"vacio": preload("res://sprite_sheets/personajes/fantasma/corazon_fantasma_vacio.png"),
+	},
 }
 
 var _nombres: Dictionary = {}
@@ -104,13 +108,9 @@ func _actualizar_hud() -> void:
 	if _ronda != null:
 		_ronda.text = "RONDA %d" % maxi(RunManager.ronda, 1)
 
-	var total_vidas: int = RunManager.vidas_por_ronda
-	if total_vidas <= 0:
-		total_vidas = 5
-	# Una vida extra (objeto de vida) supera el tope inicial: mostramos al menos
-	# tantos corazones como vidas tenga cualquier jugador.
-	for i in RunManager.cantidad_jugadores:
-		total_vidas = maxi(total_vidas, RunManager.vidas_de(i + 1))
+	var total_base: int = RunManager.vidas_por_ronda
+	if total_base <= 0:
+		total_base = 5
 
 	var puntajes: Array = []
 	for i in RunManager.cantidad_jugadores:
@@ -119,7 +119,10 @@ func _actualizar_hud() -> void:
 		if _nombres.has(numero):
 			_nombres[numero].text = RunManager.nombre_jugador(numero)
 		if _vidas.has(numero):
-			_actualizar_vidas_container(_vidas[numero], RunManager.vidas_de(numero), total_vidas, numero, izquierda)
+			# Cada jugador muestra sus propias vidas: si una vida extra supera el
+			# tope inicial, se agrega un corazón lleno (no uno vacío de otro jugador).
+			var vidas_actuales := RunManager.vidas_de(numero)
+			_actualizar_vidas_container(_vidas[numero], vidas_actuales, maxi(total_base, vidas_actuales), numero, izquierda)
 		puntajes.append(str(RunManager.marcador_de(numero)))
 	if _marcador != null:
 		_marcador.text = "  -  ".join(puntajes)

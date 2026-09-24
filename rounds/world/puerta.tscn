@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://b7sofi183iwem"]
+
+[ext_resource type="Script" path="res://world/puerta.gd" id="1_puerta"]
+[ext_resource type="Texture2D" uid="uid://ufshtb7t2hxy" path="res://sprite_sheets/Puerta.png" id="2_puerta"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cuerpo"]
+size = Vector2(28, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_detector"]
+size = Vector2(72, 68)
+
+[node name="Puerta" type="Node2D"]
+script = ExtResource("1_puerta")
+
+[node name="Cuerpo" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Cuerpo"]
+shape = SubResource("RectangleShape2D_cuerpo")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_puerta")
+hframes = 4
+
+[node name="Detector" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Detector"]
+shape = SubResource("RectangleShape2D_detector")

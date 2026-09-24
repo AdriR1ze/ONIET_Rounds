@@ -211,6 +211,14 @@ target_position = Vector2(0, -16)
 position = Vector2(0, 20)
 target_position = Vector2(0, 8)
 
+[node name="WallRayLeft" type="RayCast2D" parent="."]
+position = Vector2(-13, -4)
+target_position = Vector2(-6, 0)
+
+[node name="WallRayRight" type="RayCast2D" parent="."]
+position = Vector2(11, -4)
+target_position = Vector2(6, 0)
+
 [node name="WeaponComponent" type="Node2D" parent="." unique_id=336549377]
 position = Vector2(4, 9)
 script = ExtResource("3_weapon")

@@ -1,6 +1,6 @@
 extends Control
 
-const PERSONAJES: Array[String] = ["esqueleto", "sapo", "pajaro"]
+const PERSONAJES: Array[String] = ["esqueleto", "sapo", "pajaro", "fantasma"]
 const COLUMNAS_PERSONAJES := 2
 const ESCENA_JUEGO := "res://levels/test_level.tscn"
 const ESCENA_MENU := "res://ui/main_menu.tscn"
@@ -8,21 +8,25 @@ const ESCENA_MENU := "res://ui/main_menu.tscn"
 const SKEL_FRAMES: SpriteFrames = preload("res://player/skeleton_frames.tres")
 const SAPO_FRAMES: SpriteFrames = preload("res://player/sapo_frames.tres")
 const PAJARO_FRAMES: SpriteFrames = preload("res://player/pajaro_frames.tres")
+const FANTASMA_FRAMES: SpriteFrames = preload("res://player/fantasma_frames.tres")
 const SKEL_SHADER: Shader = preload("res://player/skeleton_palette.gdshader")
 const SPRITE_FRAMES := {
 	"esqueleto": SKEL_FRAMES,
 	"sapo": SAPO_FRAMES,
 	"pajaro": PAJARO_FRAMES,
+	"fantasma": FANTASMA_FRAMES,
 }
 const NOMBRES_PERSONAJES := {
 	"esqueleto": "Esqueleto",
 	"sapo": "Sapo",
 	"pajaro": "Pajaro",
+	"fantasma": "Fantasma",
 }
 const DESCRIPCIONES_PERSONAJES := {
 	"esqueleto": "Agil, huesudo e implacable.",
 	"sapo": "Salton, verde y dificil de tumbar.",
 	"pajaro": "Ligero, veloz y con mucho estilo.",
+	"fantasma": "Etereo, esquivo y dificil de atrapar.",
 }
 
 const COLOR_APAGADO := Color(0.2, 0.22, 0.28, 1.0)

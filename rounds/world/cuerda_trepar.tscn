@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://ba15vhstk0nrj"]
+
+[ext_resource type="Script" path="res://world/cuerda_trepar.gd" id="1_trepar"]
+[ext_resource type="Texture2D" uid="uid://daejyyhivl8q3" path="res://sprite_sheets/cuerda.png" id="2_cuerda"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cuerda"]
+size = Vector2(16, 32)
+
+[node name="CuerdaTrepar" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_trepar")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_cuerda")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+modulate = Color(0.5, 1, 0.55, 1)
+texture = ExtResource("2_cuerda")
+region_enabled = true
+region_rect = Rect2(14, 12, 4, 8)
+scale = Vector2(1, 4)

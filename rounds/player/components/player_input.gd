@@ -83,6 +83,14 @@ func is_crouch_pressed() -> bool:
 	return Input.is_action_pressed(_action("down"))
 
 
+func is_up_pressed() -> bool:
+	if _bot_brain != null:
+		return false
+	if _usa_raw_keyboard():
+		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "up")
+	return Input.is_action_pressed(_action("up"))
+
+
 func is_strafe_pressed() -> bool:
 	if _bot_brain != null:
 		return false

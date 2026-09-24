@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://c8hplg0aumicd"]
+
+[ext_resource type="Script" path="res://world/pincho.gd" id="1_pincho"]
+[ext_resource type="Texture2D" uid="uid://hggji64m8b27" path="res://sprite_sheets/pincho.png" id="2_pincho"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pincho"]
+size = Vector2(26, 26)
+
+[node name="Pincho" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_pincho")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_pincho")
+
+[node name="Sprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_pincho")

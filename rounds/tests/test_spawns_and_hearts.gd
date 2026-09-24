@@ -6,6 +6,7 @@ func _ready() -> void:
 	test_map_spawns()
 	test_hud_character_hearts()
 	test_mid_round_kill_flow()
+	await test_round_end_revives_loser_next_round()
 	print("--- TODOS LOS NUEVOS TESTS PASARON EXITOSAMENTE ---")
 	get_tree().quit(0)
 
@@ -112,3 +113,47 @@ func test_mid_round_kill_flow() -> void:
 
 	level.free()
 	print("✓ Flujo de baja intermedia: KillBanner integrado y vidas descontadas correctamente")
+
+
+func test_round_end_revives_loser_next_round() -> void:
+	var level_scn: PackedScene = load("res://levels/test_level.tscn")
+	assert(level_scn != null, "No se pudo cargar test_level.tscn")
+	var level = level_scn.instantiate()
+	add_child(level)
+
+	var run_ctrl = level.get_node("RunController")
+	var p1 = level.get_node("Player1")
+	var p2 = level.get_node("Player2")
+
+	# Neutralizar pantallas y banners para que la transición de ronda sea síncrona
+	run_ctrl.banner_ganador = null
+	run_ctrl.pantalla_mejoras = null
+	run_ctrl.banner_intro = null
+	run_ctrl.banner_baja = null
+
+	RunManager.configurar_partida(2, 2)
+	RunManager.iniciar_partida()
+	RunManager.iniciar_ronda(1)
+
+	# P1 queda sin vidas y muerto: la ronda termina con P2 como ganador
+	RunManager.perder_vida(1)
+	p1.current_state = Player.PlayerState.DEAD
+	run_ctrl._procesando = false
+	run_ctrl._ronda_activa = true
+	run_ctrl._on_jugador_muerto(p1)
+
+	# La ronda 2 debe haber iniciado con TODOS los jugadores vivos y visibles
+	assert(RunManager.ronda == 2, "Debe iniciar la ronda 2, actual: %d" % RunManager.ronda)
+	assert(p1.is_alive(), "P1 debe revivir al iniciar la ronda 2")
+	assert(p1.visible, "P1 debe ser visible al iniciar la ronda 2")
+	assert(p2.is_alive(), "P2 debe seguir vivo al iniciar la ronda 2")
+
+	# Esperar frames: el safety net de _process NO debe descontar vida a un
+	# jugador recién revivido
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert(RunManager.vidas_de(1) == 2, "P1 debe iniciar la ronda 2 con vidas llenas, actual: %d" % RunManager.vidas_de(1))
+	assert(RunManager.vidas_de(2) == 2, "P2 debe iniciar la ronda 2 con vidas llenas, actual: %d" % RunManager.vidas_de(2))
+
+	level.free()
+	print("✓ Fin de ronda: los eliminados reaparecen visibles y con vidas llenas en la ronda siguiente")

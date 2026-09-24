@@ -161,5 +161,7 @@ restart={
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
+textures/canvas_textures/default_texture_mipmap=false
 rendering_device/driver.windows="d3d12"
 environment/defaults/default_clear_color=Color(0.09, 0.1, 0.14, 1)

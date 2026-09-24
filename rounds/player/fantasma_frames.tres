@@ -1,0 +1,81 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://r1auo4e6bi8s"]
+
+[ext_resource type="Texture2D" uid="uid://dcihmmpqrqa84" path="res://sprite_sheets/personajes/fantasma/fantasma_caminando.png" id="1_camina"]
+[ext_resource type="Texture2D" uid="uid://ej05tlmt5q2m" path="res://sprite_sheets/personajes/fantasma/fantasma_Quieto.png" id="2_quieto"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i0"]
+atlas = ExtResource("2_quieto")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i1"]
+atlas = ExtResource("2_quieto")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i2"]
+atlas = ExtResource("2_quieto")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i3"]
+atlas = ExtResource("2_quieto")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w0"]
+atlas = ExtResource("1_camina")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w1"]
+atlas = ExtResource("1_camina")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w2"]
+atlas = ExtResource("1_camina")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w3"]
+atlas = ExtResource("1_camina")
+region = Rect2(96, 0, 32, 32)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i0")
+}],
+"loop": 0,
+"name": &"dead",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i3")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w3")
+}],
+"loop": 1,
+"name": &"walk",
+"speed": 8.0
+}]
