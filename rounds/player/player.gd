@@ -12,6 +12,11 @@ const CHARACTER_FRAMES := {
 	"pajaro": preload("res://player/pajaro_frames.tres"),
 }
 
+# Bajar atravesando plataformas de una sola cara (one-way).
+const ONE_WAY_LAYER := 7
+const DROP_THROUGH_TIME := 0.22
+const DROP_THROUGH_SPEED := 120.0
+
 enum PlayerState {
 	IDLE,
 	WALKING,
@@ -62,6 +67,7 @@ var _ragdoll_timer: float = 0.0
 var _stun_timer: float = 0.0
 var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
+var _drop_through_timer: float = 0.0
 var _spawn_position: Vector2
 var _hit_stop_remaining: float = 0.0
 var _hit_stop_active: bool = false
@@ -162,6 +168,7 @@ func _physics_process(delta: float) -> void:
 			_handle_aim()
 			_handle_actions()
 
+	_handle_drop_through(delta)
 	_apply_corner_correction()
 	move_and_slide()
 	_check_sepultador_collision()
@@ -272,6 +279,27 @@ func _handle_jump() -> void:
 		AudioManager.reproducir("salto", 0.05)
 	if _input.is_jump_just_released() and velocity.y < 0.0:
 		velocity.y *= 0.5
+
+
+func _handle_drop_through(delta: float) -> void:
+	if _drop_through_timer > 0.0:
+		_drop_through_timer -= delta
+		if _drop_through_timer <= 0.0:
+			set_collision_mask_value(ONE_WAY_LAYER, true)
+		else:
+			velocity.y = maxf(velocity.y, DROP_THROUGH_SPEED)
+		return
+	if not can_control or current_state == PlayerState.DEAD:
+		return
+	if not is_on_floor() or not _input.is_crouch_pressed():
+		return
+	# Suelta la plataforma de una sola cara: ignora esa capa un instante para
+	# caer. Sobre suelo firme no pasa nada porque eso va en la capa World.
+	_drop_through_timer = DROP_THROUGH_TIME
+	set_collision_mask_value(ONE_WAY_LAYER, false)
+	velocity.y = DROP_THROUGH_SPEED
+	_coyote_timer = 0.0
+	_jump_buffer_timer = 0.0
 
 
 func _apply_corner_correction() -> void:

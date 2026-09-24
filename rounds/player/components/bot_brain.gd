@@ -518,7 +518,8 @@ func _hay_suelo(origen: Vector2, distancia_abajo: float) -> bool:
 	var space := player.get_world_2d().direct_space_state
 	if space == null:
 		return false
-	var query := PhysicsRayQueryParameters2D.create(origen, origen + Vector2(0.0, distancia_abajo), 1)
+	# World (1) + Plataforma (64): cuenta tambien las plataformas de una sola cara.
+	var query := PhysicsRayQueryParameters2D.create(origen, origen + Vector2(0.0, distancia_abajo), 1 | 64)
 	query.exclude = [player.get_rid()]
 	var res := space.intersect_ray(query)
 	if res.is_empty():

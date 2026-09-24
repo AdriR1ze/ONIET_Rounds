@@ -5,9 +5,12 @@
 [ext_resource type="Material" uid="uid://dy1muh88al70y" path="res://effects/neon_tiles_azul_violeta.tres" id="3_mnv5x"]
 [ext_resource type="Material" uid="uid://b84f3b306mff7" path="res://effects/neon_tiles_rosa_naranja.tres" id="4_j88qb"]
 [ext_resource type="Texture2D" uid="uid://b4cuu43ij0g12" path="res://effects/tile_white_strip.png" id="5_8i66l"]
-[ext_resource type="Material" path="res://effects/neon_tiles_coral_aqua.tres" id="6_scan"]
-[ext_resource type="Material" path="res://effects/neon_tiles_violeta_lima.tres" id="7_pulse"]
-[ext_resource type="Material" path="res://effects/neon_tiles_amarillo_cian.tres" id="8_circuit"]
+[ext_resource type="Material" uid="uid://chpfav8enps8o" path="res://effects/neon_tiles_coral_aqua.tres" id="6_scan"]
+[ext_resource type="Material" uid="uid://cyjgkpb4kgd42" path="res://effects/neon_tiles_violeta_lima.tres" id="7_pulse"]
+[ext_resource type="Material" uid="uid://d3h46pgxsejrb" path="res://effects/neon_tiles_amarillo_cian.tres" id="8_circuit"]
+[ext_resource type="Material" uid="uid://d3t6pjippc1t4" path="res://effects/neon_tiles_plataforma.tres" id="9_plat"]
+[ext_resource type="Texture2D" uid="uid://ct6ll1lsykvti" path="res://effects/tile_platform_strip.png" id="9_strip"]
+[ext_resource type="PackedScene" uid="uid://do8arn6mfiypy" path="res://world/life_circle.tscn" id="10_vida"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5fp4i"]
 texture = ExtResource("5_8i66l")
@@ -46,10 +49,25 @@ texture_region_size = Vector2i(32, 32)
 0:0/0/material = ExtResource("8_circuit")
 0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_plataforma"]
+texture = ExtResource("9_strip")
+texture_region_size = Vector2i(32, 32)
+use_texture_padding = false
+0:0/0 = 0
+0:0/0/material = ExtResource("9_plat")
+0:0/0/physics_layer_1/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, -8, -16, -8)
+0:0/0/physics_layer_1/polygon_0/one_way = true
+
+[sub_resource type="TileSetScenesCollectionSource" id="TileSetScenesCollectionSource_vida"]
+scenes/1/scene = ExtResource("10_vida")
+
 [resource]
 tile_size = Vector2i(32, 32)
 physics_layer_0/collision_layer = 1
+physics_layer_1/collision_layer = 64
 sources/0 = SubResource("TileSetAtlasSource_5fp4i")
 sources/1 = SubResource("TileSetAtlasSource_scan")
 sources/2 = SubResource("TileSetAtlasSource_pulse")
 sources/3 = SubResource("TileSetAtlasSource_circuit")
+sources/4 = SubResource("TileSetAtlasSource_plataforma")
+sources/5 = SubResource("TileSetScenesCollectionSource_vida")

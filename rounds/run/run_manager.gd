@@ -162,6 +162,14 @@ func perder_vida(player_number: int) -> void:
 	vidas_cambiadas.emit()
 
 
+func ganar_vida(player_number: int) -> void:
+	if partida_finalizada:
+		return
+	var actual: int = vidas_de(player_number)
+	vidas[player_number] = mini(actual + 1, MAX_VIDAS)
+	vidas_cambiadas.emit()
+
+
 func mejoras_de(player_number: int) -> Array:
 	return _mejoras.get(player_number, [])
 
