@@ -8,12 +8,6 @@
 [sub_resource type="Resource" id="Resource_0xcsc"]
 script = ExtResource("2_1tnbs")
 
-[sub_resource type="Resource" id="Resource_8a736"]
-script = ExtResource("4_1b5h8")
-stat = &"damage"
-op = 1
-value = 0.9
-
 [resource]
 script = ExtResource("3_j47hg")
 id = &"bala_anclante"
@@ -25,7 +19,7 @@ rareza = 1
 categoria = 2
 tema = &"gravedad"
 ventajas = Array[String](["Ralentiza al 50% en área durante 1.5s"])
-desventajas = Array[String](["-10% Daño de bala"])
+desventajas = Array[String]([])
 mecanicas = Array[String](["Zona de anclaje y ralentización"])
-stats = Array[ExtResource("4_1b5h8")]([SubResource("Resource_8a736")])
+stats = Array[ExtResource("4_1b5h8")]([])
 efectos = Array[ExtResource("1_7ycwd")]([SubResource("Resource_0xcsc")])

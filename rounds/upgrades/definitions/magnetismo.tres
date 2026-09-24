@@ -8,12 +8,6 @@
 [sub_resource type="Resource" id="Resource_548l5"]
 script = ExtResource("2_ps35d")
 
-[sub_resource type="Resource" id="Resource_prb6y"]
-script = ExtResource("4_65ymu")
-stat = &"fire_rate"
-op = 1
-value = 0.9
-
 [resource]
 script = ExtResource("3_fkmv8")
 id = &"magnetismo"
@@ -25,7 +19,7 @@ rareza = 1
 categoria = 2
 tema = &"iman"
 ventajas = Array[String](["Aura magnética en balas (radio 120px)", "Succiona rivales hacia la bala", "Desvía proyectiles enemigos hacia vos"])
-desventajas = Array[String](["-10% Cadencia de tiro"])
+desventajas = Array[String]([])
 mecanicas = Array[String](["Aura de succión magnética en proyectiles"])
-stats = Array[ExtResource("4_65ymu")]([SubResource("Resource_prb6y")])
+stats = Array[ExtResource("4_65ymu")]([])
 efectos = Array[ExtResource("1_n4a5p")]([SubResource("Resource_548l5")])

@@ -21,8 +21,12 @@ var _effects: Array = []
 var max_ammo: int = 3
 var current_ammo: int = 3
 var is_reloading: bool = false
-var reload_time: float = 1.2
+var reload_time: float = 1.7
+var idle_reload_delay: float = 1.0
 var _reload_timer: float = 0.0
+var _reload_interval: float = 0.0
+var _ammo_at_reload_start: int = 0
+var _time_since_shot: float = 0.0
 var _quickdraw_ready: bool = false
 var _roulette_bullet: int = -1
 
@@ -46,9 +50,10 @@ func configurar(stats: StatSheet, player: Node, effects: Array) -> void:
 	_player = player
 	_effects = effects
 	max_ammo = maxi(_stat_entero(&"max_ammo", 3), 1)
-	reload_time = _stat(&"reload_time", 1.2)
+	reload_time = _stat(&"reload_time", 1.7)
 	current_ammo = max_ammo
 	is_reloading = false
+	_time_since_shot = 0.0
 	_on_reload_finished()
 	ammo_changed.emit(current_ammo, max_ammo)
 	_cooldown = 0.35
@@ -60,33 +65,49 @@ func reset_cooldown(time: float = 0.35) -> void:
 
 func _process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
+	_time_since_shot += delta
 	if is_reloading:
 		_reload_timer -= delta
 		if _reload_timer <= 0.0:
-			is_reloading = false
-			current_ammo = max_ammo
-			_on_reload_finished()
+			# Recarga incremental: suma balas de a una y no bloquea el disparo.
+			current_ammo += 1
 			ammo_changed.emit(current_ammo, max_ammo)
-			reload_completed.emit()
+			if current_ammo >= max_ammo:
+				is_reloading = false
+				_on_reload_finished()
+				reload_completed.emit()
+			else:
+				_reload_timer += _reload_interval
+	elif current_ammo < max_ammo and _time_since_shot >= idle_reload_delay:
+		# Sin disparar por un segundo: recarga automática.
+		start_reload()
 
 
 func start_reload() -> void:
 	if is_reloading or current_ammo >= max_ammo:
 		return
 	is_reloading = true
-	_reload_timer = reload_time
+	_ammo_at_reload_start = current_ammo
+	# El tiempo de recarga reparte el cargador completo: cada bala tarda
+	# reload_time / max_ammo en sumarse (vacío a lleno = reload_time total).
+	_reload_interval = reload_time / float(maxi(max_ammo, 1))
+	_reload_timer = _reload_interval
 	reload_started.emit()
 
 
 func get_reload_progress() -> float:
-	if not is_reloading or reload_time <= 0.0:
+	if not is_reloading or max_ammo <= _ammo_at_reload_start:
 		return 1.0
-	return clampf(1.0 - (_reload_timer / reload_time), 0.0, 1.0)
+	var total := float(max_ammo - _ammo_at_reload_start)
+	var earned := float(current_ammo - _ammo_at_reload_start)
+	var partial := clampf(1.0 - (_reload_timer / maxf(_reload_interval, 0.001)), 0.0, 1.0)
+	return clampf((earned + partial) / total, 0.0, 1.0)
 
 
 func reset_ammo() -> void:
 	is_reloading = false
 	_reload_timer = 0.0
+	_time_since_shot = 0.0
 	current_ammo = max_ammo
 	ammo_changed.emit(current_ammo, max_ammo)
 	reload_completed.emit()
@@ -104,17 +125,22 @@ func set_aim(direction: Vector2) -> void:
 
 
 func can_fire() -> bool:
-	return _cooldown <= 0.0 and bullet_scene != null and not is_reloading and current_ammo > 0
+	# La recarga incremental no bloquea el arma: seguís usando las balas que tenés.
+	return _cooldown <= 0.0 and bullet_scene != null and current_ammo > 0
 
 
 func try_fire() -> bool:
-	if is_reloading:
-		return false
 	if current_ammo <= 0:
-		start_reload()
+		# Sin balas: la recarga sigue aunque se siga apretando el gatillo.
+		if not is_reloading:
+			start_reload()
 		return false
+	if is_reloading:
+		# Disparar interrumpe la recarga automática en curso.
+		is_reloading = false
 	if not can_fire():
 		return false
+	_time_since_shot = 0.0
 
 	var cantidad := _stat_entero(&"projectiles", 1)
 	var dispersion: float = _stat(&"spread", 0.0)
@@ -139,12 +165,13 @@ func try_fire() -> bool:
 	if current_ammo == _roulette_bullet:
 		is_roulette = true
 		_roulette_bullet = -1
-		dano = int(round(dano * 4.0))
+		dano = int(round(dano * 3.0))
 
 	var base_angle := aim_direction.angle()
 	var centro := (cantidad - 1) / 2.0
 
-	if _has_melee_strike():
+	var is_melee := _has_melee_strike()
+	if is_melee:
 		_fire_melee_strike(is_roulette)
 	elif _has_laser_sight():
 		var rebotes := _stat_entero(&"bounces", 0)
@@ -230,6 +257,8 @@ func try_fire() -> bool:
 		start_reload()
 
 	_cooldown = 1.0 / maxf(_stat(&"fire_rate", 5.0), 0.1)
+	if is_melee:
+		_cooldown = maxf(_cooldown, 0.2)
 	if is_roulette:
 		AudioManager.reproducir("golpe", 0.08)
 	AudioManager.reproducir("disparo", 0.06)
@@ -398,7 +427,7 @@ func _fire_melee_strike(is_roulette: bool = false) -> void:
 	if _player != null and _player.has_method("get_damage_multiplier"):
 		dano = int(round(float(dano) * _player.get_damage_multiplier()))
 	if is_roulette:
-		dano *= 4
+		dano *= 3
 
 	var empuje: float = 520.0 + _stat(&"knockback", 0.0)
 	var from_pos: Vector2 = muzzle.global_position

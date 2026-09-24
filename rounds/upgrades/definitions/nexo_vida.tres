@@ -8,12 +8,6 @@
 [sub_resource type="Resource" id="Resource_vt8w5"]
 script = ExtResource("2_t1kjf")
 
-[sub_resource type="Resource" id="Resource_0st5u"]
-script = ExtResource("4_bu0n4")
-stat = &"damage"
-op = 1
-value = 0.85
-
 [resource]
 script = ExtResource("3_g30dy")
 id = &"nexo_vida"
@@ -25,7 +19,7 @@ rareza = 2
 categoria = 1
 tema = &"totem"
 ventajas = Array[String](["Planta un tótem que cura en área durante 3s (+8 HP/s)"])
-desventajas = Array[String](["-15% Daño de bala"])
+desventajas = Array[String]([])
 mecanicas = Array[String](["Invocación de tótem curativo al recargar"])
-stats = Array[ExtResource("4_bu0n4")]([SubResource("Resource_0st5u")])
+stats = Array[ExtResource("4_bu0n4")]([])
 efectos = Array[ExtResource("1_dthcq")]([SubResource("Resource_vt8w5")])

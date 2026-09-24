@@ -11,7 +11,7 @@ script = ExtResource("2_7wk5i")
 [sub_resource type="Resource" id="Resource_wbugr"]
 script = ExtResource("4_01l3d")
 stat = &"spread"
-value = 8.0
+value = 20.0
 
 [resource]
 script = ExtResource("3_t7cp0")
@@ -23,7 +23,7 @@ descripcion = "Las balas tienen probabilidad de desfasarse en el aire, realizand
 rareza = 2
 tema = &"glitch"
 ventajas = Array[String](["Genera un clon cibernético secundario"])
-desventajas = Array[String](["Ligera dispersión (+8°)"])
+desventajas = Array[String](["Dispersión (+20°)"])
 mecanicas = Array[String](["Fase cibernética y clonación en vuelo"])
 stats = Array[ExtResource("4_01l3d")]([SubResource("Resource_wbugr")])
 efectos = Array[ExtResource("1_ddjhk")]([SubResource("Resource_250xh")])

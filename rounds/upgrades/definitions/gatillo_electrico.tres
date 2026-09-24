@@ -20,16 +20,16 @@ value = 0.7
 script = ExtResource("3_bghyl")
 stat = &"damage"
 op = 1
-value = 0.65
+value = 0.75
 
 [resource]
 script = ExtResource("2_21gdw")
 id = &"gatillo_electrico"
 titulo = "Gatillo Eléctrico"
 subtitulo = "Cadencia de fuego desmedida"
-descripcion = "Disparás mucho más rápido (+100% cadencia) y recargás más rápido (-30% tiempo de recarga) pero cada impacto hace menos daño (-35%)."
+descripcion = "Disparás mucho más rápido (+100% cadencia) y recargás más rápido (-30% tiempo de recarga) pero cada impacto hace menos daño (-25%)."
 tema = &"rapido"
 ventajas = Array[String](["+100% Cadencia de tiro", "-30% Tiempo de recarga"])
-desventajas = Array[String](["-35% Daño de impacto"])
+desventajas = Array[String](["-25% Daño de impacto"])
 mecanicas = Array[String](["Cadencia de fuego desmedida"])
 stats = Array[ExtResource("3_bghyl")]([SubResource("Resource_oya7m"), SubResource("Resource_jui8v"), SubResource("Resource_yqq2m")])

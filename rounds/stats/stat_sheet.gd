@@ -14,7 +14,7 @@ const BASE_STATS := {
 	&"bullet_gravity": 1000.0,
 	&"bullet_drag": 0.0,
 	&"max_ammo": 3.0,
-	&"reload_time": 1.2,
+	&"reload_time": 1.7,
 	&"projectiles": 1.0,
 	&"spread": 0.0,
 	&"pierce": 0.0,

@@ -8,12 +8,6 @@
 [sub_resource type="Resource" id="Resource_7nsgc"]
 script = ExtResource("2_8qop1")
 
-[sub_resource type="Resource" id="Resource_vspjm"]
-script = ExtResource("4_tupbv")
-stat = &"damage"
-op = 1
-value = 0.9
-
 [resource]
 script = ExtResource("3_veefx")
 id = &"piel_adaptativa"
@@ -25,7 +19,7 @@ rareza = 1
 categoria = 1
 tema = &"armadura"
 ventajas = Array[String](["+8% Armadura por 4s al recibir golpe (stack 3)"])
-desventajas = Array[String](["-10% Daño"])
+desventajas = Array[String]([])
 mecanicas = Array[String](["Armadura reactiva acumulativa"])
-stats = Array[ExtResource("4_tupbv")]([SubResource("Resource_vspjm")])
+stats = Array[ExtResource("4_tupbv")]([])
 efectos = Array[ExtResource("1_tpbc7")]([SubResource("Resource_7nsgc")])
