@@ -1,7 +1,7 @@
-[gd_scene format=4]
+[gd_scene format=4 uid="uid://cgc8k0212qo1m"]
 
-[ext_resource type="TileSet" path="res://effects/neon_tileset.tres" id="1_i5d6w"]
-[ext_resource type="Script" path="res://world/hazard_zone.gd" id="2_wxle1"]
+[ext_resource type="TileSet" uid="uid://dvdcgus4kg6tn" path="res://effects/neon_tileset.tres" id="1_i5d6w"]
+[ext_resource type="Script" uid="uid://dcoec2tkt01vf" path="res://world/hazard_zone.gd" id="2_wxle1"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rq612"]
 size = Vector2(240, 1800)

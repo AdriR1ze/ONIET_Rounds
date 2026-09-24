@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://effects/neon_tilemap.tscn" id="1_45etw"]
 [ext_resource type="Script" uid="uid://dcoec2tkt01vf" path="res://world/hazard_zone.gd" id="2_haz"]
+[ext_resource type="Script" path="res://levels/maps/map_03_el_pendulo.gd" id="3_colapso"]
 
 [sub_resource type="RectangleShape2D" id="DeadZone_side"]
 size = Vector2(240, 1985)
@@ -10,6 +11,7 @@ size = Vector2(240, 1985)
 size = Vector2(2454, 80)
 
 [node name="MapElPendulo" type="Node2D" unique_id=1915470564]
+script = ExtResource("3_colapso")
 
 [node name="NeonTileMap" parent="." unique_id=325047762 instance=ExtResource("1_45etw")]
 position = Vector2(-348, -6)
@@ -41,3 +43,6 @@ shape = SubResource("DeadZone_side")
 [node name="Bottom" type="CollisionShape2D" parent="DeadZone" unique_id=1445460467]
 position = Vector2(461, 1196)
 shape = SubResource("DeadZone_bottom")
+
+[node name="ColapsoTimer" type="Timer" parent="." unique_id=487210365]
+wait_time = 5.0

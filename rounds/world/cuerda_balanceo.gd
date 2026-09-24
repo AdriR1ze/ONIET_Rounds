@@ -8,10 +8,10 @@ extends Node2D
 const LARGO_TILE := 32.0
 const GRAVEDAD := 1400.0        # px/s^2 para el péndulo
 const AMORTIGUACION := 0.7      # 1/s; sólo cuando no hay jugador colgado
-const ANGULO_INICIAL := deg_to_rad(60.0)
-const MAX_ANGULO := deg_to_rad(80.0)   # límite de altura (no pasa de este ángulo)
+const ANGULO_INICIAL := deg_to_rad(70.0)
+const MAX_ANGULO := deg_to_rad(90.0)   # límite de altura (no pasa de este ángulo)
 const VELOCIDAD_MAX := 780.0           # límite de velocidad de la pesa (px/s)
-const IMPULSO := 6.0                   # rad/s^2; mover izq/der empuja el columpio
+const IMPULSO := 3.0                   # rad/s^2; mover izq/der empuja el columpio
 const REAGARRE_ESPERA := 0.45          # s; no re-engancha al instante tras soltarse
 
 var _es_ancla := false
@@ -43,7 +43,6 @@ func _ready() -> void:
 			n += 1
 		_largo = n * LARGO_TILE
 	_setup_arm()
-	_agarre.body_entered.connect(_on_body_entered)
 
 
 func _setup_arm() -> void:
@@ -53,15 +52,20 @@ func _setup_arm() -> void:
 	_agarre.position = Vector2(0.0, _largo)
 
 
-func _on_body_entered(body: Node) -> void:
+func _intentar_agarrar(body: Node) -> bool:
 	if _jugador != null or _cooldown > 0.0 or not is_instance_valid(body):
-		return
-	if body.is_in_group("player") and body.has_method("attach_swing"):
-		# Transferir el impulso del jugador al péndulo (si llega con velocidad).
-		var tangente := Vector2(-cos(_theta), -sin(_theta))
-		_omega += body.velocity.dot(tangente) / maxf(_largo, 1.0)
-		_jugador = body
-		body.attach_swing(self)
+		return false
+	if not body.is_in_group("player") or not body.has_method("attach_swing"):
+		return false
+	# Sólo se agarra si el jugador aprieta arriba (W).
+	if body.has_method("wants_grab_rope") and not body.wants_grab_rope():
+		return false
+	# Transferir el impulso del jugador al péndulo (si llega con velocidad).
+	var tangente := Vector2(-cos(_theta), -sin(_theta))
+	_omega += body.velocity.dot(tangente) / maxf(_largo, 1.0)
+	_jugador = body
+	body.attach_swing(self)
+	return true
 
 
 func release_player() -> void:
@@ -95,10 +99,9 @@ func _physics_process(delta: float) -> void:
 	_theta = clampf(_theta, -MAX_ANGULO, MAX_ANGULO)
 	_arm.rotation = _theta
 	if _jugador == null:
-		# Por si el jugador ya estaba encima cuando apareció la cuerda.
+		# Agarra sólo si el jugador está encima y aprieta arriba.
 		for body in _agarre.get_overlapping_bodies():
-			if body.is_in_group("player"):
-				_on_body_entered(body)
+			if _intentar_agarrar(body):
 				break
 	if _jugador == null:
 		return

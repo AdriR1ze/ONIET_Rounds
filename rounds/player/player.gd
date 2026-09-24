@@ -20,6 +20,9 @@ const DROP_THROUGH_SPEED := 120.0
 
 # Cuerdas: trepar (subir/bajar) y balanceo (colgarse y columpiarse).
 const CLIMB_SPEED := 150.0
+# W es a la vez "arriba" y "saltar" en el teclado: al agarrarte ignoramos el
+# "salto" un instante para no soltarte en el mismo frame del agarre.
+const ROPE_GRACE := 0.25
 
 enum PlayerState {
 	IDLE,
@@ -84,6 +87,9 @@ var _last_wall_jump_side: int = 0
 var _drop_through_timer: float = 0.0
 var _climb_ropes: Array = []
 var _swing: Node = null
+var _swing_release_timer: float = 0.0
+var _rope_grace_timer: float = 0.0
+var _climbing_prev: bool = false
 var _spawn_position: Vector2
 var _hit_stop_remaining: float = 0.0
 var _hit_stop_active: bool = false
@@ -163,6 +169,8 @@ func _physics_process(delta: float) -> void:
 	_update_dots(delta)
 	_update_ragdoll(delta)
 	_update_buffs(delta)
+	_swing_release_timer = maxf(_swing_release_timer - delta, 0.0)
+	_rope_grace_timer = maxf(_rope_grace_timer - delta, 0.0)
 	_update_state()
 	# Vivo y fuera del trompezar: el visual nunca debe quedar tumbado.
 	if current_state != PlayerState.DEAD and _ragdoll_timer <= 0.0:
@@ -178,7 +186,12 @@ func _physics_process(delta: float) -> void:
 		_check_sepultador_collision()
 		return
 
-	if _is_climbing():
+	var climbing := _is_climbing()
+	if climbing and not _climbing_prev:
+		_rope_grace_timer = ROPE_GRACE
+	_climbing_prev = climbing
+
+	if climbing:
 		_handle_climb(delta)
 		_handle_aim()
 		_handle_actions()
@@ -317,6 +330,9 @@ func _handle_horizontal(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 		return
 	var direction := _input.move_axis()
+	# Justo al soltarte del columpio conservás el impulso en el aire.
+	if _swing_release_timer > 0.0 and not is_on_floor() and is_zero_approx(direction):
+		return
 	var speed := _stats.get_stat(&"move_speed") * get_speed_multiplier()
 	if absf(velocity.x) > speed and (is_zero_approx(direction) or signf(velocity.x) != signf(direction)):
 		var decel := friction * 0.4 if is_on_floor() else friction * 0.15
@@ -408,6 +424,7 @@ func attach_swing(rope: Node) -> void:
 		_swing.release_player()
 	_swing = rope
 	velocity = Vector2.ZERO
+	_rope_grace_timer = ROPE_GRACE
 
 
 func detach_swing() -> void:
@@ -419,15 +436,18 @@ func swing_input() -> float:
 	return _input.move_axis()
 
 
+func wants_grab_rope() -> bool:
+	# Para agarrarse a una cuerda hay que apretar arriba (W).
+	return _input.is_up_pressed()
+
+
 func _is_climbing() -> bool:
 	if not can_control or current_state == PlayerState.DEAD or _swing != null:
 		return false
 	if _climb_ropes.is_empty():
 		return false
-	# En el aire se agarra solo; parado en el piso, sólo si aprieta arriba/abajo.
-	if is_on_floor() and not (_input.is_up_pressed() or _input.is_crouch_pressed()):
-		return false
-	return true
+	# Sólo se agarra si apretás arriba (o abajo para bajar); si no, cae.
+	return _input.is_up_pressed() or _input.is_crouch_pressed()
 
 
 func _handle_climb(delta: float) -> void:
@@ -445,7 +465,7 @@ func _handle_climb(delta: float) -> void:
 		facing = 1 if hx > 0.0 else -1
 		_update_visual_facing()
 	# Saltar para soltarse de la cuerda.
-	if _input.is_jump_just_pressed():
+	if _input.is_jump_just_pressed() and _rope_grace_timer <= 0.0:
 		_climb_ropes.clear()
 		velocity.y = _stats.get_stat(&"jump_velocity") * 0.9
 		_coyote_timer = 0.0
@@ -457,11 +477,16 @@ func _handle_swing(_delta: float) -> void:
 		_swing = null
 		return
 	current_state = PlayerState.AIRBORNE
-	if _input.is_jump_just_pressed():
-		# Salir con la inercia del columpio.
+	if _input.is_jump_just_pressed() and _rope_grace_timer <= 0.0:
+		# Salir conservando la inercia del columpio.
+		var v := velocity
+		if _swing.has_method("get_end_velocity"):
+			v = _swing.get_end_velocity()
 		if _swing.has_method("release_player"):
 			_swing.release_player()
 		_swing = null
+		velocity = v
+		_swing_release_timer = 0.4
 		_coyote_timer = 0.0
 		_jump_buffer_timer = 0.0
 	elif _input.is_crouch_pressed():
