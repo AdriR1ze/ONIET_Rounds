@@ -109,10 +109,37 @@ func obtener_mapas_activos() -> Array[Dictionary]:
 	return activos
 
 
+func _hay_al_menos_un_bot() -> bool:
+	for i in range(1, RunManager.cantidad_jugadores + 1):
+		if Settings.es_bot(i):
+			return true
+	for jug in RunManager.jugadores():
+		if is_instance_valid(jug) and Settings.es_bot(jug.player_number):
+			return true
+	return false
+
+
+func _es_mapa_piramide(m: Dictionary) -> bool:
+	var id_str := str(m.get("id", "")).to_lower()
+	var nombre_str := str(m.get("nombre", "")).to_lower()
+	var escena_str := str(m.get("escena", "")).to_lower()
+	return id_str == "el_pendulo" or id_str == "la_piramide" or "piramide" in id_str or "pendulo" in id_str or "piramide" in nombre_str or "piramide" in escena_str
+
+
 func obtener_mapa_aleatorio() -> Dictionary:
 	var activos := obtener_mapas_activos()
 	if activos.is_empty():
 		return DEFINICIONES_MAPAS[0]
+
+	# Si hay al menos un bot seleccionado, el mapa de la pirámide queda excluido
+	# silenciosamente a menos que sea el único mapa activo que quedó habilitado.
+	if _hay_al_menos_un_bot():
+		var sin_piramide: Array[Dictionary] = []
+		for m in activos:
+			if not _es_mapa_piramide(m):
+				sin_piramide.append(m)
+		if not sin_piramide.is_empty():
+			activos = sin_piramide
 
 	if activos.size() == 1:
 		ultimo_mapa_id = activos[0]["id"]

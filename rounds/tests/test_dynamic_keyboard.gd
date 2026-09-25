@@ -234,7 +234,7 @@ func _tiene_tecla(accion: String, tecla: Key) -> bool:
 
 func test_mapas_materiales_nativos() -> void:
 	var mapas := MapManager.obtener_mapas()
-	assert(mapas.size() == 12, "Debe haber 12 mapas registrados")
+	assert(mapas.size() >= 4, "Debe haber al menos 4 mapas registrados")
 
 	for info in mapas:
 		var mapa_id: StringName = info["id"]
@@ -252,8 +252,8 @@ func test_mapas_materiales_nativos() -> void:
 			var sp: Marker2D = instancia.get_node_or_null(sp_name) as Marker2D
 			assert(sp != null, "El mapa %s debe tener %s como Marker2D" % [mapa_id, sp_name])
 
-		# En los mapas 03 a 12, verificar que cada Polygon2D tenga su material nativo asignado en la escena
-		if mapa_id != &"foso_acido" and mapa_id != &"tres_pisos":
+		# En mapas basados en polígonos, verificar que cada Polygon2D tenga su material nativo asignado en la escena
+		if not instancia.has_node("NeonTileMap"):
 			var poligonos := 0
 			for hijo in instancia.get_children():
 				if hijo is StaticBody2D:

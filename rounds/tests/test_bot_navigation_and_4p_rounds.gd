@@ -8,6 +8,7 @@ extends Node
 
 func _ready() -> void:
 	print("--- TEST DE SISTEMA DE RONDAS 4P Y NAVEGACIÓN AVANZADA DE BOTS ---")
+	await test_map_pyramid_silent_bot_exclusion()
 	await test_4p_rounds_system()
 	await test_wall_jump_consecutive_and_wall_facing()
 	await test_door_navigation_in_closed_room()
@@ -15,6 +16,31 @@ func _ready() -> void:
 	await test_one_way_platform_and_shaft_navigation()
 	print("--- TODOS LOS TESTS DE RONDAS 4P Y NAVEGACIÓN PASARON EXITOSAMENTE ---")
 	get_tree().quit(0)
+
+
+func test_map_pyramid_silent_bot_exclusion() -> void:
+	MapManager.activar_todos()
+	Settings.set_dispositivo(1, Settings.DISPOSITIVO_TECLADO)
+	Settings.set_dispositivo(2, Settings.DISPOSITIVO_BOT)
+	RunManager.set_cantidad_jugadores(2)
+
+	# Con un bot en la partida, la pirámide queda excluida silenciosamente si hay otros mapas
+	for i in 25:
+		var mapa := MapManager.obtener_mapa_aleatorio()
+		assert(not MapManager._es_mapa_piramide(mapa), "Con bots presentes, el mapa de la pirámide debe quedar excluido")
+
+	# Si sólo queda la pirámide habilitada, se permite jugar
+	MapManager.desactivar_todos()
+	for m in MapManager.DEFINICIONES_MAPAS:
+		if MapManager._es_mapa_piramide(m):
+			MapManager.desactivados.erase(m["id"])
+		else:
+			MapManager.desactivados[m["id"]] = true
+	var unico := MapManager.obtener_mapa_aleatorio()
+	assert(MapManager._es_mapa_piramide(unico), "Si sólo queda la pirámide, se debe permitir jugar")
+
+	MapManager.activar_todos()
+	print("✓ Exclusión silenciosa de pirámide con bots: funcionando correctamente")
 
 
 func _crear_jugador(pos: Vector2, p_num: int) -> CharacterBody2D:
@@ -57,36 +83,47 @@ func test_4p_rounds_system() -> void:
 	assert(RunManager.vidas_de(3) == 3, "P3 debe iniciar con 3 vidas")
 	assert(RunManager.vidas_de(4) == 3, "P4 debe iniciar con 3 vidas")
 
-	# P1 muere: aún quedan 3 jugadores vivos (P2, P3, P4).
-	# ¡NO debe reiniciar la ronda ni pausar!
+	# P1 muere: le quedan 2 vidas restantes.
+	# La ronda DEBE permanecer activa y no pausar
 	p1.current_state = Player.PlayerState.DEAD
 	run_ctrl._on_jugador_muerto(p1)
 
 	assert(RunManager.vidas_de(1) == 2, "P1 debe tener 2 vidas tras morir")
-	assert(run_ctrl._ronda_activa == true, "La ronda DEBE permanecer activa cuando aún quedan 3 jugadores vivos")
-	assert(run_ctrl._procesando == false, "No debe estar procesando reinicio con 3 vivos")
+	assert(run_ctrl._ronda_activa == true, "La ronda DEBE permanecer activa cuando P1 tiene vidas restantes")
+	assert(run_ctrl._procesando == false, "No debe estar procesando reinicio")
 
-	# P2 muere: quedan 2 jugadores vivos (P3, P4).
+	# P2 y P3 mueren una vez: les quedan vidas, la ronda sigue activa
 	p2.current_state = Player.PlayerState.DEAD
 	run_ctrl._on_jugador_muerto(p2)
-
 	assert(RunManager.vidas_de(2) == 2, "P2 debe tener 2 vidas tras morir")
-	assert(run_ctrl._ronda_activa == true, "La ronda DEBE permanecer activa cuando quedan 2 jugadores vivos")
+	assert(run_ctrl._ronda_activa == true, "La ronda DEBE permanecer activa cuando aún hay jugadores con vidas")
 
-	# P3 muere: ahora SÓLO P4 queda vivo (1 jugador vivo).
-	# ¡Aquí sí debe finalizar la ronda!
 	p3.current_state = Player.PlayerState.DEAD
 	run_ctrl._on_jugador_muerto(p3)
+	assert(RunManager.vidas_de(3) == 2, "P3 debe tener 2 vidas tras morir")
+	assert(run_ctrl._ronda_activa == true, "La ronda DEBE permanecer activa cuando aún hay jugadores con vidas")
 
-	# La ronda concluye y pasa a ronda 2
+	# Simular que P1, P2 y P3 agotan todas sus vidas (quedan con 0 vidas)
+	RunManager.vidas[1] = 0
+	p1.current_state = Player.PlayerState.DEAD
+	RunManager.vidas[2] = 0
+	p2.current_state = Player.PlayerState.DEAD
+	RunManager.vidas[3] = 1 # P3 pierde su última vida ahora
+	run_ctrl._muertos_esta_ronda.erase(3)
+	p3.current_state = Player.PlayerState.DEAD
+	run_ctrl._on_jugador_muerto(p3) # P3 pasa a 0 vidas y queda eliminado
+
+	# Ahora sólo P4 tiene vidas. ¡Aquí concluye la ronda 1 y pasa a ronda 2!
 	assert(RunManager.ronda == 2, "Debe haber avanzado a la ronda 2")
-	# En la ronda 2, los caídos conservan las vidas descontadas (2), y el superviviente (3)
-	assert(RunManager.vidas_de(1) == 2, "P1 debe tener 2 vidas en ronda 2")
-	assert(RunManager.vidas_de(2) == 2, "P2 debe tener 2 vidas en ronda 2")
-	assert(RunManager.vidas_de(3) == 2, "P3 debe tener 2 vidas en ronda 2")
+	assert(RunManager.marcador_de(4) == 1, "P4 debe tener 1 punto de ronda ganada")
+
+	# En la ronda 2, TODOS los jugadores deben iniciar con sus 3 vidas completas (vidas_por_ronda)
+	assert(RunManager.vidas_de(1) == 3, "P1 debe reiniciar con 3 vidas en ronda 2")
+	assert(RunManager.vidas_de(2) == 3, "P2 debe reiniciar con 3 vidas en ronda 2")
+	assert(RunManager.vidas_de(3) == 3, "P3 debe reiniciar con 3 vidas en ronda 2")
 	assert(RunManager.vidas_de(4) == 3, "P4 debe tener 3 vidas en ronda 2")
 
-	# Todos los jugadores con vidas (> 0) deben haber sido revividos
+	# Todos los jugadores deben haber sido revividos para la nueva ronda
 	assert(p1.is_alive(), "P1 debe revivir en ronda 2")
 	assert(p2.is_alive(), "P2 debe revivir en ronda 2")
 	assert(p3.is_alive(), "P3 debe revivir en ronda 2")
@@ -95,7 +132,7 @@ func test_4p_rounds_system() -> void:
 	p3.free()
 	p4.free()
 	level.free()
-	print("✓ Sistema 4P: la ronda continúa mientras haya más de 1 vivo y descuenta vidas correctamente al reiniciar")
+	print("✓ Sistema 4P: la ronda continúa con reaparición por vidas y restaura vidas al iniciar nueva ronda")
 
 
 func test_wall_jump_consecutive_and_wall_facing() -> void:

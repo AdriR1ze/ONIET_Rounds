@@ -53,11 +53,11 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if not _ronda_activa or _procesando:
 		return
-	# Verificación de seguridad: si algún jugador con vidas murió y el evento no se procesó, procesarlo
+	# Verificación de seguridad: si algún jugador murió y no se procesó, procesarlo
 	for jug in RunManager.jugadores():
 		if not is_instance_valid(jug):
 			continue
-		if not jug.is_alive() and not _muertos_esta_ronda.has(jug.player_number) and RunManager.vidas_de(jug.player_number) > 0:
+		if not jug.is_alive() and not _muertos_esta_ronda.has(jug.player_number):
 			_on_jugador_muerto(jug)
 			break
 
@@ -68,6 +68,58 @@ func _obtener_jugadores_vivos() -> Array:
 		if is_instance_valid(jug) and jug.is_alive():
 			lista.append(jug)
 	return lista
+
+
+func _jugadores_en_ronda() -> Array:
+	var lista: Array = []
+	for jug in RunManager.jugadores():
+		if not is_instance_valid(jug):
+			continue
+		var num: int = jug.player_number
+		if jug.is_alive() or RunManager.vidas_de(num) > 0:
+			lista.append(jug)
+	return lista
+
+
+func _obtener_spawn_seguro() -> Vector2:
+	var spawns := _obtener_spawns_mapa()
+	if spawns.is_empty():
+		return Vector2(640, 500)
+	var vivos := _obtener_jugadores_vivos()
+	if vivos.is_empty():
+		return spawns[randi() % spawns.size()]
+
+	var mejor_spawn: Vector2 = spawns[0]
+	var max_dist_minima := -1.0
+	for sp in spawns:
+		var dist_min_a_vivos := INF
+		for v in vivos:
+			if is_instance_valid(v):
+				var d: float = sp.distance_to(v.global_position)
+				if d < dist_min_a_vivos:
+					dist_min_a_vivos = d
+		if dist_min_a_vivos > max_dist_minima:
+			max_dist_minima = dist_min_a_vivos
+			mejor_spawn = sp
+	return mejor_spawn
+
+
+func _respawnear_jugador_async(jugador: Node) -> void:
+	if not is_instance_valid(jugador):
+		return
+	var numero: int = jugador.player_number
+	await get_tree().create_timer(1.0, false).timeout
+	if not is_instance_valid(jugador) or not _ronda_activa or _procesando:
+		return
+	if RunManager.vidas_de(numero) > 0:
+		var safe_spawn := _obtener_spawn_seguro()
+		jugador.set("_spawn_position", safe_spawn)
+		jugador.global_position = safe_spawn
+		jugador.velocity = Vector2.ZERO
+		if jugador.has_method("respawn"):
+			jugador.respawn()
+		jugador.set("_spawn_protection_timer", 1.5)
+		_muertos_esta_ronda.erase(numero)
 
 
 func _on_jugador_muerto(jugador: Node) -> void:
@@ -82,21 +134,20 @@ func _on_jugador_muerto(jugador: Node) -> void:
 	jugador.can_control = false
 
 	var total_jugadores: int = RunManager.cantidad_jugadores
-	var vivos := _obtener_jugadores_vivos()
 
-	# Si hay más de 2 jugadores y quedan 2 o más vivos:
-	# El combate continúa sin interrumpir ni reiniciar la arena
-	if total_jugadores > 2 and vivos.size() > 1:
+	# Si el jugador todavía tiene vidas para esta ronda:
+	if RunManager.vidas_de(numero) > 0:
+		if total_jugadores <= 2:
+			_muertos_esta_ronda.erase(numero)
+			_procesar_baja_intermedia(jugador)
+		else:
+			_respawnear_jugador_async(jugador)
 		return
 
-	# Si es duelo de 2 jugadores con vidas intermedias por ronda:
-	if total_jugadores <= 2 and RunManager.vidas_de(numero) > 0:
-		_muertos_esta_ronda.erase(numero)
-		_procesar_baja_intermedia(jugador)
-		return
-
-	# La ronda concluye cuando queda como máximo 1 jugador vivo
-	_finalizar_ronda(vivos)
+	# Si se quedó sin vidas en esta ronda:
+	var activos := _jugadores_en_ronda()
+	if activos.size() <= 1:
+		_finalizar_ronda(activos)
 
 
 func _finalizar_ronda(vivos: Array) -> void:
@@ -108,21 +159,12 @@ func _finalizar_ronda(vivos: Array) -> void:
 	var ganador: int = vivos[0].player_number if vivos.size() == 1 else 0
 	RunManager.terminar_ronda(ganador)
 
-	var con_vidas := RunManager.jugadores_con_vidas()
-	var partida_fin := false
-	if RunManager.cantidad_jugadores > 2:
-		partida_fin = con_vidas.size() <= 1 or RunManager.partida_ganada()
-	else:
-		partida_fin = RunManager.partida_ganada()
+	var partida_fin := RunManager.partida_ganada()
 
 	if partida_fin:
-		var campeon := ganador
-		if con_vidas.size() == 1:
-			campeon = con_vidas[0].player_number
-		elif ganador > 0:
+		var campeon := RunManager.ganador_partida()
+		if campeon == 0 and ganador > 0:
 			campeon = ganador
-		else:
-			campeon = RunManager.ganador_partida()
 		if pantalla_fin != null and pantalla_fin.has_method("mostrar"):
 			pantalla_fin.mostrar(campeon)
 		_procesando = false
