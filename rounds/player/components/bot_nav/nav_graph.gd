@@ -7,9 +7,10 @@ extends RefCounted
 ## huecos estrechos o techos bajos.
 
 const JUMP_UP_CELLS: int = 5
-const JUMP_REACH_CELLS: int = 9       # Hasta 288 px de alcance horizontal
+const JUMP_DOWN_CELLS: int = 8      # Salto/descenso a plataformas inferiores cruzando vacíos
+const JUMP_REACH_CELLS: int = 10     # Hasta 320 px de alcance horizontal
 const MAX_FALL_CELLS: int = 16        # Caída por pozos / huecos verticales
-const CLEARANCE_SAMPLES: int = 5
+const CLEARANCE_SAMPLES: int = 6
 const WORLD_MASK: int = 1 | 64        # Sólidos (1) + Plataformas One-Way (64)
 
 # Dimensiones reales del cuerpo del jugador (StandShape es 24x41, usamos 20x36 con tolerancia)
@@ -109,16 +110,17 @@ func _connect_edges(space: PhysicsDirectSpaceState2D, _tilemap: TileMapLayer) ->
 					if _clearance_ok(space, center, target_pos):
 						_astar.connect_points(id, _ids[fall_target], false)
 
-		# Salto: alcanzar repisas o plataformas a diferente altura y distancia
-		for up in range(0, JUMP_UP_CELLS + 1):
+		# Salto: alcanzar repisas o plataformas a diferente altura y distancia (tanto arriba como abajo)
+		for dy in range(-JUMP_UP_CELLS, JUMP_DOWN_CELLS + 1):
 			for dx in range(-JUMP_REACH_CELLS, JUMP_REACH_CELLS + 1):
-				if dx == 0 and up == 0:
+				if dx == 0 and dy == 0:
 					continue
-				var jump_target: Vector2i = cell + Vector2i(dx, -up)
+				var jump_target: Vector2i = cell + Vector2i(dx, dy)
 				if _ids.has(jump_target):
 					var target_pos := _astar.get_point_position(_ids[jump_target])
 					if _clearance_ok(space, center, target_pos):
-						_astar.connect_points(id, _ids[jump_target], true)
+						var bidirectional := (dy <= 0) # Si sube saltando, también puede bajar
+						_astar.connect_points(id, _ids[jump_target], bidirectional)
 
 
 ## Verifica si el espacio contiene altura y ancho libre para el cuerpo del jugador.
@@ -146,6 +148,7 @@ func _has_ground_below(space: PhysicsDirectSpaceState2D, center: Vector2) -> boo
 
 
 ## Verifica que el camino entre a y b tenga espacio físico para el cuerpo del jugador.
+## Simula una parábola de salto para no chocar con las esquinas de los bordes.
 func _clearance_ok(space: PhysicsDirectSpaceState2D, a: Vector2, b: Vector2) -> bool:
 	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = _probe_shape
@@ -153,9 +156,13 @@ func _clearance_ok(space: PhysicsDirectSpaceState2D, a: Vector2, b: Vector2) -> 
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
 
+	var is_jumping := absf(a.x - b.x) > tile_size * 1.2 or b.y < a.y
 	for i in range(1, CLEARANCE_SAMPLES + 1):
 		var t := float(i) / float(CLEARANCE_SAMPLES + 1)
 		var p := a.lerp(b, t)
+		if is_jumping:
+			var arc_height := sin(t * PI) * maxf(28.0, (a.y - b.y) + 20.0)
+			p.y -= arc_height
 		query.transform = Transform2D(0.0, p - Vector2(0.0, 3.0))
 		if not space.intersect_shape(query, 1).is_empty():
 			return false

@@ -74,12 +74,12 @@ func _ready() -> void:
 					BTLeaf.new(Callable(self, "_bt_update_aim")),
 					BTLeaf.new(Callable(self, "_bt_update_shooting")),
 					BTSelector.new([
-						BTLeaf.new(Callable(self, "_bt_handle_hazard_avoidance")),
-						BTLeaf.new(Callable(self, "_bt_handle_swinging_rope")),
 						BTLeaf.new(Callable(self, "_bt_handle_climbing_rope")),
+						BTLeaf.new(Callable(self, "_bt_handle_swinging_rope")),
 						BTLeaf.new(Callable(self, "_bt_handle_wall_jump")),
-						BTLeaf.new(Callable(self, "_bt_handle_one_way_platform")),
 						BTLeaf.new(Callable(self, "_bt_handle_doors")),
+						BTLeaf.new(Callable(self, "_bt_handle_hazard_avoidance")),
+						BTLeaf.new(Callable(self, "_bt_handle_one_way_platform")),
 						BTLeaf.new(Callable(self, "_bt_handle_navigation_and_spacing")),
 					]),
 				]),
@@ -234,6 +234,10 @@ func _bt_check_parry(delta: float) -> int:
 
 				# Interrumpe y consume este tick como acción de emergencia
 				return BTNode.Status.SUCCESS
+		elif time_to_hit <= 0.22 and player.is_on_floor():
+			# Esquiva reactiva humana por salto y desplazamiento lateral
+			_jump_just_pressed = true
+			_move_axis = -signf(b_vel.x)
 
 	return BTNode.Status.FAILURE
 
@@ -373,6 +377,15 @@ func _bt_handle_hazard_avoidance(delta: float) -> int:
 			var hazard_info: Dictionary = _steering.check_hazard_ahead(space, player, move_dir, lookahead, _get_tilemap())
 
 			if hazard_info.hazard_ahead:
+				# Si el bot tiene una ruta activa para cruzar a la siguiente plataforma:
+				# Saltar hacia adelante con el impulso completo hacia el waypoint
+				if not _current_path.is_empty() and _path_index < _current_path.size():
+					var next_wp: Vector2 = _current_path[_path_index]
+					if signf(next_wp.x - player.global_position.x) == move_dir:
+						_jump_just_pressed = true
+						_move_axis = move_dir
+						return BTNode.Status.SUCCESS
+
 				if hazard_info.safe_jump_available:
 					# Salto seguro hacia adelante para cruzar a la repisa
 					_jump_just_pressed = true
@@ -388,6 +401,16 @@ func _bt_handle_hazard_avoidance(delta: float) -> int:
 					return BTNode.Status.SUCCESS
 
 	elif not player.is_on_floor():
+		# Si está en una cuerda o escalando, no intervenir
+		if player.has_method("is_touching_climb_rope") and (player.is_touching_climb_rope() or player.is_climbing_rope()):
+			return BTNode.Status.FAILURE
+		if player.has_method("is_on_swing") and player.is_on_swing():
+			return BTNode.Status.FAILURE
+
+		# Si ya lleva impulso horizontal en el aire (ej. salto activo cruzando hueco), no revertir
+		if absf(player.velocity.x) > 40.0:
+			return BTNode.Status.FAILURE
+
 		var my_pos := player.global_position
 		var suelo_debajo := _hay_suelo(my_pos, 220.0)
 		if not suelo_debajo:
@@ -574,10 +597,20 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 	var different_platform := absf(target_pos.y - my_pos.y) > 36.0
 	var has_los := _has_line_of_sight(my_pos, target_pos)
 
-	# 1. Navegación con línea de visión despejada
-	if has_los and not different_platform:
-		var opt_min := 160.0
-		var opt_max := 320.0
+	# 1. ESPACIADO DE COMBATE HUMANO: Nunca pegarse al rival cuerpo a cuerpo
+	if dist < 140.0:
+		# Situación de cuerpo a cuerpo pegado: salto de desenganche y retroceso inmediato
+		_move_axis = _steering.flee(my_pos.x, target_pos.x)
+		if player.is_on_floor():
+			_jump_just_pressed = true
+			if player.is_on_wall():
+				_move_axis = _steering.seek(my_pos.x, target_pos.x)
+	elif dist < 220.0 and has_los:
+		# Retroceder manteniendo la mira para ganar ángulo de tiro
+		_move_axis = _steering.flee(my_pos.x, target_pos.x)
+	elif has_los and not different_platform:
+		var opt_min := 220.0
+		var opt_max := 400.0
 
 		if dist > opt_max:
 			_move_axis = _steering.seek(my_pos.x, target_pos.x)
@@ -595,7 +628,7 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 		_path_update_timer -= delta
 		var tilemap := _get_tilemap()
 		if tilemap != null and _path_update_timer <= 0.0:
-			_path_update_timer = 0.5
+			_path_update_timer = 0.4
 			var key := str(tilemap.get_instance_id())
 			_nav_graph = NavGraph.get_or_build(tilemap, key)
 			_current_path = _nav_graph.find_path(my_pos, target_pos)
@@ -607,25 +640,34 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 			_move_axis = follow_res["move_axis"]
 			var wp: Vector2 = follow_res["target"]
 
-			# Salto entre waypoints más altos o sobre huecos
-			if player.is_on_floor():
-				var need_jump_up := wp.y < my_pos.y - 18.0
-				var gap_ahead := not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 22.0, 0.0), 40.0)
-				if need_jump_up or gap_ahead:
-					_jump_just_pressed = true
+			# Si llegó al final o ya tiene línea de visión directa a distancia de tiro, desenganchar ruta rígida
+			if follow_res["finished"] or (has_los and dist < 320.0):
+				_current_path = PackedVector2Array()
+				_path_index = 0
+			else:
+				# Salto entre waypoints más altos o sobre huecos hacia la plataforma contigua
+				if player.is_on_floor():
+					var need_jump_up := wp.y < my_pos.y - 18.0
+					var gap_ahead := not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 26.0, 0.0), 40.0)
+					var wp_horizontal_jump := absf(wp.x - my_pos.x) > 36.0 and not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 24.0, 0.0), 30.0)
+					if need_jump_up or gap_ahead or wp_horizontal_jump:
+						_jump_just_pressed = true
 		else:
 			# Si NavGraph no encuentra camino o el objetivo está tras una pared, buscar salida/puerta/cuerda
 			if not has_los:
 				_move_axis = _buscar_salida_o_apertura(my_pos, target_pos)
 			else:
-				_move_axis = _steering.seek(my_pos.x, target_pos.x)
+				if dist > 260.0:
+					_move_axis = _steering.seek(my_pos.x, target_pos.x)
+				elif dist < 180.0:
+					_move_axis = _steering.flee(my_pos.x, target_pos.x)
 				if target_pos.y < my_pos.y - 25.0 and player.is_on_floor():
 					_jump_just_pressed = true
 
 	# Salto táctico frecuente para esquivar y ganar ángulos de disparo
 	_tactical_jump_timer -= delta
 	if _tactical_jump_timer <= 0.0 and player.is_on_floor():
-		_tactical_jump_timer = randf_range(1.0, 2.2)
+		_tactical_jump_timer = randf_range(0.9, 2.0)
 		_jump_just_pressed = true
 
 	# 3. Verificación de si el personaje CABE en el hueco frente a él (no meterse en rendijas)
@@ -707,7 +749,7 @@ func _find_target() -> CharacterBody2D:
 		candidates = player.get_tree().get_nodes_in_group("player")
 
 	for p in candidates:
-		if not is_instance_valid(p) or p == player or not (p is CharacterBody2D):
+		if not is_instance_valid(p) or p.is_queued_for_deletion() or not p.is_inside_tree() or p == player or not (p is CharacterBody2D):
 			continue
 		if p.has_method("is_alive") and not p.is_alive():
 			continue

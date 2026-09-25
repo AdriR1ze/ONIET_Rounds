@@ -180,13 +180,12 @@ func _physics_process(delta: float) -> void:
 		_platform_drop_timer = maxf(_platform_drop_timer - delta, 0.0)
 		if _platform_drop_timer <= 0.0:
 			set_collision_mask_value(7, true)
-	elif is_on_floor() and _input.is_crouch_pressed() and not _is_climbing() and _swing == null:
-		var space := get_world_2d().direct_space_state
-		if space != null:
-			var query := PhysicsRayQueryParameters2D.create(global_position, global_position + Vector2(0.0, 18.0), 64)
-			query.exclude = [get_rid()]
-			if not space.intersect_ray(query).is_empty():
-				drop_through_platform()
+		else:
+			velocity.y = maxf(velocity.y, 140.0)
+	elif is_on_floor() and not _is_climbing() and _swing == null:
+		var wants_drop := _input.is_crouch_pressed() or _input.aim().y > 0.65
+		if wants_drop:
+			drop_through_platform()
 
 	if _swing != null and is_instance_valid(_swing):
 		_handle_swing(delta)
@@ -389,7 +388,10 @@ func _try_wall_jump() -> bool:
 func drop_through_platform() -> void:
 	_platform_drop_timer = 0.22
 	set_collision_mask_value(7, false)
-	position.y += 2.0
+	velocity.y = maxf(velocity.y, 140.0)
+	position.y += 3.0
+	_coyote_timer = 0.0
+	_jump_buffer_timer = 0.0
 
 
 func get_wall_direction() -> int:

@@ -32,7 +32,7 @@ func arrive(current_x: float, target_x: float, slowing_radius: float = 48.0) -> 
 func flee(current_x: float, threat_x: float) -> float:
 	var dx := current_x - threat_x
 	if absf(dx) < STOP_THRESHOLD:
-		return 1.0
+		return -1.0 if int(current_x) % 2 == 0 else 1.0
 	return 1.0 if dx > 0.0 else -1.0
 
 
@@ -59,7 +59,8 @@ func follow_path(current_pos: Vector2, path: PackedVector2Array, current_idx: in
 	var finished := (idx >= path.size() - 1) and (dist < arrival_radius)
 	var move_axis := 0.0
 	if not finished:
-		move_axis = arrive(current_pos.x, wp.x, arrival_radius * 1.5)
+		# Entre plataformas y waypoints intermedios se requiere velocidad completa
+		move_axis = seek(current_pos.x, wp.x)
 
 	return {
 		"target": wp,
