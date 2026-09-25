@@ -12,6 +12,7 @@ func _ready() -> void:
 	await test_wall_jump_consecutive_and_wall_facing()
 	await test_door_navigation_in_closed_room()
 	await test_target_above_seeks_platform()
+	await test_one_way_platform_and_shaft_navigation()
 	print("--- TODOS LOS TESTS DE RONDAS 4P Y NAVEGACIÓN PASARON EXITOSAMENTE ---")
 	get_tree().quit(0)
 
@@ -171,3 +172,70 @@ func test_target_above_seeks_platform() -> void:
 	bot.free()
 	target.free()
 	print("✓ Plataformas elevadas: busca plataformas intermedias en lugar de salto ciego vertical")
+
+
+func test_one_way_platform_and_shaft_navigation() -> void:
+	# 1. Crear una plataforma atravesable (one-way, layer 64) y una sólida (layer 1)
+	var ow_body := StaticBody2D.new()
+	ow_body.collision_layer = 64
+	var ow_shape := CollisionShape2D.new()
+	var ow_rect := RectangleShape2D.new()
+	ow_rect.size = Vector2(200, 16)
+	ow_shape.shape = ow_rect
+	ow_body.add_child(ow_shape)
+	ow_body.global_position = Vector2(300, 300)
+	add_child(ow_body)
+
+	var solid_body := StaticBody2D.new()
+	solid_body.collision_layer = 1
+	var solid_shape := CollisionShape2D.new()
+	var solid_rect := RectangleShape2D.new()
+	solid_rect.size = Vector2(200, 16)
+	solid_shape.shape = solid_rect
+	solid_body.add_child(solid_shape)
+	solid_body.global_position = Vector2(600, 300)
+	add_child(solid_body)
+
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	# 2. Bot sobre plataforma one-way
+	var bot := _crear_jugador(Vector2(300, 275), 2)
+	var target := _crear_jugador(Vector2(300, 500), 1) # Target claramente abajo
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	var brain: BotBrain = bot.get_node("PlayerInput/BotBrain")
+	brain._target = target
+
+	# Verificar detección correcta de plataforma one-way debajo de los pies
+	assert(brain._is_standing_on_one_way(), "El bot debe detectar que está parado sobre una plataforma atravesable (layer 64)")
+
+	# Probar BT descenso de one-way hacia target inferior
+	brain._platform_drop_cooldown = 0.0
+	var res := brain._bt_handle_one_way_platform(0.016)
+	assert(res == BTNode.Status.SUCCESS, "El bot debe descender al tener el objetivo por debajo")
+	assert(bot.get_collision_mask_value(7) == false, "El bot debe haber desactivado colisión layer 7 para atravesar la plataforma")
+
+	# 3. Mover el bot sobre suelo sólido
+	bot.global_position = Vector2(600, 275)
+	bot.set_collision_mask_value(7, true)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	assert(not brain._is_standing_on_one_way(), "El bot NO debe reportar plataforma one-way si está sobre suelo sólido (layer 1)")
+
+	# 4. Probar que una pared con techo bajo y target en otra dirección no traba al bot en wall jump infinito
+	bot.global_position = Vector2(300, 275)
+	target.global_position = Vector2(100, 200) # Target a la izquierda y arriba
+	brain._target = target
+	# Simular contacto con pared a la derecha
+	var wall_res := brain._bt_handle_wall_jump(0.016)
+	assert(wall_res == BTNode.Status.FAILURE, "No debe iniciar wall jump contra una pared en dirección opuesta al objetivo o bajo techo")
+
+	ow_body.free()
+	solid_body.free()
+	bot.free()
+	target.free()
+	print("✓ Plataformas One-Way y Pozo Vertical: detección precisa de suelo atravesable y descenso táctico hacia pisos inferiores")
+

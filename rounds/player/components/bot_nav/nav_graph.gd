@@ -173,8 +173,9 @@ func _clearance_ok(space: PhysicsDirectSpaceState2D, a: Vector2, b: Vector2) -> 
 		var t := float(i) / float(CLEARANCE_SAMPLES + 1)
 		var p := a.lerp(b, t)
 		if is_jumping:
-			var arc_height := sin(t * PI) * maxf(28.0, (a.y - b.y) + 20.0)
-			p.y -= arc_height
+			var peak_y := minf(a.y, b.y) - 22.0
+			var arc_offset := maxf(0.0, p.y - peak_y) * sin(t * PI)
+			p.y -= arc_offset
 		query.transform = Transform2D(0.0, p - Vector2(0.0, 3.0))
 		if not space.intersect_shape(query, 1).is_empty():
 			return false

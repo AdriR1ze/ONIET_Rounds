@@ -512,16 +512,21 @@ func _bt_handle_wall_jump(delta: float) -> int:
 	else:
 		_wall_slide_timer = 0.0
 
-	# 2. En el suelo frente a una pared que bloquea el paso o con objetivo más alto:
-	# Iniciar el primer salto hacia la pared para comenzar la escalada
+	# 2. En el suelo frente a una pared hacia el objetivo elevado:
+	# Iniciar el primer salto hacia la pared para comenzar la escalada solo si el objetivo
+	# está arriba, en dirección a la pared y hay espacio vertical para escalar sin chocar techo.
 	if player.is_on_floor() and (player.is_on_wall() or wall_dir != 0):
 		var target_dx := target_pos.x - my_pos.x
-		var toward_wall := (wall_dir != 0 and signf(target_dx) == float(wall_dir)) or player.is_on_wall()
-		if not has_los or target_pos.y < my_pos.y - 25.0 or toward_wall:
-			var jump_dir := float(wall_dir) if wall_dir != 0 else (signf(target_dx) if not is_zero_approx(target_dx) else float(player.facing))
-			_move_axis = jump_dir
-			_jump_just_pressed = true
-			return BTNode.Status.SUCCESS
+		var effective_wall_dir := wall_dir if wall_dir != 0 else int(signf(player.get_wall_normal().x * -1.0))
+		if target_pos.y < my_pos.y - 25.0 and effective_wall_dir != 0 and signf(target_dx) == float(effective_wall_dir):
+			var space := player.get_world_2d().direct_space_state
+			if space != null:
+				var head_ray := PhysicsRayQueryParameters2D.create(my_pos, my_pos + Vector2(0.0, -45.0), 1)
+				head_ray.exclude = [player.get_rid()]
+				if space.intersect_ray(head_ray).is_empty():
+					_move_axis = float(effective_wall_dir)
+					_jump_just_pressed = true
+					return BTNode.Status.SUCCESS
 
 	return BTNode.Status.FAILURE
 
@@ -538,16 +543,17 @@ func _bt_handle_one_way_platform(delta: float) -> int:
 	var target_pos := _target.global_position
 
 	# 1. Bajar: el enemigo está claramente abajo y estamos sobre una plataforma one-way
-	if target_pos.y > my_pos.y + 35.0 and absf(target_pos.x - my_pos.x) < 260.0:
+	if target_pos.y > my_pos.y + 30.0:
 		if _is_standing_on_one_way():
 			_crouch_pressed = true
 			if player.has_method("drop_through_platform"):
 				player.drop_through_platform()
-			_platform_drop_cooldown = 0.45
+			_platform_drop_cooldown = 0.35
+			_move_axis = _steering.seek(my_pos.x, target_pos.x)
 			return BTNode.Status.SUCCESS
 
 	# 2. Subir: el objetivo está arriba y hay una plataforma one-way encima
-	if target_pos.y < my_pos.y - 45.0 and player.is_on_floor():
+	if target_pos.y < my_pos.y - 35.0 and player.is_on_floor():
 		if _has_one_way_above():
 			_move_axis = _steering.seek(my_pos.x, target_pos.x)
 			_jump_just_pressed = true
@@ -658,10 +664,16 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 				# Salto entre waypoints más altos o sobre huecos hacia la plataforma contigua
 				if player.is_on_floor():
 					var need_jump_up := wp.y < my_pos.y - 18.0
-					var gap_ahead := not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 26.0, 0.0), 40.0)
-					var wp_horizontal_jump := absf(wp.x - my_pos.x) > 36.0 and not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 24.0, 0.0), 30.0)
-					if need_jump_up or gap_ahead or wp_horizontal_jump:
-						_jump_just_pressed = true
+					var need_drop_down := wp.y > my_pos.y + 18.0 and absf(wp.x - my_pos.x) < 48.0
+					if need_drop_down and _is_standing_on_one_way():
+						_crouch_pressed = true
+						if player.has_method("drop_through_platform"):
+							player.drop_through_platform()
+					else:
+						var gap_ahead := not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 26.0, 0.0), 40.0)
+						var wp_horizontal_jump := absf(wp.x - my_pos.x) > 36.0 and not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 24.0, 0.0), 30.0)
+						if need_jump_up or gap_ahead or wp_horizontal_jump:
+							_jump_just_pressed = true
 		else:
 			# Si NavGraph no encuentra camino o el objetivo está tras una pared, buscar salida/puerta/cuerda
 			if not has_los:
@@ -672,7 +684,12 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 				if intermediate != Vector2.ZERO:
 					_move_axis = _steering.seek(my_pos.x, intermediate.x)
 					if player.is_on_floor() and (absf(intermediate.x - my_pos.x) < 36.0 or player.is_on_wall()):
-						_jump_just_pressed = true
+						if intermediate.y < my_pos.y - 18.0:
+							_jump_just_pressed = true
+						elif intermediate.y > my_pos.y + 18.0 and _is_standing_on_one_way():
+							_crouch_pressed = true
+							if player.has_method("drop_through_platform"):
+								player.drop_through_platform()
 				else:
 					_move_axis = _buscar_salida_o_apertura(my_pos, target_pos)
 			else:
@@ -860,7 +877,23 @@ func _buscar_salida_o_apertura(my_pos: Vector2, target_pos: Vector2) -> float:
 	if not is_inf(best_rope_x) and min_rope_dist < 400000.0:
 		return _steering.seek(my_pos.x, best_rope_x)
 
-	# 3. Moverse hacia el extremo de la plataforma actual (para buscar bajada o desvío)
+	# 3. Buscar pozos verticales o plataformas escalables en NavGraph hacia el nivel del rival
+	if _nav_graph != null and _nav_graph.point_count() > 0:
+		var best_plat_x := INF
+		var min_plat_dist := INF
+		var target_is_above := target_pos.y < my_pos.y - 30.0
+		for cell in _nav_graph._ids.keys():
+			var pt_pos: Vector2 = _nav_graph._astar.get_point_position(_nav_graph._ids[cell])
+			var is_useful := (target_is_above and pt_pos.y < my_pos.y - 20.0) or (not target_is_above and pt_pos.y > my_pos.y + 20.0)
+			if is_useful:
+				var d := my_pos.distance_squared_to(pt_pos)
+				if d < min_plat_dist:
+					min_plat_dist = d
+					best_plat_x = pt_pos.x
+		if not is_inf(best_plat_x):
+			return _steering.seek(my_pos.x, best_plat_x)
+
+	# 4. Moverse hacia el extremo de la plataforma actual (para buscar bajada o desvío)
 	var move_dir := signf(target_pos.x - my_pos.x)
 	if is_zero_approx(move_dir):
 		move_dir = 1.0 if (int(my_pos.x) % 2 == 0) else -1.0
@@ -902,9 +935,19 @@ func _is_standing_on_one_way() -> bool:
 	var space := player.get_world_2d().direct_space_state
 	if space == null:
 		return false
-	var query := PhysicsRayQueryParameters2D.create(player.global_position, player.global_position + Vector2(0.0, 18.0), 64)
-	query.exclude = [player.get_rid()]
-	return not space.intersect_ray(query).is_empty()
+	for dx in [-10.0, 0.0, 10.0]:
+		var origin := player.global_position + Vector2(dx, 10.0)
+		var dest := player.global_position + Vector2(dx, 28.0)
+		var query_ow := PhysicsRayQueryParameters2D.create(origin, dest, 64)
+		query_ow.exclude = [player.get_rid()]
+		var hit_ow := space.intersect_ray(query_ow)
+		if not hit_ow.is_empty():
+			var query_solid := PhysicsRayQueryParameters2D.create(origin, dest, 1)
+			query_solid.exclude = [player.get_rid()]
+			var hit_solid := space.intersect_ray(query_solid)
+			if hit_solid.is_empty() or hit_ow.position.y <= hit_solid.position.y + 2.0:
+				return true
+	return false
 
 
 func _has_one_way_above() -> bool:
@@ -913,9 +956,19 @@ func _has_one_way_above() -> bool:
 	var space := player.get_world_2d().direct_space_state
 	if space == null:
 		return false
-	var query := PhysicsRayQueryParameters2D.create(player.global_position, player.global_position + Vector2(0.0, -110.0), 64)
-	query.exclude = [player.get_rid()]
-	return not space.intersect_ray(query).is_empty()
+	for dx in [-18.0, 0.0, 18.0]:
+		var origin := player.global_position + Vector2(dx, -10.0)
+		var dest := player.global_position + Vector2(dx, -120.0)
+		var query_ow := PhysicsRayQueryParameters2D.create(origin, dest, 64)
+		query_ow.exclude = [player.get_rid()]
+		var hit_ow := space.intersect_ray(query_ow)
+		if not hit_ow.is_empty():
+			var query_solid := PhysicsRayQueryParameters2D.create(origin, dest, 1)
+			query_solid.exclude = [player.get_rid()]
+			var hit_solid := space.intersect_ray(query_solid)
+			if hit_solid.is_empty() or hit_ow.position.y >= hit_solid.position.y - 2.0:
+				return true
+	return false
 
 
 func _get_tilemap() -> TileMapLayer:
