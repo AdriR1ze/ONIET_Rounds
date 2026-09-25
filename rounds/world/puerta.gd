@@ -1,23 +1,34 @@
 extends Node2D
 
 ## Puerta: se pinta con celdas del TileSet en un TileMapLayer. UNA celda ya
-## ocupa 2 tiles de alto (la celda de abajo ancla y crece hacia arriba); si
-## apilás más celdas contiguas, la puerta crece a ese alto. Es sólida cerrada
-## y se abre cuando un jugador se acerca.
+## ocupa ANCHO de ancho y ALTO_MINIMO tiles de alto (la celda de abajo ancla y
+## crece hacia arriba); si apilás más celdas contiguas, la puerta crece a ese
+## alto. Es sólida cerrada y se abre cuando un jugador se acerca.
+##
+## El alto mínimo y el ancho salen del jugador: mide 24x41 parado, así que 4
+## tiles (128) es el mínimo para que el vano se lea como vano y le pase por
+## arriba con aire. Con 2 tiles de alto quedaba como una mini puerta. De ancho
+## ocupa un tile, así que la puerta queda centrada en su celda.
 
 const FRAME_CERRADA := 0
 const FRAME_ABIERTA := 3
 const TILE := 32.0
 const MARGEN_DETECTOR := 18.0
-const ALTO_MINIMO := 2
+const ALTO_MINIMO := 4
+const ANCHO := TILE
 
 var _es_ancla := false
-var _alto := 2.0
+var _alto := float(ALTO_MINIMO)
 var _abierta := false
 
 @onready var _cuerpo: StaticBody2D = $Cuerpo
 @onready var _detector: Area2D = $Detector
 @onready var _sprite: Sprite2D = $Sprite
+@onready var _cuerpo_forma: CollisionShape2D = $Cuerpo/CollisionShape2D
+@onready var _detector_forma: CollisionShape2D = $Detector/CollisionShape2D
+
+## Recuadro del dibujo dentro de cada frame, por textura. Se calcula una vez.
+static var _dibujos: Dictionary = {}
 
 
 func _ready() -> void:
@@ -28,26 +39,6 @@ func _ready() -> void:
 	var sid := tm.get_cell_source_id(cell)
 	# La celda de ABAJO ancla: la puerta crece hacia arriba.
 	_es_ancla = tm.get_cell_source_id(cell + Vector2i(0, 1)) != sid
-	if not _es_ancla:
-		visible = false
-		_cuerpo.set_deferred("collision_layer", 0)
-		_detector.monitoring = false
-		set_physics_process(false)
-		return
-	var n := 1
-	while tm.get_cell_source_id(cell + Vector2i(0, -n)) == sid:
-		n += 1
-	_alto = float(maxi(n, ALTO_MINIMO))
-	var desplazamiento := 16.0 * (1.0 - _alto)
-	_sprite.position.y = desplazamiento
-	_sprite.scale.y = _alto
-	var cuerpo_shape := ($Cuerpo/CollisionShape2D.shape as RectangleShape2D)
-	cuerpo_shape.size = Vector2(28.0, _alto * TILE)
-	$Cuerpo/CollisionShape2D.position.y = desplazamiento
-	var detector_shape := ($Detector/CollisionShape2D.shape as RectangleShape2D)
-	detector_shape.size = Vector2(72.0, _alto * TILE + MARGEN_DETECTOR * 2.0)
-	$Detector/CollisionShape2D.position.y = desplazamiento
-
 
 func _physics_process(_delta: float) -> void:
 	var hay_jugador := false
