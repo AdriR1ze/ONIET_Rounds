@@ -1,4 +1,4 @@
-"""Genera assets de audio placeholder (SFX y música) para Rounds.
+"""Genera assets de audio placeholder (SFX y música) para UNIMALS.
 
 No requiere dependencias externas: usa solo la librería estándar.
 Los archivos resultantes son reemplazables por audio real más adelante.

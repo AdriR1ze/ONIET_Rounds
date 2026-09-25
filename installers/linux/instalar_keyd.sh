@@ -110,7 +110,7 @@ fi
 # Teclado 1 (y cualquier otro): passthrough, excluyendo el teclado 2.
 TMP_DEFAULT="$(mktemp)"
 cat >"$TMP_DEFAULT" <<EOF
-# Generado por ONIET Rounds. No editar a mano.
+# Generado por UNIMALS. No editar a mano.
 # El teclado 2 ($KB2) se remapea en jugador2-oniet.conf.
 [ids]
 *
@@ -121,7 +121,7 @@ EOF
 
 TMP_P2="$(mktemp)"
 cat >"$TMP_P2" <<EOF
-# Generado por ONIET Rounds. Layout de movimiento para el teclado 2.
+# Generado por UNIMALS. Layout de movimiento para el teclado 2.
 [ids]
 $KB2
 

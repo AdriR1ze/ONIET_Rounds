@@ -39,7 +39,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 theme_override_font_sizes/font_size = 52
 horizontal_alignment = 1
-text = "ROUNDS"
+text = "UNIMALS"
 
 [node name="Subtitulo" type="Label" parent="Centro/Menu"]
 layout_mode = 2
