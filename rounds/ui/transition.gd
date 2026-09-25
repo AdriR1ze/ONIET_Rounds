@@ -38,13 +38,24 @@ func fade_in(duracion: float = 0.25) -> void:
 	_rect.visible = false
 
 
+var _transicionando := false
+
+
 func cambiar_escena(ruta: String, duracion: float = 0.25) -> void:
+	if _transicionando:
+		return
+	_transicionando = true
 	await fade_out(duracion)
 	get_tree().change_scene_to_file(ruta)
 	await fade_in(duracion)
+	_transicionando = false
 
 
 func recargar(duracion: float = 0.25) -> void:
+	if _transicionando:
+		return
+	_transicionando = true
 	await fade_out(duracion)
 	get_tree().reload_current_scene()
 	await fade_in(duracion)
+	_transicionando = false

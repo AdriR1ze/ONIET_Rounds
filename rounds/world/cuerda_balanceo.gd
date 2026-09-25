@@ -34,8 +34,10 @@ func _ready() -> void:
 		var sid := tm.get_cell_source_id(cell)
 		_es_ancla = tm.get_cell_source_id(cell + Vector2i(0, -1)) != sid
 		if not _es_ancla:
-			_arm.visible = false
-			_agarre.monitoring = false
+			if _arm != null:
+				_arm.visible = false
+			if _agarre != null:
+				_agarre.monitoring = false
 			set_physics_process(false)
 			return
 		var n := 1
@@ -47,10 +49,14 @@ func _ready() -> void:
 
 func _setup_arm() -> void:
 	add_to_group("cuerda_balanceo")
-	_arm.visible = true
-	_linea.points = PackedVector2Array([Vector2.ZERO, Vector2(0.0, _largo)])
-	_bob.position = Vector2(0.0, _largo)
-	_agarre.position = Vector2(0.0, _largo)
+	if _arm != null:
+		_arm.visible = true
+	if _linea != null:
+		_linea.points = PackedVector2Array([Vector2.ZERO, Vector2(0.0, _largo)])
+	if _bob != null:
+		_bob.position = Vector2(0.0, _largo)
+	if _agarre != null:
+		_agarre.position = Vector2(0.0, _largo)
 
 
 func _intentar_agarrar(body: Node) -> bool:
@@ -77,7 +83,9 @@ func release_player() -> void:
 
 
 func get_end_position() -> Vector2:
-	return _arm.to_global(Vector2(0.0, _largo))
+	if _arm != null:
+		return _arm.to_global(Vector2(0.0, _largo))
+	return global_position + Vector2(0.0, _largo)
 
 
 func get_end_velocity() -> Vector2:
@@ -98,12 +106,14 @@ func _physics_process(delta: float) -> void:
 	_theta = clampf(_theta, -MAX_ANGULO, MAX_ANGULO)
 	_theta += _omega * delta
 	_theta = clampf(_theta, -MAX_ANGULO, MAX_ANGULO)
-	_arm.rotation = _theta
+	if _arm != null:
+		_arm.rotation = _theta
 	if _jugador == null:
 		# Agarra sólo si el jugador está encima y aprieta arriba.
-		for body in _agarre.get_overlapping_bodies():
-			if _intentar_agarrar(body):
-				break
+		if _agarre != null:
+			for body in _agarre.get_overlapping_bodies():
+				if _intentar_agarrar(body):
+					break
 	if _jugador == null:
 		return
 	if not is_instance_valid(_jugador):
