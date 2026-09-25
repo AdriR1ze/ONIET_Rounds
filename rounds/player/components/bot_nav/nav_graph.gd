@@ -6,7 +6,7 @@ extends RefCounted
 ## caminos generados tengan espacio suficiente y el bot nunca quede atascado en
 ## huecos estrechos o techos bajos.
 
-const JUMP_UP_CELLS: int = 5
+const JUMP_UP_CELLS: int = 7
 const JUMP_DOWN_CELLS: int = 8      # Salto/descenso a plataformas inferiores cruzando vacíos
 const JUMP_REACH_CELLS: int = 10     # Hasta 320 px de alcance horizontal
 const MAX_FALL_CELLS: int = 16        # Caída por pozos / huecos verticales
@@ -21,6 +21,7 @@ var tile_size: int = 32
 var _astar: AStar2D
 var _ids: Dictionary = {}             # Vector2i cell -> int id
 var _is_rope_cell: Dictionary = {}    # Vector2i cell -> bool
+var _door_rids: Array[RID] = []
 var _probe_shape: RectangleShape2D
 
 static var _cache: Dictionary = {}
@@ -40,6 +41,15 @@ func build(tilemap: TileMapLayer) -> void:
 	_astar = AStar2D.new()
 	_ids.clear()
 	_is_rope_cell.clear()
+	_door_rids.clear()
+	var tree := tilemap.get_tree()
+	if tree != null:
+		for p in tree.get_nodes_in_group("puerta"):
+			if is_instance_valid(p) and p.has_node("Cuerpo"):
+				var c = p.get_node("Cuerpo")
+				if c is CollisionObject2D:
+					_door_rids.append(c.get_rid())
+
 	_probe_shape = RectangleShape2D.new()
 	_probe_shape.size = Vector2(PLAYER_WIDTH, PLAYER_HEIGHT)
 
@@ -129,6 +139,7 @@ func _is_free(space: PhysicsDirectSpaceState2D, center: Vector2) -> bool:
 	query.shape = _probe_shape
 	query.transform = Transform2D(0.0, center - Vector2(0.0, 3.0))
 	query.collision_mask = 1 # Solo paredes sólidas bloquean el cuerpo
+	query.exclude = _door_rids
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
 	return space.intersect_shape(query, 1).is_empty()
@@ -153,6 +164,7 @@ func _clearance_ok(space: PhysicsDirectSpaceState2D, a: Vector2, b: Vector2) -> 
 	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = _probe_shape
 	query.collision_mask = 1 # Las plataformas one-way se pueden atravesar
+	query.exclude = _door_rids
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
 

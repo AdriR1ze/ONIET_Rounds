@@ -312,10 +312,11 @@ func iniciar_partida() -> void:
 
 func iniciar_ronda(numero: int) -> void:
 	ronda = numero
-	for jugador_numero in range(1, cantidad_jugadores + 1):
-		vidas[jugador_numero] = vidas_por_ronda
-	for jugador_numero in _jugadores:
-		vidas[jugador_numero] = vidas_por_ronda
+	if cantidad_jugadores <= 2:
+		for jugador_numero in range(1, cantidad_jugadores + 1):
+			vidas[jugador_numero] = vidas_por_ronda
+		for jugador_numero in _jugadores:
+			vidas[jugador_numero] = vidas_por_ronda
 	ronda_iniciada.emit(ronda)
 	vidas_cambiadas.emit()
 

@@ -483,40 +483,45 @@ func _bt_handle_climbing_rope(_delta: float) -> int:
 ## Escalar paredes y Wall-Jump: Secuencia de empuje contra pared, deslizamiento y salto.
 func _bt_handle_wall_jump(delta: float) -> int:
 	_wall_jump_cooldown = maxf(_wall_jump_cooldown - delta, 0.0)
-	if _wall_jump_cooldown > 0.0 or _target == null:
+	if _target == null:
 		return BTNode.Status.FAILURE
 
 	var my_pos := player.global_position
 	var target_pos := _target.global_position
+	var has_los := _has_line_of_sight(my_pos, target_pos)
 
 	var wall_dir := 0
 	if player.has_method("get_wall_direction"):
 		wall_dir = player.get_wall_direction()
 
-	# 1. Si está en contacto lateral con la pared:
-	if wall_dir != 0:
-		if target_pos.y < my_pos.y - 30.0 or player.velocity.y > 10.0:
-			# Deslizar presionando hacia la pared
-			_move_axis = float(wall_dir)
+	# 1. En el aire en contacto lateral con la pared: Wall-Jump reactivo hacia el lado opuesto
+	if not player.is_on_floor() and wall_dir != 0:
+		if _wall_jump_cooldown <= 0.0:
 			_wall_slide_timer += delta
-
-			if _wall_slide_timer >= 0.08:
-				# Ejecutar impulso de salto en dirección contraria
+			if _wall_slide_timer >= 0.04:
 				_jump_just_pressed = true
-				_aim_dir = Vector2(-wall_dir, -0.6).normalized()
+				_aim_dir = Vector2(-wall_dir, -0.65).normalized()
+				_move_axis = -float(wall_dir)
 				_wall_slide_timer = 0.0
-				_wall_jump_cooldown = 0.30
-			return BTNode.Status.SUCCESS
-		else:
-			_wall_slide_timer = 0.0
+				_wall_jump_cooldown = 0.10
+				return BTNode.Status.SUCCESS
+			else:
+				# Deslizar empujando hacia la pared antes del salto
+				_move_axis = float(wall_dir)
+				return BTNode.Status.SUCCESS
 	else:
 		_wall_slide_timer = 0.0
 
-	# 2. Si hay pared al frente y el objetivo está arriba, saltar hacia la pared para iniciar agarre
-	if player.is_on_floor() and player.is_on_wall() and target_pos.y < my_pos.y - 50.0:
-		_move_axis = signf(target_pos.x - my_pos.x)
-		_jump_just_pressed = true
-		return BTNode.Status.SUCCESS
+	# 2. En el suelo frente a una pared que bloquea el paso o con objetivo más alto:
+	# Iniciar el primer salto hacia la pared para comenzar la escalada
+	if player.is_on_floor() and (player.is_on_wall() or wall_dir != 0):
+		var target_dx := target_pos.x - my_pos.x
+		var toward_wall := (wall_dir != 0 and signf(target_dx) == float(wall_dir)) or player.is_on_wall()
+		if not has_los or target_pos.y < my_pos.y - 25.0 or toward_wall:
+			var jump_dir := float(wall_dir) if wall_dir != 0 else (signf(target_dx) if not is_zero_approx(target_dx) else float(player.facing))
+			_move_axis = jump_dir
+			_jump_just_pressed = true
+			return BTNode.Status.SUCCESS
 
 	return BTNode.Status.FAILURE
 
@@ -562,6 +567,7 @@ func _bt_handle_doors(_delta: float) -> int:
 
 	var my_pos := player.global_position
 	var target_pos := _target.global_position
+	var has_los := _has_line_of_sight(my_pos, target_pos)
 
 	for d in doors:
 		if not is_instance_valid(d) or not d.is_inside_tree():
@@ -570,13 +576,17 @@ func _bt_handle_doors(_delta: float) -> int:
 			continue
 
 		var door_pos: Vector2 = d.global_position
-		# Si la puerta cerrada está en la ruta horizontal hacia el objetivo
-		var dist_x_to_door := door_pos.x - my_pos.x
-		var dist_x_to_target := target_pos.x - my_pos.x
+		var dist_to_door := my_pos.distance_to(door_pos)
 
-		if absf(dist_x_to_door) < 160.0 and signf(dist_x_to_door) == signf(dist_x_to_target):
-			_move_axis = _steering.seek(my_pos.x, door_pos.x)
-			return BTNode.Status.SUCCESS
+		# Si hay una puerta a menos de 220px:
+		# Si no tenemos visión directa al rival (ej. estamos en habitación cerrada)
+		# o la puerta está en dirección al objetivo, ir a la puerta para abrirla
+		if dist_to_door < 220.0:
+			var door_dir := signf(door_pos.x - my_pos.x)
+			var target_dir := signf(target_pos.x - my_pos.x)
+			if not has_los or door_dir == target_dir:
+				_move_axis = _steering.seek(my_pos.x, door_pos.x)
+				return BTNode.Status.SUCCESS
 
 	return BTNode.Status.FAILURE
 
@@ -598,14 +608,14 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 	var has_los := _has_line_of_sight(my_pos, target_pos)
 
 	# 1. ESPACIADO DE COMBATE HUMANO: Nunca pegarse al rival cuerpo a cuerpo
-	if dist < 140.0:
+	if dist < 140.0 and not different_platform:
 		# Situación de cuerpo a cuerpo pegado: salto de desenganche y retroceso inmediato
 		_move_axis = _steering.flee(my_pos.x, target_pos.x)
 		if player.is_on_floor():
 			_jump_just_pressed = true
 			if player.is_on_wall():
 				_move_axis = _steering.seek(my_pos.x, target_pos.x)
-	elif dist < 220.0 and has_los:
+	elif dist < 220.0 and has_los and not different_platform:
 		# Retroceder manteniendo la mira para ganar ángulo de tiro
 		_move_axis = _steering.flee(my_pos.x, target_pos.x)
 	elif has_los and not different_platform:
@@ -640,8 +650,8 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 			_move_axis = follow_res["move_axis"]
 			var wp: Vector2 = follow_res["target"]
 
-			# Si llegó al final o ya tiene línea de visión directa a distancia de tiro, desenganchar ruta rígida
-			if follow_res["finished"] or (has_los and dist < 320.0):
+			# Si llegó al final o ya tiene línea de visión directa a distancia de tiro en el mismo piso
+			if follow_res["finished"] or (has_los and not different_platform and dist < 320.0):
 				_current_path = PackedVector2Array()
 				_path_index = 0
 			else:
@@ -656,13 +666,20 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 			# Si NavGraph no encuentra camino o el objetivo está tras una pared, buscar salida/puerta/cuerda
 			if not has_los:
 				_move_axis = _buscar_salida_o_apertura(my_pos, target_pos)
+			elif different_platform:
+				# Objetivo en distinta plataforma: buscar plataforma intermedia para subir o bajar
+				var intermediate := _buscar_plataforma_elevada(my_pos, target_pos)
+				if intermediate != Vector2.ZERO:
+					_move_axis = _steering.seek(my_pos.x, intermediate.x)
+					if player.is_on_floor() and (absf(intermediate.x - my_pos.x) < 36.0 or player.is_on_wall()):
+						_jump_just_pressed = true
+				else:
+					_move_axis = _buscar_salida_o_apertura(my_pos, target_pos)
 			else:
 				if dist > 260.0:
 					_move_axis = _steering.seek(my_pos.x, target_pos.x)
 				elif dist < 180.0:
 					_move_axis = _steering.flee(my_pos.x, target_pos.x)
-				if target_pos.y < my_pos.y - 25.0 and player.is_on_floor():
-					_jump_just_pressed = true
 
 	# Salto táctico frecuente para esquivar y ganar ángulos de disparo
 	_tactical_jump_timer -= delta
@@ -782,9 +799,55 @@ func _find_target() -> CharacterBody2D:
 	return best
 
 
-## Busca una salida (cuerda, puerta o extremo de repisa) cuando el enemigo está tras una pared.
+## Busca una plataforma intermedia a diferente altura para escalar hacia el objetivo.
+func _buscar_plataforma_elevada(my_pos: Vector2, target_pos: Vector2) -> Vector2:
+	if _nav_graph == null or _nav_graph.point_count() == 0:
+		return Vector2.ZERO
+	var target_is_above := target_pos.y < my_pos.y - 36.0
+	var best_pos := Vector2.ZERO
+	var best_score := -INF
+
+	for cell in _nav_graph._ids.keys():
+		var pt_pos: Vector2 = _nav_graph._astar.get_point_position(_nav_graph._ids[cell])
+		if target_is_above:
+			# Buscar una plataforma por encima de nosotros en dirección al objetivo
+			if pt_pos.y < my_pos.y - 20.0 and pt_pos.y >= target_pos.y - 50.0:
+				var dist_x_to_me := absf(pt_pos.x - my_pos.x)
+				var dist_x_to_target := absf(pt_pos.x - target_pos.x)
+				var score := 1200.0 - dist_x_to_me - dist_x_to_target * 0.4
+				if score > best_score:
+					best_score = score
+					best_pos = pt_pos
+		else:
+			# Buscar una plataforma por debajo
+			if pt_pos.y > my_pos.y + 20.0 and pt_pos.y <= target_pos.y + 50.0:
+				var dist_x_to_me := absf(pt_pos.x - my_pos.x)
+				var dist_x_to_target := absf(pt_pos.x - target_pos.x)
+				var score := 1200.0 - dist_x_to_me - dist_x_to_target * 0.4
+				if score > best_score:
+					best_score = score
+					best_pos = pt_pos
+
+	return best_pos
+
+
+## Busca una salida (puerta, cuerda o extremo de repisa) cuando el enemigo está tras una pared.
 func _buscar_salida_o_apertura(my_pos: Vector2, target_pos: Vector2) -> float:
-	# 1. Si hay cuerdas de trepar en el mapa, dirigirse a la cuerda
+	# 1. Si hay puertas en la habitación o cerca, dirigirse primero a la puerta
+	var doors := get_tree().get_nodes_in_group("puerta")
+	var best_door_x := INF
+	var min_door_dist := INF
+	for d in doors:
+		if is_instance_valid(d) and d.is_inside_tree():
+			var d_pos: Vector2 = d.global_position
+			var dist := my_pos.distance_to(d_pos)
+			if dist < min_door_dist and dist < 450.0:
+				min_door_dist = dist
+				best_door_x = d_pos.x
+	if not is_inf(best_door_x):
+		return _steering.seek(my_pos.x, best_door_x)
+
+	# 2. Si hay cuerdas de trepar en el mapa, dirigirse a la cuerda
 	var ropes := get_tree().get_nodes_in_group("cuerda_trepar")
 	var best_rope_x := INF
 	var min_rope_dist := INF
@@ -796,12 +859,6 @@ func _buscar_salida_o_apertura(my_pos: Vector2, target_pos: Vector2) -> float:
 				best_rope_x = r.global_position.x
 	if not is_inf(best_rope_x) and min_rope_dist < 400000.0:
 		return _steering.seek(my_pos.x, best_rope_x)
-
-	# 2. Si hay puertas, dirigirse a la puerta
-	var doors := get_tree().get_nodes_in_group("puerta")
-	for d in doors:
-		if is_instance_valid(d):
-			return _steering.seek(my_pos.x, d.global_position.x)
 
 	# 3. Moverse hacia el extremo de la plataforma actual (para buscar bajada o desvío)
 	var move_dir := signf(target_pos.x - my_pos.x)

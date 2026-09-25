@@ -10,6 +10,7 @@ var _procesando: bool = false
 var _ronda_activa: bool = false
 var _mapa_actual: Node2D = null
 var _mapa_info_actual: Dictionary = {}
+var _muertos_esta_ronda: Dictionary = {}
 
 const SPAWNS_FALLBACK := {
 	1: Vector2(480, 600),
@@ -56,43 +57,74 @@ func _process(_delta: float) -> void:
 	for jug in RunManager.jugadores():
 		if not is_instance_valid(jug):
 			continue
-		if not jug.is_alive() and RunManager.vidas_de(jug.player_number) > 0:
+		if not jug.is_alive() and not _muertos_esta_ronda.has(jug.player_number) and RunManager.vidas_de(jug.player_number) > 0:
 			_on_jugador_muerto(jug)
 			break
+
+
+func _obtener_jugadores_vivos() -> Array:
+	var lista: Array = []
+	for jug in RunManager.jugadores():
+		if is_instance_valid(jug) and jug.is_alive():
+			lista.append(jug)
+	return lista
 
 
 func _on_jugador_muerto(jugador: Node) -> void:
 	if not is_instance_valid(jugador) or _procesando:
 		return
 	var numero: int = jugador.player_number
+	if _muertos_esta_ronda.has(numero):
+		return
+	_muertos_esta_ronda[numero] = true
+
 	RunManager.perder_vida(numero)
+	jugador.can_control = false
 
-	if RunManager.vidas_de(numero) > 0:
-		# Sigue en la ronda: animación de baja y reposicionamiento de ambos jugadores a spawns distribuidos
+	var total_jugadores: int = RunManager.cantidad_jugadores
+	var vivos := _obtener_jugadores_vivos()
+
+	# Si hay más de 2 jugadores y quedan 2 o más vivos:
+	# El combate continúa sin interrumpir ni reiniciar la arena
+	if total_jugadores > 2 and vivos.size() > 1:
+		return
+
+	# Si es duelo de 2 jugadores con vidas intermedias por ronda:
+	if total_jugadores <= 2 and RunManager.vidas_de(numero) > 0:
+		_muertos_esta_ronda.erase(numero)
 		_procesar_baja_intermedia(jugador)
 		return
 
-	# Se quedó sin vidas en esta ronda.
-	var con_vidas := RunManager.jugadores_con_vidas()
-	if con_vidas.size() == 1 and not con_vidas[0].is_alive():
-		RunManager.perder_vida(con_vidas[0].player_number)
-		con_vidas = RunManager.jugadores_con_vidas()
+	# La ronda concluye cuando queda como máximo 1 jugador vivo
+	_finalizar_ronda(vivos)
 
-	if con_vidas.size() > 1:
-		_procesar_baja_intermedia(jugador)
-		return
 
+func _finalizar_ronda(vivos: Array) -> void:
 	_procesando = true
 	_ronda_activa = false
 	_limpiar_proyectiles()
 	_congelar_jugadores(true)
 
-	var ganador: int = con_vidas[0].player_number if con_vidas.size() == 1 else 0
+	var ganador: int = vivos[0].player_number if vivos.size() == 1 else 0
 	RunManager.terminar_ronda(ganador)
 
-	if RunManager.partida_ganada():
+	var con_vidas := RunManager.jugadores_con_vidas()
+	var partida_fin := false
+	if RunManager.cantidad_jugadores > 2:
+		partida_fin = con_vidas.size() <= 1 or RunManager.partida_ganada()
+	else:
+		partida_fin = RunManager.partida_ganada()
+
+	if partida_fin:
+		var campeon := ganador
+		if con_vidas.size() == 1:
+			campeon = con_vidas[0].player_number
+		elif ganador > 0:
+			campeon = ganador
+		else:
+			campeon = RunManager.ganador_partida()
 		if pantalla_fin != null and pantalla_fin.has_method("mostrar"):
-			pantalla_fin.mostrar(RunManager.ganador_partida())
+			pantalla_fin.mostrar(campeon)
 		_procesando = false
 		return
 
@@ -108,10 +140,7 @@ func _on_jugador_muerto(jugador: Node) -> void:
 	else:
 		_asignar_spawns_distribuidos()
 
-	# Resetear las vidas ANTES de revivir: los eliminados de la ronda anterior
-	# tienen vidas == 0 y _revivir_caidos() los dejaría muertos e invisibles
-	# durante toda la ronda nueva (y el safety net de _process les descontaría
-	# una vida al detectarlos). Con las vidas reiniciadas, todos respawnean.
+	_muertos_esta_ronda.clear()
 	RunManager.iniciar_ronda(RunManager.ronda + 1)
 	_revivir_caidos()
 	_congelar_jugadores(true)
@@ -152,6 +181,7 @@ func _procesar_baja_intermedia(jugador_muerto: Node) -> void:
 	_limpiar_proyectiles()
 
 	# Descongelar a los jugadores en su posición final sin teletransporte extra
+	_muertos_esta_ronda.clear()
 	_congelar_jugadores(false)
 	_ronda_activa = true
 	_procesando = false

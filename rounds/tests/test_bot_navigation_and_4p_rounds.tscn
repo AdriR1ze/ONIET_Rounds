@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b08rn4v1b08rn"]
+
+[ext_resource type="Script" uid="uid://d3ybnv4p74rnd" path="res://tests/test_bot_navigation_and_4p_rounds.gd" id="1_test"]
+
+[node name="TestBotNavigationAnd4PRounds" type="Node"]
+script = ExtResource("1_test")

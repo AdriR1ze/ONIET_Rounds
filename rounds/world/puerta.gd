@@ -21,6 +21,7 @@ var _abierta := false
 
 
 func _ready() -> void:
+	add_to_group("puerta")
 	var tm := get_parent() as TileMapLayer
 	if tm == null:
 		return
