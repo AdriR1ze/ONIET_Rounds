@@ -62,9 +62,9 @@ func build(tilemap: TileMapLayer) -> void:
 			var cell := Vector2i(x, y)
 			var center := tilemap.to_global(tilemap.map_to_local(cell))
 
-			# Comprobar si la celda es una cuerda de trepar (source_id 8)
+			# Comprobar si la celda es una cuerda de trepar o balanceo (source_id 8 o 9)
 			var sid := tilemap.get_cell_source_id(cell)
-			if sid == 8:
+			if sid == 8 or sid == 9:
 				if _is_free(space, center):
 					var id := _astar.get_point_count()
 					_astar.add_point(id, center)
@@ -104,8 +104,8 @@ func _connect_edges(space: PhysicsDirectSpaceState2D, _tilemap: TileMapLayer) ->
 					_astar.connect_points(id, _ids[plat_neighbor], true)
 			continue
 
-		# Caminar horizontalmente: vecinos inmediatos
-		for offset in [Vector2i(1, 0), Vector2i(0, 1)]:
+		# Caminar horizontalmente y escalones diagonales (escaleras / rampas)
+		for offset in [Vector2i(1, 0), Vector2i(1, 1), Vector2i(1, -1)]:
 			var neighbor: Vector2i = cell + offset
 			if _ids.has(neighbor):
 				if _clearance_ok(space, center, _astar.get_point_position(_ids[neighbor])):
@@ -168,15 +168,30 @@ func _clearance_ok(space: PhysicsDirectSpaceState2D, a: Vector2, b: Vector2) -> 
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
 
-	var is_jumping := absf(a.x - b.x) > tile_size * 1.2 or b.y < a.y
+	var jumping_up := b.y < a.y - 4.0
+	var dx_total := absf(b.x - a.x)
 	for i in range(1, CLEARANCE_SAMPLES + 1):
 		var t := float(i) / float(CLEARANCE_SAMPLES + 1)
-		var p := a.lerp(b, t)
-		if is_jumping:
-			var peak_y := minf(a.y, b.y) - 22.0
-			var arc_offset := maxf(0.0, p.y - peak_y) * sin(t * PI)
-			p.y -= arc_offset
-		query.transform = Transform2D(0.0, p - Vector2(0.0, 3.0))
+		var px := lerpf(a.x, b.x, t)
+		var py := 0.0
+		if jumping_up:
+			var baseline_y := lerpf(a.y, b.y, t)
+			var apex_target := b.y - 12.0
+			var mid_base := (a.y + b.y) * 0.5
+			var h := maxf(16.0, mid_base - apex_target)
+			var arc := 4.0 * h * t * (1.0 - t)
+			py = baseline_y - arc
+		else:
+			var is_adjacent_step := dx_total <= 36.0 and absf(b.y - a.y) <= 36.0
+			if is_adjacent_step:
+				py = minf(a.y, b.y)
+			elif dx_total > 1.0:
+				var dist_from_a := absf(px - a.x)
+				var step_t := clampf((dist_from_a - 14.0) / maxf(dx_total - 14.0, 1.0), 0.0, 1.0)
+				py = lerpf(a.y, b.y, step_t)
+			else:
+				py = lerpf(a.y, b.y, t)
+		query.transform = Transform2D(0.0, Vector2(px, py - 3.0))
 		if not space.intersect_shape(query, 1).is_empty():
 			return false
 	return true

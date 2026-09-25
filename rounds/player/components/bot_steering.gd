@@ -66,14 +66,18 @@ func follow_path(current_pos: Vector2, path: PackedVector2Array, current_idx: in
 		else:
 			break
 
-	var finished := (idx >= path.size() - 1) and (dist < arrival_radius or absf(wp.x - current_pos.x) < STOP_THRESHOLD)
+	var finished := (idx >= path.size() - 1) and (dist < arrival_radius)
 	var move_axis := 0.0
 	if not finished:
 		# Entre plataformas y waypoints intermedios se requiere velocidad completa
 		move_axis = seek(current_pos.x, wp.x)
 		# Si ya estamos alineados horizontalmente con este punto intermedio pero hay más camino, orientar al siguiente
 		if is_zero_approx(move_axis) and idx < path.size() - 1:
-			move_axis = seek(current_pos.x, path[idx + 1].x)
+			for ahead_idx in range(idx + 1, mini(idx + 4, path.size())):
+				var ahead_axis := seek(current_pos.x, path[ahead_idx].x)
+				if not is_zero_approx(ahead_axis):
+					move_axis = ahead_axis
+					break
 
 	return {
 		"target": wp,

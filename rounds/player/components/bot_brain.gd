@@ -692,6 +692,11 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 						player.drop_through_platform()
 				elif need_jump_up:
 					_jump_just_pressed = true
+					if is_zero_approx(_move_axis):
+						var jump_dir := signf(wp.x - my_pos.x)
+						if is_zero_approx(jump_dir):
+							jump_dir = signf(target_pos.x - my_pos.x)
+						_move_axis = jump_dir if not is_zero_approx(jump_dir) else 1.0
 				else:
 					var gap_ahead := not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 26.0, 0.0), 40.0)
 					var wp_horizontal_jump := absf(wp.x - my_pos.x) > 36.0 and not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 24.0, 0.0), 30.0)
@@ -731,6 +736,15 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 	else:
 		if not has_los:
 			_move_axis = _buscar_salida_o_apertura(my_pos, target_pos)
+			if player.is_on_floor():
+				var target_is_above := target_pos.y < my_pos.y - 30.0
+				var target_is_below := target_pos.y > my_pos.y + 30.0
+				if target_is_below and _is_standing_on_one_way():
+					_crouch_pressed = true
+					if player.has_method("drop_through_platform"):
+						player.drop_through_platform()
+				elif target_is_above and (player.is_on_wall() or _has_one_way_above() or absf(target_pos.x - my_pos.x) < 60.0):
+					_jump_just_pressed = true
 		elif different_platform:
 			# Objetivo en distinta plataforma: buscar plataforma intermedia para subir o bajar
 			var intermediate := _buscar_plataforma_elevada(my_pos, target_pos)
@@ -750,6 +764,11 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 				_move_axis = _steering.seek(my_pos.x, target_pos.x)
 			elif dist < 170.0:
 				_move_axis = _steering.flee(my_pos.x, target_pos.x)
+
+		# Red de seguridad: si no estamos en combate directo en el mismo piso, jamás quedarse con move_axis == 0
+		if is_zero_approx(_move_axis) and (not has_los or different_platform or dist > 350.0):
+			var fallback_dir := signf(target_pos.x - my_pos.x)
+			_move_axis = fallback_dir if not is_zero_approx(fallback_dir) else 1.0
 
 	# 4. Superación de escalones físicos (SOLO si realmente estamos bloqueados contra un escalón de frente por más de 0.4s)
 	if player.is_on_floor() and absf(_move_axis) > 0.3 and player.is_on_wall():
@@ -822,6 +841,11 @@ func _find_target() -> CharacterBody2D:
 	if candidates.is_empty() and player != null and player.is_inside_tree():
 		candidates = player.get_tree().get_nodes_in_group("player")
 
+	if _nav_graph == null:
+		var tm := _get_tilemap()
+		if tm != null:
+			_nav_graph = NavGraph.get_or_build(tm, str(tm.get_instance_id()))
+
 	for p in candidates:
 		if not is_instance_valid(p) or p.is_queued_for_deletion() or not p.is_inside_tree() or p == player or not (p is CharacterBody2D):
 			continue
@@ -836,6 +860,13 @@ func _find_target() -> CharacterBody2D:
 		var score := 1200.0 - dist
 		if has_los:
 			score += 1500.0 # Prioridad enorme a quien podemos ver y disparar
+		else:
+			if _nav_graph != null and _nav_graph.point_count() > 0:
+				var test_path := _nav_graph.find_path(my_pos, p_pos)
+				if not test_path.is_empty():
+					score += 600.0 # Rival con camino navegable disponible
+				else:
+					score -= 1200.0 # Penalizar fuertemente rivales inalcanzables cuando hay otros activos
 
 		# Penalizar fuertemente quedarse trabado mirando al rival directamente a través de un techo o piso
 		if not has_los and absf(p_pos.x - my_pos.x) < 80.0 and absf(p_pos.y - my_pos.y) > 40.0:
@@ -919,7 +950,11 @@ func _buscar_salida_o_apertura(my_pos: Vector2, target_pos: Vector2) -> float:
 				min_rope_dist = d
 				best_rope_x = r.global_position.x
 	if not is_inf(best_rope_x) and min_rope_dist < 400000.0:
-		return _steering.seek(my_pos.x, best_rope_x)
+		var rope_axis: float = _steering.seek(my_pos.x, best_rope_x)
+		if not is_zero_approx(rope_axis):
+			return rope_axis
+		var pass_dir := signf(target_pos.x - my_pos.x)
+		return pass_dir if not is_zero_approx(pass_dir) else 1.0
 
 	# 3. Buscar pozos verticales o plataformas escalables en NavGraph hacia el nivel del rival
 	if _nav_graph != null and _nav_graph.point_count() > 0:
@@ -935,7 +970,11 @@ func _buscar_salida_o_apertura(my_pos: Vector2, target_pos: Vector2) -> float:
 					min_plat_dist = d
 					best_plat_x = pt_pos.x
 		if not is_inf(best_plat_x):
-			return _steering.seek(my_pos.x, best_plat_x)
+			var plat_axis: float = _steering.seek(my_pos.x, best_plat_x)
+			if not is_zero_approx(plat_axis):
+				return plat_axis
+			var pass_dir := signf(target_pos.x - my_pos.x)
+			return pass_dir if not is_zero_approx(pass_dir) else 1.0
 
 	# 4. Moverse hacia el extremo de la plataforma actual (para buscar bajada o desvío)
 	var move_dir := signf(target_pos.x - my_pos.x)
