@@ -104,12 +104,16 @@ func check_hazard_ahead(space: PhysicsDirectSpaceState2D, player: CharacterBody2
 
 	# 3. Si hay peligro adelante, comprobar si hay un salto seguro hacia adelante
 	if result["hazard_ahead"]:
-		for d_salto in [120.0, 170.0, 220.0]:
-			var test_pos := Vector2(my_pos.x + move_dir * d_salto, my_pos.y - 20.0)
-			var land := _probe_ground(space, player, test_pos, 110.0)
-			if land["hit"] and not is_point_hazardous(space, land["position"], tilemap):
-				result["safe_jump_available"] = true
-				result["safe_landing_pos"] = land["position"]
+		for d_salto in [80.0, 130.0, 180.0, 230.0, 280.0, 320.0]:
+			for dy in [-70.0, 0.0, 50.0, 110.0]:
+				var test_pos := Vector2(my_pos.x + move_dir * d_salto, my_pos.y + dy)
+				var land := _probe_ground(space, player, test_pos, 70.0)
+				if land["hit"] and not is_point_hazardous(space, land["position"], tilemap):
+					if can_character_fit(space, land["position"]):
+						result["safe_jump_available"] = true
+						result["safe_landing_pos"] = land["position"]
+						break
+			if result["safe_jump_available"]:
 				break
 
 	return result
@@ -153,3 +157,18 @@ func _probe_ground(space: PhysicsDirectSpaceState2D, player: CharacterBody2D, fr
 	if hit.is_empty():
 		return {"hit": false, "position": Vector2.ZERO}
 	return {"hit": true, "position": hit.position}
+
+
+## Comprueba si el personaje cabe físicamente en una posición (ancho 20, alto 36) sin chocar con paredes.
+func can_character_fit(space: PhysicsDirectSpaceState2D, pos: Vector2) -> bool:
+	if space == null:
+		return true
+	var query := PhysicsShapeQueryParameters2D.new()
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(20.0, 36.0)
+	query.shape = shape
+	query.transform = Transform2D(0.0, pos - Vector2(0.0, 18.0))
+	query.collision_mask = 1 # Solo paredes sólidas
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	return space.intersect_shape(query, 1).is_empty()

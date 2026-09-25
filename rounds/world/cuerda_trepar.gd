@@ -4,6 +4,7 @@ extends Area2D
 ## Se puede pintar desde el TileSet (apilá varias para hacer una cuerda vertical).
 
 func _ready() -> void:
+	add_to_group("cuerda_trepar")
 	collision_layer = 0
 	collision_mask = 2
 	body_entered.connect(_on_body_entered)
