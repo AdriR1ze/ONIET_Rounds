@@ -144,10 +144,21 @@ func test_door_navigation_in_closed_room() -> void:
 	assert(res == BTNode.Status.SUCCESS, "El bot debe detectar la puerta cercana y aproximarse a ella")
 	assert(brain.get_move_axis() > 0.0, "El bot debe moverse hacia la derecha en dirección a la puerta")
 
+	# Evaluar cruce a través del umbral de la puerta (no debe detenerse en x=200)
+	bot.global_position = Vector2(200, 300)
+	var res_cross := brain._bt_handle_doors(0.016)
+	assert(res_cross == BTNode.Status.SUCCESS, "El bot debe continuar atravesando la puerta")
+	assert(brain.get_move_axis() > 0.0, "El bot debe seguir empujando hacia adelante para cruzar la puerta")
+
+	# Una vez cruzada la puerta completamente, _bt_handle_doors debe ceder el control
+	bot.global_position = Vector2(245, 300)
+	var res_cleared := brain._bt_handle_doors(0.016)
+	assert(res_cleared == BTNode.Status.FAILURE, "El bot ya cruzó la puerta y debe continuar el combate normal en la sala")
+
 	puerta.free()
 	bot.free()
 	target.free()
-	print("✓ Puertas: detección y navegación directa hacia la puerta para abrirla")
+	print("✓ Puertas: detección, navegación y cruce completo del umbral sin atascos")
 
 
 func test_target_above_seeks_platform() -> void:

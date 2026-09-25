@@ -381,7 +381,8 @@ func _bt_handle_hazard_avoidance(delta: float) -> int:
 				# Si el bot tiene una ruta activa para cruzar a la siguiente plataforma o descender:
 				if not _current_path.is_empty() and _path_index < _current_path.size():
 					var next_wp: Vector2 = _current_path[_path_index]
-					if signf(next_wp.x - player.global_position.x) == move_dir:
+					var is_aligned_or_ahead := (signf(next_wp.x - player.global_position.x) == move_dir) or (absf(next_wp.x - player.global_position.x) < 28.0)
+					if is_aligned_or_ahead:
 						if next_wp.y > player.global_position.y + 20.0:
 							# El camino desciende por este pozo o tubo: dejarse caer sin saltar
 							_move_axis = move_dir
@@ -569,7 +570,18 @@ func _bt_handle_one_way_platform(delta: float) -> int:
 	return BTNode.Status.FAILURE
 
 
-## Puertas: Se aproxima a la zona detectora de la puerta para que se abra automáticamente.
+## Comprueba si una posición está cerca o dentro del umbral de alguna puerta.
+func _is_near_door(pos: Vector2, margin: float = 48.0) -> Node2D:
+	var doors := get_tree().get_nodes_in_group("puerta")
+	for d in doors:
+		if is_instance_valid(d) and d.is_inside_tree():
+			var d_pos: Vector2 = d.global_position
+			if absf(d_pos.y - pos.y) < 60.0 and absf(d_pos.x - pos.x) < margin:
+				return d
+	return null
+
+
+## Puertas: Se aproxima y atraviesa puertas para llegar a habitaciones contiguas.
 func _bt_handle_doors(_delta: float) -> int:
 	if _target == null:
 		return BTNode.Status.FAILURE
@@ -585,21 +597,38 @@ func _bt_handle_doors(_delta: float) -> int:
 	for d in doors:
 		if not is_instance_valid(d) or not d.is_inside_tree():
 			continue
-		if d.has_method("is_open") and d.is_open():
-			continue
 
 		var door_pos: Vector2 = d.global_position
-		var dist_to_door := my_pos.distance_to(door_pos)
+		# Solo puertas en el mismo piso/nivel (dentro de 60px vertical)
+		if absf(door_pos.y - my_pos.y) > 60.0:
+			continue
 
-		# Si hay una puerta a menos de 220px:
-		# Si no tenemos visión directa al rival (ej. estamos en habitación cerrada)
-		# o la puerta está en dirección al objetivo, ir a la puerta para abrirla
-		if dist_to_door < 220.0:
-			var door_dir := signf(door_pos.x - my_pos.x)
-			var target_dir := signf(target_pos.x - my_pos.x)
-			if not has_los or door_dir == target_dir:
-				_move_axis = _steering.seek(my_pos.x, door_pos.x)
+		var dist_to_door := my_pos.distance_to(door_pos)
+		if dist_to_door > 240.0:
+			continue
+
+		var pass_dir := signf(target_pos.x - door_pos.x)
+		if is_zero_approx(pass_dir):
+			pass_dir = signf(door_pos.x - my_pos.x)
+		if is_zero_approx(pass_dir):
+			pass_dir = 1.0
+
+		var to_door_dir := signf(door_pos.x - my_pos.x)
+		var is_door_between := (to_door_dir == pass_dir) or ((target_pos.x - door_pos.x) * (my_pos.x - door_pos.x) <= 0.0)
+
+		# CASO A: El bot está DENTRO O CRUZANDO el umbral de la puerta (a menos de 48px del centro de la puerta)
+		if absf(my_pos.x - door_pos.x) < 48.0:
+			# Si el rival está del otro lado, atravesar obligatoriamente en dirección al rival
+			var cleared := (my_pos.x - door_pos.x) * pass_dir > 36.0
+			if not cleared:
+				_move_axis = pass_dir
 				return BTNode.Status.SUCCESS
+
+		# CASO B: El bot está aproximándose a una puerta cerrada que está en el camino al rival
+		var is_open: bool = bool(d.has_method("is_open") and d.is_open())
+		if not is_open and (not has_los or is_door_between):
+			_move_axis = to_door_dir if not is_zero_approx(to_door_dir) else pass_dir
+			return BTNode.Status.SUCCESS
 
 	return BTNode.Status.FAILURE
 
@@ -620,18 +649,36 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 	# Comprobar si el objetivo está en otra plataforma o a distinta elevación
 	var different_platform := absf(target_pos.y - my_pos.y) > 36.0
 	var has_los := _has_line_of_sight(my_pos, target_pos)
+	var near_door := _is_near_door(my_pos, 52.0) != null
+
+	# Actualización periódica incondicional de la ruta (recalcula cada 0.4s según posición actual del rival)
+	_path_update_timer -= delta
+	var tilemap := _get_tilemap()
+	var needs_path := (not has_los) or different_platform or dist > 360.0 or near_door
+
+	if needs_path and tilemap != null and _path_update_timer <= 0.0:
+		_path_update_timer = 0.4
+		var key := str(tilemap.get_instance_id())
+		_nav_graph = NavGraph.get_or_build(tilemap, key)
+		var fresh_path := _nav_graph.find_path(my_pos, target_pos)
+		if not fresh_path.is_empty():
+			_current_path = fresh_path
+			_path_index = 0
+
+	# Si ya estamos en combate abierto directo en el mismo piso fuera de puertas, descartar ruta previa
+	if not needs_path and not _current_path.is_empty():
+		_current_path = PackedVector2Array()
+		_path_index = 0
 
 	# 1. SEGUIMIENTO DE RUTA ACTIVA (Prioridad absoluta de desplazamiento)
-	# Si el bot tiene una ruta de waypoints hacia una puerta, tubo, pozo o plataforma,
-	# debe seguirla directamente sin interrupciones ni movimientos erráticos.
 	if not _current_path.is_empty():
 		var follow_res: Dictionary = _steering.follow_path(my_pos, _current_path, _path_index, 36.0)
 		_path_index = follow_res["index"]
 		_move_axis = follow_res["move_axis"]
 		var wp: Vector2 = follow_res["target"]
 
-		# Si llegó al final o ya tiene línea de visión directa a distancia de tiro en el mismo piso
-		if follow_res["finished"] or (has_los and not different_platform and dist < 260.0):
+		# Si llegó al final o ya tiene línea de visión directa a distancia de tiro en el mismo piso fuera de puertas
+		if follow_res["finished"] or (has_los and not different_platform and dist < 260.0 and not near_door):
 			_current_path = PackedVector2Array()
 			_path_index = 0
 		else:
@@ -652,8 +699,8 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 					if (gap_ahead or wp_horizontal_jump) and wp.y <= my_pos.y + 18.0:
 						_jump_just_pressed = true
 
-	# 2. ESPACIADO DE COMBATE DIRECTO (Solo cuando ambos están en el mismo piso, sin ruta y con visión despejada)
-	elif has_los and not different_platform:
+	# 2. ESPACIADO DE COMBATE DIRECTO (Mismo piso, visión despejada y fuera de puertas)
+	elif has_los and not different_platform and not near_door:
 		if dist < 120.0:
 			# Peligro cuerpo a cuerpo pegado: retroceder con calma
 			_move_axis = _steering.flee(my_pos.x, target_pos.x)
@@ -680,44 +727,29 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 				_tactical_jump_timer = randf_range(3.5, 6.0)
 				_jump_just_pressed = true
 
-	# 3. Navegación entre plataformas, tubos o sin visión (Planificación de ruta por NavGraph)
+	# 3. NAVEGACIÓN FALLBACK (Si NavGraph no tiene ruta disponible)
 	else:
-		_path_update_timer -= delta
-		var tilemap := _get_tilemap()
-		if tilemap != null and _path_update_timer <= 0.0:
-			_path_update_timer = 0.4
-			var key := str(tilemap.get_instance_id())
-			_nav_graph = NavGraph.get_or_build(tilemap, key)
-			_current_path = _nav_graph.find_path(my_pos, target_pos)
-			_path_index = 0
-
-		if not _current_path.is_empty():
-			var follow_res: Dictionary = _steering.follow_path(my_pos, _current_path, _path_index, 36.0)
-			_path_index = follow_res["index"]
-			_move_axis = follow_res["move_axis"]
-		else:
-			# Si NavGraph no encuentra camino o el objetivo está tras una pared, buscar salida/puerta/cuerda
-			if not has_los:
-				_move_axis = _buscar_salida_o_apertura(my_pos, target_pos)
-			elif different_platform:
-				# Objetivo en distinta plataforma: buscar plataforma intermedia para subir o bajar
-				var intermediate := _buscar_plataforma_elevada(my_pos, target_pos)
-				if intermediate != Vector2.ZERO:
-					_move_axis = _steering.seek(my_pos.x, intermediate.x)
-					if player.is_on_floor() and (absf(intermediate.x - my_pos.x) < 36.0 or player.is_on_wall()):
-						if intermediate.y < my_pos.y - 18.0:
-							_jump_just_pressed = true
-						elif intermediate.y > my_pos.y + 18.0 and _is_standing_on_one_way():
-							_crouch_pressed = true
-							if player.has_method("drop_through_platform"):
-								player.drop_through_platform()
-				else:
-					_move_axis = _buscar_salida_o_apertura(my_pos, target_pos)
+		if not has_los:
+			_move_axis = _buscar_salida_o_apertura(my_pos, target_pos)
+		elif different_platform:
+			# Objetivo en distinta plataforma: buscar plataforma intermedia para subir o bajar
+			var intermediate := _buscar_plataforma_elevada(my_pos, target_pos)
+			if intermediate != Vector2.ZERO:
+				_move_axis = _steering.seek(my_pos.x, intermediate.x)
+				if player.is_on_floor() and (absf(intermediate.x - my_pos.x) < 36.0 or player.is_on_wall()):
+					if intermediate.y < my_pos.y - 18.0:
+						_jump_just_pressed = true
+					elif intermediate.y > my_pos.y + 18.0 and _is_standing_on_one_way():
+						_crouch_pressed = true
+						if player.has_method("drop_through_platform"):
+							player.drop_through_platform()
 			else:
-				if dist > 350.0:
-					_move_axis = _steering.seek(my_pos.x, target_pos.x)
-				elif dist < 170.0:
-					_move_axis = _steering.flee(my_pos.x, target_pos.x)
+				_move_axis = _buscar_salida_o_apertura(my_pos, target_pos)
+		else:
+			if dist > 350.0:
+				_move_axis = _steering.seek(my_pos.x, target_pos.x)
+			elif dist < 170.0:
+				_move_axis = _steering.flee(my_pos.x, target_pos.x)
 
 	# 4. Superación de escalones físicos (SOLO si realmente estamos bloqueados contra un escalón de frente por más de 0.4s)
 	if player.is_on_floor() and absf(_move_axis) > 0.3 and player.is_on_wall():
@@ -870,7 +902,11 @@ func _buscar_salida_o_apertura(my_pos: Vector2, target_pos: Vector2) -> float:
 				min_door_dist = dist
 				best_door_x = d_pos.x
 	if not is_inf(best_door_x):
-		return _steering.seek(my_pos.x, best_door_x)
+		var axis: float = _steering.seek(my_pos.x, best_door_x)
+		if not is_zero_approx(axis):
+			return axis
+		var pass_dir := signf(target_pos.x - best_door_x)
+		return pass_dir if not is_zero_approx(pass_dir) else 1.0
 
 	# 2. Si hay cuerdas de trepar en el mapa, dirigirse a la cuerda
 	var ropes := get_tree().get_nodes_in_group("cuerda_trepar")

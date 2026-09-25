@@ -6,6 +6,7 @@ func _ready() -> void:
 	await _test_bot_spacing_no_glue()
 	await _test_chained_platform_navigation()
 	await _test_clean_navigation_no_random_jumps_or_wall_bounces()
+	await _test_dynamic_path_update_and_no_freeze()
 	print("--- TODOS LOS TESTS PASARON EXITOSAMENTE ---")
 	get_tree().quit(0)
 
@@ -126,4 +127,32 @@ func _test_clean_navigation_no_random_jumps_or_wall_bounces() -> void:
 	target.queue_free()
 	await get_tree().physics_frame
 	print("✓ Navegación limpia y directa: sin saltos aleatorios, sin rebotes de pared al descender tubos y sin giros erráticos")
+
+
+func _test_dynamic_path_update_and_no_freeze() -> void:
+	# 1. Test Steering: follow_path no debe congelarse en 0.0 al alinearse con un punto intermedio
+	var steering := BotSteering.new()
+	var path := PackedVector2Array([Vector2(200, 200), Vector2(350, 200)])
+	var res: Dictionary = steering.follow_path(Vector2(200, 250), path, 0)
+	assert(res["move_axis"] > 0.0, "Al alinearse horizontalmente con un punto vertical, debe orientarse hacia el siguiente punto y no congelarse a 0.0")
+
+	# 2. Test Brain: _path_update_timer debe decrementarse continuamente para recalcular rutas dinámicamente
+	var bot := _crear_bot(Vector2(100, 300), 2)
+	var target := _crear_bot(Vector2(400, 500), 1)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	var brain: BotBrain = bot.get_node("PlayerInput/BotBrain")
+	brain._target = target
+	brain._current_path = PackedVector2Array([Vector2(100, 300), Vector2(200, 300)])
+	brain._path_update_timer = 0.3
+
+	brain._bt_handle_navigation_and_spacing(0.1)
+	assert(brain._path_update_timer < 0.25, "El temporizador de actualización de ruta debe decrementarse continuamente mientras sigue un camino")
+
+	bot.queue_free()
+	target.queue_free()
+	await get_tree().physics_frame
+	print("✓ Actualización dinámica y sin atascos: recálculo continuo de ruta y avance continuo de waypoints")
+
 

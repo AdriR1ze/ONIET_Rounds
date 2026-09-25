@@ -50,17 +50,30 @@ func follow_path(current_pos: Vector2, path: PackedVector2Array, current_idx: in
 	var wp := path[idx]
 	var dist := current_pos.distance_to(wp)
 
-	# Si llegó al waypoint actual y hay más en la lista, avanzar al siguiente
-	while dist < arrival_radius and idx < path.size() - 1:
-		idx += 1
-		wp = path[idx]
-		dist = current_pos.distance_to(wp)
+	# Avanzar al siguiente waypoint si:
+	# 1. Ya estamos dentro del radio de llegada.
+	# 2. O estamos más cerca del siguiente punto que del actual.
+	# 3. O ya alcanzamos el punto horizontalmente en una maniobra de descenso vertical.
+	while idx < path.size() - 1:
+		var next_wp := path[idx + 1]
+		var next_dist := current_pos.distance_to(next_wp)
+		var reached_horizontally := absf(wp.x - current_pos.x) < 16.0
+		var is_descending := wp.y > current_pos.y + 18.0
+		if dist < arrival_radius or next_dist < dist or (reached_horizontally and is_descending and current_pos.y >= wp.y - 16.0):
+			idx += 1
+			wp = path[idx]
+			dist = current_pos.distance_to(wp)
+		else:
+			break
 
-	var finished := (idx >= path.size() - 1) and (dist < arrival_radius)
+	var finished := (idx >= path.size() - 1) and (dist < arrival_radius or absf(wp.x - current_pos.x) < STOP_THRESHOLD)
 	var move_axis := 0.0
 	if not finished:
 		# Entre plataformas y waypoints intermedios se requiere velocidad completa
 		move_axis = seek(current_pos.x, wp.x)
+		# Si ya estamos alineados horizontalmente con este punto intermedio pero hay más camino, orientar al siguiente
+		if is_zero_approx(move_axis) and idx < path.size() - 1:
+			move_axis = seek(current_pos.x, path[idx + 1].x)
 
 	return {
 		"target": wp,
