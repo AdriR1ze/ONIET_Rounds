@@ -1,3 +1,4 @@
+class_name Pincho
 extends Area2D
 
 ## Pincho: hace daño al jugador que lo toca. Se puede pintar desde el TileSet.
@@ -6,6 +7,7 @@ extends Area2D
 
 
 func _ready() -> void:
+	add_to_group("pincho")
 	collision_layer = 0
 	collision_mask = 2
 	body_entered.connect(_on_body_entered)

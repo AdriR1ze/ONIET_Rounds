@@ -90,6 +90,7 @@ var _swing: Node = null
 var _swing_release_timer: float = 0.0
 var _rope_grace_timer: float = 0.0
 var _climbing_prev: bool = false
+var _platform_drop_timer: float = 0.0
 var _spawn_position: Vector2
 var _hit_stop_remaining: float = 0.0
 var _hit_stop_active: bool = false
@@ -174,6 +175,18 @@ func _physics_process(delta: float) -> void:
 	# La muerte por salir de la arena (abismo / bordes) la gestiona el DeadZone de
 	# cada mapa (hazard_zone.gd). El límite hardcodeado de antes asumía un mapa fijo
 	# de 1280x720 y mataba a los jugadores en mapas grandes.
+
+	if _platform_drop_timer > 0.0:
+		_platform_drop_timer = maxf(_platform_drop_timer - delta, 0.0)
+		if _platform_drop_timer <= 0.0:
+			set_collision_mask_value(7, true)
+	elif is_on_floor() and _input.is_crouch_pressed() and not _is_climbing() and _swing == null:
+		var space := get_world_2d().direct_space_state
+		if space != null:
+			var query := PhysicsRayQueryParameters2D.create(global_position, global_position + Vector2(0.0, 18.0), 64)
+			query.exclude = [get_rid()]
+			if not space.intersect_ray(query).is_empty():
+				drop_through_platform()
 
 	if _swing != null and is_instance_valid(_swing):
 		_handle_swing(delta)
@@ -371,6 +384,28 @@ func _try_wall_jump() -> bool:
 	_coyote_timer = 0.0
 	AudioManager.reproducir("salto", 0.05)
 	return true
+
+
+func drop_through_platform() -> void:
+	_platform_drop_timer = 0.22
+	set_collision_mask_value(7, false)
+	position.y += 2.0
+
+
+func get_wall_direction() -> int:
+	return _wall_direction()
+
+
+func is_touching_climb_rope() -> bool:
+	return not _climb_ropes.is_empty()
+
+
+func is_climbing_rope() -> bool:
+	return _is_climbing()
+
+
+func is_on_swing() -> bool:
+	return _swing != null and is_instance_valid(_swing)
 
 
 func enter_climb_rope(rope: Node) -> void:

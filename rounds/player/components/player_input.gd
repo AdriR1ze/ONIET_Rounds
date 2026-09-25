@@ -76,16 +76,16 @@ func is_jump_just_released() -> bool:
 
 
 func is_crouch_pressed() -> bool:
-	if _bot_brain != null:
-		return false
+	if _bot_brain != null and _bot_brain.has_method("is_crouch_pressed"):
+		return _bot_brain.is_crouch_pressed()
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "down")
 	return Input.is_action_pressed(_action("down"))
 
 
 func is_up_pressed() -> bool:
-	if _bot_brain != null:
-		return false
+	if _bot_brain != null and _bot_brain.has_method("is_up_pressed"):
+		return _bot_brain.is_up_pressed()
 	if _usa_raw_keyboard():
 		return KeyboardSetup.raw_action_pressed(_slot_teclado(), "up")
 	return Input.is_action_pressed(_action("up"))

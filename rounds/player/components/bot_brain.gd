@@ -1,19 +1,41 @@
 class_name BotBrain
 extends Node
 
+## Cerebro táctico del Bot basado en Behavior Trees (BT) y Steering Behaviors.
+## - Behavior Tree: Gobierna las decisiones tácticas, secuencias temporales y estados
+##   (¿QUÉ hacer?: Parry, apuntar con balística, evitar disparar a paredes, escalar muros,
+##   usar cuerdas de trepar/balanceo, atravesar plataformas one-way y abrir puertas).
+## - Steering Behaviors: Gobierna las fuerzas físicas motoras inmediatas (¿CÓMO desplazarse?:
+##   Seek, Flee, Arrive, Strafe, Path Following y detección de peligros).
+
+enum DifficultyTier { FACIL, MEDIO, DIFICIL }
+
 var player: CharacterBody2D = null
 var player_number: int = 1
 var dificultad: int = 2
 
-# Estados simulados de entrada
+# Estados simulados de entrada expuestos a PlayerInput
 var _move_axis: float = 0.0
 var _aim_dir: Vector2 = Vector2.RIGHT
 var _jump_just_pressed: bool = false
 var _jump_just_released: bool = false
 var _fire_pressed: bool = false
 var _ragdoll_just_pressed: bool = false
+var _crouch_pressed: bool = false
+var _up_pressed: bool = false
 
-# Timers y estados internos de IA
+const BotSteeringScript = preload("res://player/components/bot_steering.gd")
+
+# Behavior Tree y Navegación
+var _tree: BTNode = null
+var _target: CharacterBody2D = null
+var _steering = null
+var _nav_graph: NavGraph = null
+var _current_path: PackedVector2Array = PackedVector2Array()
+var _path_index: int = 0
+var _path_update_timer: float = 0.0
+
+# Timers y estados tácticos
 var _parry_cooldown_timer: float = 0.0
 var _bullet_parry_decisions: Dictionary = {}
 var _shoot_delay_timer: float = 0.0
@@ -23,10 +45,11 @@ var _strafe_dir: float = 1.0
 var _current_spread: float = 0.0
 var _spread_timer: float = 0.0
 var _blocked_time: float = 0.0
-
-# Behavior Tree
-var _tree: BTNode = null
-var _target: CharacterBody2D = null
+var _edge_turnaround_timer: float = 0.0
+var _edge_safe_dir: float = 0.0
+var _wall_slide_timer: float = 0.0
+var _wall_jump_cooldown: float = 0.0
+var _platform_drop_cooldown: float = 0.0
 
 
 func _ready() -> void:
@@ -35,16 +58,31 @@ func _ready() -> void:
 		player = p
 		player_number = int(player.get("player_number"))
 	dificultad = RunManager.dificultad_bot
+	_steering = BotSteeringScript.new()
 	_tactical_jump_timer = randf_range(1.0, 2.5)
 
 	_tree = BTSelector.new([
 		BTSequence.new([
 			BTLeaf.new(Callable(self, "_bt_can_act")),
-			BTLeaf.new(Callable(self, "_bt_check_parry")),
-			BTLeaf.new(Callable(self, "_bt_has_target")),
-			BTLeaf.new(Callable(self, "_bt_update_movement")),
-			BTLeaf.new(Callable(self, "_bt_update_aim")),
-			BTLeaf.new(Callable(self, "_bt_update_shooting")),
+			BTSelector.new([
+				# 1. Interrupción de Parry (Máxima prioridad reactiva)
+				BTLeaf.new(Callable(self, "_bt_check_parry")),
+				# 2. Evaluación Táctica, Apuntado y Movimiento
+				BTSequence.new([
+					BTLeaf.new(Callable(self, "_bt_find_target")),
+					BTLeaf.new(Callable(self, "_bt_update_aim")),
+					BTLeaf.new(Callable(self, "_bt_update_shooting")),
+					BTSelector.new([
+						BTLeaf.new(Callable(self, "_bt_handle_hazard_avoidance")),
+						BTLeaf.new(Callable(self, "_bt_handle_swinging_rope")),
+						BTLeaf.new(Callable(self, "_bt_handle_climbing_rope")),
+						BTLeaf.new(Callable(self, "_bt_handle_wall_jump")),
+						BTLeaf.new(Callable(self, "_bt_handle_one_way_platform")),
+						BTLeaf.new(Callable(self, "_bt_handle_doors")),
+						BTLeaf.new(Callable(self, "_bt_handle_navigation_and_spacing")),
+					]),
+				]),
+			]),
 		]),
 		BTLeaf.new(Callable(self, "_bt_stop")),
 	])
@@ -74,16 +112,42 @@ func is_ragdoll_just_pressed() -> bool:
 	return _ragdoll_just_pressed
 
 
+func is_crouch_pressed() -> bool:
+	return _crouch_pressed
+
+
+func is_up_pressed() -> bool:
+	return _up_pressed
+
+
 func _physics_process(delta: float) -> void:
 	_jump_just_pressed = false
 	_jump_just_released = false
 	_ragdoll_just_pressed = false
+	_crouch_pressed = false
+	_up_pressed = false
+
 	if _tree != null:
 		_tree.tick(delta)
 
 
+func _get_difficulty_tier() -> int:
+	match dificultad:
+		RunManager.DificultadBot.MUY_FACIL, RunManager.DificultadBot.FACIL:
+			return DifficultyTier.FACIL
+		RunManager.DificultadBot.MEDIO:
+			return DifficultyTier.MEDIO
+		_: # DIFICIL, MUY_DIFICIL, HACKER
+			return DifficultyTier.DIFICIL
+
+
+# ==============================================================================
+# NODOS DEL BEHAVIOR TREE (BT)
+# ==============================================================================
+
+## Condición de activación: ¿El bot puede actuar en este momento?
 func _bt_can_act(_delta: float) -> int:
-	if player == null or not is_instance_valid(player):
+	if player == null or not is_instance_valid(player) or not player.is_inside_tree():
 		return BTNode.Status.FAILURE
 	if player.has_method("is_alive") and not player.is_alive():
 		return BTNode.Status.FAILURE
@@ -92,49 +156,516 @@ func _bt_can_act(_delta: float) -> int:
 	return BTNode.Status.SUCCESS
 
 
+## Acción de parada: Reinicia los inputs si el bot no puede actuar.
 func _bt_stop(_delta: float) -> int:
 	_move_axis = 0.0
 	_fire_pressed = false
+	_crouch_pressed = false
+	_up_pressed = false
 	return BTNode.Status.SUCCESS
 
 
+## Interrupción reactiva de Parry: Comprueba proyectiles hostiles en trayectoria de colisión.
 func _bt_check_parry(delta: float) -> int:
 	dificultad = RunManager.dificultad_bot
 	_parry_cooldown_timer = maxf(_parry_cooldown_timer - delta, 0.0)
 	if _bullet_parry_decisions.size() > 40:
 		_limpiar_registro_balas()
-	_check_parry(delta)
-	return BTNode.Status.SUCCESS
+
+	if player.has_method("is_spinning") and player.is_spinning():
+		return BTNode.Status.FAILURE
+	if player.get("can_control") == false or _parry_cooldown_timer > 0.0:
+		return BTNode.Status.FAILURE
+
+	var bullets := get_tree().get_nodes_in_group("bullet")
+	if bullets.is_empty():
+		return BTNode.Status.FAILURE
+
+	var my_pos := player.global_position
+	var tier := _get_difficulty_tier()
+
+	for b in bullets:
+		if not is_instance_valid(b) or not b.is_inside_tree():
+			continue
+		if b.get("shooter") == player:
+			continue
+		var b_vel: Vector2 = b.get("velocity") if "velocity" in b else Vector2.ZERO
+		if b_vel.length_squared() < 100.0:
+			continue
+
+		var to_player: Vector2 = my_pos - b.global_position
+		var dist := to_player.length()
+		if dist > 260.0:
+			continue
+
+		var b_speed := b_vel.length()
+		var heading_dot := b_vel.normalized().dot(to_player.normalized())
+		if heading_dot < 0.48:
+			continue
+
+		var time_to_hit := dist / b_speed
+		var b_id: int = b.get_instance_id()
+
+		if not _bullet_parry_decisions.has(b_id):
+			var parry_chance := 0.0
+			match tier:
+				DifficultyTier.DIFICIL:
+					parry_chance = 0.55 if dificultad == RunManager.DificultadBot.HACKER else 0.35
+				DifficultyTier.MEDIO:
+					parry_chance = 0.20
+				DifficultyTier.FACIL:
+					parry_chance = 0.06
+			_bullet_parry_decisions[b_id] = (randf() < parry_chance)
+
+		if _bullet_parry_decisions[b_id]:
+			var trigger_window := 0.16 if tier == DifficultyTier.DIFICIL else (0.13 if tier == DifficultyTier.MEDIO else 0.11)
+			if time_to_hit <= trigger_window:
+				_ragdoll_just_pressed = true
+				_aim_dir = (b.global_position - my_pos).normalized()
+				_bullet_parry_decisions[b_id] = false
+
+				match tier:
+					DifficultyTier.DIFICIL:
+						_parry_cooldown_timer = 1.4
+					DifficultyTier.MEDIO:
+						_parry_cooldown_timer = 2.6
+					DifficultyTier.FACIL:
+						_parry_cooldown_timer = 4.2
+
+				# Interrumpe y consume este tick como acción de emergencia
+				return BTNode.Status.SUCCESS
+
+	return BTNode.Status.FAILURE
 
 
-func _bt_has_target(_delta: float) -> int:
+## Localiza el oponente activo más cercano.
+func _bt_find_target(_delta: float) -> int:
 	_target = _find_target()
 	return BTNode.Status.SUCCESS if _target != null else BTNode.Status.FAILURE
 
 
-func _bt_update_movement(delta: float) -> int:
-	_update_movement(_target, delta)
-	return BTNode.Status.SUCCESS
-
-
+## Calcula la puntería balística y dispersión según dificultad.
 func _bt_update_aim(delta: float) -> int:
-	_update_aim(_target, delta)
+	if _target == null:
+		return BTNode.Status.FAILURE
+
+	var my_pos := player.global_position
+	var target_pos := _target.global_position
+	var target_vel := _target.velocity
+	var dist := my_pos.distance_to(target_pos)
+
+	var bullet_speed := 1050.0
+	if player.get("_stats") != null:
+		var s: float = float(player._stats.get_stat(&"bullet_speed"))
+		if s > 100.0:
+			bullet_speed = s
+
+	var tier := _get_difficulty_tier()
+	var desired_aim := Vector2.RIGHT
+
+	# 1. Ángulo balístico
+	var solved_angle := Ballistics.solve_launch_angle(my_pos, target_pos, bullet_speed, 1000.0)
+
+	if tier == DifficultyTier.DIFICIL:
+		var t := dist / bullet_speed
+		var predicted_pos := target_pos + target_vel * (t * 0.85)
+		var lead_angle := Ballistics.solve_launch_angle(my_pos, predicted_pos, bullet_speed, 1000.0)
+		if not is_nan(lead_angle):
+			desired_aim = Vector2(cos(lead_angle), sin(lead_angle))
+		elif not is_nan(solved_angle):
+			desired_aim = Vector2(cos(solved_angle), sin(solved_angle))
+		else:
+			desired_aim = (target_pos - my_pos).normalized()
+	elif tier == DifficultyTier.MEDIO:
+		if not is_nan(solved_angle):
+			desired_aim = Vector2(cos(solved_angle), sin(solved_angle))
+		else:
+			desired_aim = (target_pos - my_pos).normalized()
+	else:
+		desired_aim = (target_pos - my_pos).normalized()
+
+	# 2. Dispersión y suavizado de seguimiento
+	_spread_timer -= delta
+	if _spread_timer <= 0.0:
+		_spread_timer = randf_range(0.2, 0.5)
+		var max_spread := 0.0
+		match tier:
+			DifficultyTier.DIFICIL:
+				max_spread = deg_to_rad(2.0)
+			DifficultyTier.MEDIO:
+				max_spread = deg_to_rad(8.0)
+			DifficultyTier.FACIL:
+				max_spread = deg_to_rad(20.0)
+		_current_spread = randf_range(-max_spread, max_spread)
+
+	desired_aim = desired_aim.rotated(_current_spread)
+
+	var tracking_speed := 25.0 if tier == DifficultyTier.DIFICIL else (12.0 if tier == DifficultyTier.MEDIO else 5.0)
+	_aim_dir = _aim_dir.slerp(desired_aim, clampf(tracking_speed * delta, 0.0, 1.0)).normalized()
+
 	return BTNode.Status.SUCCESS
 
 
+## Disparo táctico: ¡NUNCA dispara a través de paredes ni puertas cerradas!
 func _bt_update_shooting(delta: float) -> int:
-	_update_shooting(_target, delta)
+	if _target == null:
+		_fire_pressed = false
+		return BTNode.Status.FAILURE
+
+	var my_pos := player.global_position
+	var target_pos := _target.global_position
+
+	_shoot_delay_timer = maxf(_shoot_delay_timer - delta, 0.0)
+
+	# 1. VERIFICACIÓN DE LÍNEA DE VISIÓN: Raycast contra muros (máscara 1) y puertas
+	if not _has_line_of_sight(my_pos, target_pos):
+		_fire_pressed = false
+		return BTNode.Status.SUCCESS
+
+	# 2. VERIFICACIÓN DE TRAYECTORIA BALÍSTICA
+	var space := player.get_world_2d().direct_space_state
+	if space != null:
+		var bullet_speed := 1050.0
+		if player.get("_stats") != null:
+			var s: float = float(player._stats.get_stat(&"bullet_speed"))
+			if s > 100.0:
+				bullet_speed = s
+		var arc_res := Ballistics.can_hit(space, my_pos, target_pos, bullet_speed, 1000.0, 1.8, 1, [player.get_rid()])
+		if not arc_res.feasible and arc_res.reason == "blocked":
+			_fire_pressed = false
+			return BTNode.Status.SUCCESS
+
+	# 3. Alineación angular y cadencia de disparo
+	var to_target := (target_pos - my_pos).normalized()
+	var angle_diff := absf(_aim_dir.angle_to(to_target))
+	var tier := _get_difficulty_tier()
+
+	var max_angle_threshold := deg_to_rad(18.0) if tier == DifficultyTier.DIFICIL else (deg_to_rad(24.0) if tier == DifficultyTier.MEDIO else deg_to_rad(34.0))
+
+	if angle_diff < max_angle_threshold:
+		if _shoot_delay_timer <= 0.0:
+			_fire_pressed = true
+			if tier == DifficultyTier.FACIL:
+				_shoot_delay_timer = randf_range(0.4, 0.9)
+			elif tier == DifficultyTier.MEDIO and randf() < 0.3:
+				_shoot_delay_timer = randf_range(0.15, 0.35)
+		else:
+			_fire_pressed = false
+	else:
+		_fire_pressed = false
+
 	return BTNode.Status.SUCCESS
 
 
-func _limpiar_registro_balas() -> void:
-	var keys_to_remove: Array = []
-	for b_id in _bullet_parry_decisions:
-		var instance = instance_from_id(b_id)
-		if instance == null or not is_instance_valid(instance):
-			keys_to_remove.append(b_id)
-	for k in keys_to_remove:
-		_bullet_parry_decisions.erase(k)
+## Evasión de abismo y pinchos: Frena rotundamente ante precipicios o pinchos.
+func _bt_handle_hazard_avoidance(delta: float) -> int:
+	# Si ya está en maniobra de retroceso por borde:
+	if _edge_turnaround_timer > 0.0:
+		_edge_turnaround_timer -= delta
+		_move_axis = _edge_safe_dir
+		return BTNode.Status.SUCCESS
+
+	if player.is_on_floor():
+		var move_dir := signf(_move_axis)
+		if not is_zero_approx(move_dir):
+			var space := player.get_world_2d().direct_space_state
+			var lookahead: float = clampf(absf(player.velocity.x) * 0.28 + 36.0, 36.0, 80.0)
+			var hazard_info: Dictionary = _steering.check_hazard_ahead(space, player, move_dir, lookahead, _get_tilemap())
+
+			if hazard_info.hazard_ahead:
+				if hazard_info.safe_jump_available and absf(player.velocity.x) > 100.0:
+					# Salto seguro hacia adelante
+					_jump_just_pressed = true
+					return BTNode.Status.SUCCESS
+				else:
+					# Freno absoluto y giro en U
+					_edge_safe_dir = -move_dir
+					_move_axis = _edge_safe_dir
+					_edge_turnaround_timer = 0.35
+					if absf(player.velocity.x) > 20.0 and signf(player.velocity.x) == move_dir:
+						player.velocity.x *= 0.2
+					return BTNode.Status.SUCCESS
+
+	elif not player.is_on_floor():
+		var my_pos := player.global_position
+		var suelo_debajo := _hay_suelo(my_pos, 220.0)
+		if not suelo_debajo:
+			var hay_izq := _hay_suelo(Vector2(my_pos.x - 70.0, my_pos.y), 220.0)
+			var hay_der := _hay_suelo(Vector2(my_pos.x + 70.0, my_pos.y), 220.0)
+			if hay_izq and not hay_der:
+				_move_axis = -1.0
+				return BTNode.Status.SUCCESS
+			elif hay_der and not hay_izq:
+				_move_axis = 1.0
+				return BTNode.Status.SUCCESS
+
+	return BTNode.Status.FAILURE
+
+
+## Cuerda de balanceo (Péndulo): Agarre, bombeo de impulso y suelta con salto.
+func _bt_handle_swinging_rope(_delta: float) -> int:
+	if player.has_method("is_on_swing") and player.is_on_swing():
+		if _target != null:
+			# Bombear en dirección al objetivo
+			_move_axis = _steering.seek(player.global_position.x, _target.global_position.x)
+			# Soltar cuando la velocidad vaya hacia el objetivo
+			var moving_toward := player.velocity.x * (_target.global_position.x - player.global_position.x) > 0.0
+			if moving_toward and absf(player.velocity.x) > 280.0:
+				_jump_just_pressed = true
+		return BTNode.Status.SUCCESS
+
+	# Detección de columpio cercano para cruzar huecos
+	var swings := get_tree().get_nodes_in_group("cuerda_balanceo")
+	if swings.is_empty():
+		return BTNode.Status.FAILURE
+
+	var my_pos := player.global_position
+	for s in swings:
+		if is_instance_valid(s) and s.has_method("get_end_position"):
+			var bob_pos: Vector2 = s.get_end_position()
+			if my_pos.distance_to(bob_pos) < 45.0:
+				_move_axis = _steering.arrive(my_pos.x, bob_pos.x, 24.0)
+				_up_pressed = true # Agarrarse
+				return BTNode.Status.SUCCESS
+
+	return BTNode.Status.FAILURE
+
+
+## Cuerda vertical (Trepar): Sube con W, baja con S, y salta al llegar a la altura deseada.
+func _bt_handle_climbing_rope(_delta: float) -> int:
+	var touching: bool = bool(player.has_method("is_touching_climb_rope") and player.is_touching_climb_rope())
+	var climbing: bool = bool(player.has_method("is_climbing_rope") and player.is_climbing_rope())
+
+	if touching or climbing:
+		if _target != null:
+			var target_y := _target.global_position.y
+			var my_y := player.global_position.y
+
+			if target_y < my_y - 25.0:
+				# Subir por la cuerda
+				_up_pressed = true
+				if my_y <= target_y + 16.0:
+					# Salto para desembarcar en la plataforma
+					_jump_just_pressed = true
+				return BTNode.Status.SUCCESS
+			elif target_y > my_y + 40.0:
+				# Bajar por la cuerda
+				_crouch_pressed = true
+				return BTNode.Status.SUCCESS
+
+	return BTNode.Status.FAILURE
+
+
+## Escalar paredes y Wall-Jump: Secuencia de empuje contra pared, deslizamiento y salto.
+func _bt_handle_wall_jump(delta: float) -> int:
+	_wall_jump_cooldown = maxf(_wall_jump_cooldown - delta, 0.0)
+	if _wall_jump_cooldown > 0.0 or _target == null:
+		return BTNode.Status.FAILURE
+
+	var my_pos := player.global_position
+	var target_pos := _target.global_position
+
+	var wall_dir := 0
+	if player.has_method("get_wall_direction"):
+		wall_dir = player.get_wall_direction()
+
+	# 1. Si está en contacto lateral con la pared:
+	if wall_dir != 0:
+		if target_pos.y < my_pos.y - 30.0 or player.velocity.y > 10.0:
+			# Deslizar presionando hacia la pared
+			_move_axis = float(wall_dir)
+			_wall_slide_timer += delta
+
+			if _wall_slide_timer >= 0.08:
+				# Ejecutar impulso de salto en dirección contraria
+				_jump_just_pressed = true
+				_aim_dir = Vector2(-wall_dir, -0.6).normalized()
+				_wall_slide_timer = 0.0
+				_wall_jump_cooldown = 0.30
+			return BTNode.Status.SUCCESS
+		else:
+			_wall_slide_timer = 0.0
+	else:
+		_wall_slide_timer = 0.0
+
+	# 2. Si hay pared al frente y el objetivo está arriba, saltar hacia la pared para iniciar agarre
+	if player.is_on_floor() and player.is_on_wall() and target_pos.y < my_pos.y - 50.0:
+		_move_axis = signf(target_pos.x - my_pos.x)
+		_jump_just_pressed = true
+		return BTNode.Status.SUCCESS
+
+	return BTNode.Status.FAILURE
+
+
+## Plataformas atravesables (One-Way):
+## - Para bajar: Fuerza agacharse / drop_through_platform().
+## - Para subir: Salto desde abajo para atravesarla y posarse encima.
+func _bt_handle_one_way_platform(delta: float) -> int:
+	_platform_drop_cooldown = maxf(_platform_drop_cooldown - delta, 0.0)
+	if _platform_drop_cooldown > 0.0 or _target == null:
+		return BTNode.Status.FAILURE
+
+	var my_pos := player.global_position
+	var target_pos := _target.global_position
+
+	# 1. Bajar: el enemigo está claramente abajo y estamos sobre una plataforma one-way
+	if target_pos.y > my_pos.y + 35.0 and absf(target_pos.x - my_pos.x) < 260.0:
+		if _is_standing_on_one_way():
+			_crouch_pressed = true
+			if player.has_method("drop_through_platform"):
+				player.drop_through_platform()
+			_platform_drop_cooldown = 0.45
+			return BTNode.Status.SUCCESS
+
+	# 2. Subir: el objetivo está arriba y hay una plataforma one-way encima
+	if target_pos.y < my_pos.y - 45.0 and player.is_on_floor():
+		if _has_one_way_above():
+			_move_axis = _steering.seek(my_pos.x, target_pos.x)
+			_jump_just_pressed = true
+			return BTNode.Status.SUCCESS
+
+	return BTNode.Status.FAILURE
+
+
+## Puertas: Se aproxima a la zona detectora de la puerta para que se abra automáticamente.
+func _bt_handle_doors(_delta: float) -> int:
+	if _target == null:
+		return BTNode.Status.FAILURE
+
+	var doors := get_tree().get_nodes_in_group("puerta")
+	if doors.is_empty():
+		return BTNode.Status.FAILURE
+
+	var my_pos := player.global_position
+	var target_pos := _target.global_position
+
+	for d in doors:
+		if not is_instance_valid(d) or not d.is_inside_tree():
+			continue
+		if d.has_method("is_open") and d.is_open():
+			continue
+
+		var door_pos: Vector2 = d.global_position
+		# Si la puerta cerrada está en la ruta horizontal hacia el objetivo
+		var dist_x_to_door := door_pos.x - my_pos.x
+		var dist_x_to_target := target_pos.x - my_pos.x
+
+		if absf(dist_x_to_door) < 160.0 and signf(dist_x_to_door) == signf(dist_x_to_target):
+			_move_axis = _steering.seek(my_pos.x, door_pos.x)
+			return BTNode.Status.SUCCESS
+
+	return BTNode.Status.FAILURE
+
+
+## Navegación táctica y combate a distancia (Steering general y Waypoints).
+func _bt_handle_navigation_and_spacing(delta: float) -> int:
+	if _target == null:
+		_move_axis = 0.0
+		return BTNode.Status.SUCCESS
+
+	var my_pos := player.global_position
+	var target_pos := _target.global_position
+	var dist := my_pos.distance_to(target_pos)
+	var tier := _get_difficulty_tier()
+
+	# 1. Navegación con línea de visión despejada
+	if _has_line_of_sight(my_pos, target_pos):
+		var opt_min := 160.0
+		var opt_max := 280.0
+
+		if dist > opt_max:
+			_move_axis = _steering.seek(my_pos.x, target_pos.x)
+		elif dist < opt_min:
+			_move_axis = _steering.flee(my_pos.x, target_pos.x)
+		else:
+			_strafe_timer -= delta
+			if _strafe_timer <= 0.0:
+				_strafe_timer = randf_range(0.4, 1.1)
+				_strafe_dir = -_strafe_dir if randf() < 0.6 else _strafe_dir
+			_move_axis = _steering.strafe(_strafe_dir, 0.85 if tier == DifficultyTier.DIFICIL else 0.55)
+
+		# Salto táctico periódico si el objetivo está elevado
+		if target_pos.y < my_pos.y - 70.0 and player.is_on_floor():
+			if randf() < (0.85 if tier == DifficultyTier.DIFICIL else 0.4):
+				_jump_just_pressed = true
+
+	# 2. Navegación sin línea de visión (Pathfinding por NavGraph)
+	else:
+		_path_update_timer -= delta
+		var tilemap := _get_tilemap()
+		if tilemap != null and _path_update_timer <= 0.0:
+			_path_update_timer = 0.6
+			var key := str(tilemap.get_instance_id())
+			_nav_graph = NavGraph.get_or_build(tilemap, key)
+			_current_path = _nav_graph.find_path(my_pos, target_pos)
+			_path_index = 0
+
+		if not _current_path.is_empty():
+			var follow_res: Dictionary = _steering.follow_path(my_pos, _current_path, _path_index, 36.0)
+			_path_index = follow_res["index"]
+			_move_axis = follow_res["move_axis"]
+			var wp: Vector2 = follow_res["target"]
+
+			# Salto entre waypoints más altos
+			if wp.y < my_pos.y - 20.0 and player.is_on_floor():
+				_jump_just_pressed = true
+		else:
+			_move_axis = _steering.seek(my_pos.x, target_pos.x)
+
+	# 3. Detección de atasco contra escalón o desnivel
+	if player.is_on_floor() and absf(_move_axis) > 0.2:
+		if absf(player.velocity.x) < 25.0:
+			_blocked_time += delta
+			if _blocked_time > 0.15:
+				_jump_just_pressed = true
+				_blocked_time = 0.0
+		else:
+			_blocked_time = 0.0
+	else:
+		_blocked_time = 0.0
+
+	return BTNode.Status.SUCCESS
+
+
+# ==============================================================================
+# MÉTODOS DE APOYO Y COMPATIBILIDAD
+# ==============================================================================
+
+## Evitar abismo para compatibilidad con la suite de pruebas.
+func _evitar_abismo(_delta: float) -> void:
+	if player == null or not is_instance_valid(player) or not player.is_inside_tree():
+		return
+	var move_dir := signf(_move_axis)
+	if is_zero_approx(move_dir):
+		return
+	var space := player.get_world_2d().direct_space_state
+	if space == null:
+		return
+	if _steering == null:
+		_steering = BotSteeringScript.new()
+
+	var lookahead: float = clampf(absf(player.velocity.x) * 0.28 + 36.0, 36.0, 80.0)
+	var hazard_info: Dictionary = _steering.check_hazard_ahead(space, player, move_dir, lookahead, _get_tilemap())
+
+	if hazard_info.hazard_ahead:
+		if hazard_info.safe_jump_available and absf(player.velocity.x) > 100.0:
+			_jump_just_pressed = true
+		else:
+			_move_axis = -move_dir
+			_edge_turnaround_timer = 0.35
+			_edge_safe_dir = -move_dir
+			if absf(player.velocity.x) > 20.0 and signf(player.velocity.x) == move_dir:
+				player.velocity.x *= 0.25
+	elif not player.is_on_floor():
+		var my_pos := player.global_position
+		var suelo_debajo := _hay_suelo(my_pos, 220.0)
+		if not suelo_debajo:
+			var hay_izq := _hay_suelo(Vector2(my_pos.x - 70.0, my_pos.y), 220.0)
+			var hay_der := _hay_suelo(Vector2(my_pos.x + 70.0, my_pos.y), 220.0)
+			if hay_izq and not hay_der:
+				_move_axis = -1.0
+			elif hay_der and not hay_izq:
+				_move_axis = 1.0
 
 
 func _find_target() -> CharacterBody2D:
@@ -155,346 +686,22 @@ func _find_target() -> CharacterBody2D:
 	return closest
 
 
-func _check_parry(_delta: float) -> void:
-	if player.has_method("is_spinning") and player.is_spinning():
-		return
-	if player.get("can_control") == false:
-		return
-	if _parry_cooldown_timer > 0.0:
-		return
+func _has_line_of_sight(from_pos: Vector2, to_pos: Vector2) -> bool:
+	if player == null or not is_instance_valid(player) or not player.is_inside_tree():
+		return false
+	var space := player.get_world_2d().direct_space_state
+	if space == null:
+		return false
 
-	var bullets := get_tree().get_nodes_in_group("bullet")
-	if bullets.is_empty():
-		return
-
-	var my_pos := player.global_position
-
-	for b in bullets:
-		if not is_instance_valid(b) or not b.is_inside_tree():
-			continue
-		if b.get("shooter") == player:
-			continue
-		var b_vel: Vector2 = b.get("velocity") if "velocity" in b else Vector2.ZERO
-		if b_vel.length_squared() < 100.0:
-			continue
-
-		var to_player: Vector2 = my_pos - b.global_position
-		var dist := to_player.length()
-
-		# Solo evaluar balas en un radio de peligro razonable
-		if dist > 260.0:
-			continue
-
-		var b_speed := b_vel.length()
-		var heading_dot := b_vel.normalized().dot(to_player.normalized())
-
-		# La bala debe estar desplazándose hacia el jugador
-		if heading_dot < 0.48:
-			continue
-
-		var time_to_hit := dist / b_speed
-		var b_id: int = b.get_instance_id()
-
-		# DECISIÓN ÚNICA POR BALA (evita evaluar randf() 60 veces por segundo para el mismo proyectil)
-		if not _bullet_parry_decisions.has(b_id):
-			var parry_chance := 0.0
-			match dificultad:
-				RunManager.DificultadBot.HACKER:
-					parry_chance = 0.65
-				RunManager.DificultadBot.MUY_DIFICIL:
-					parry_chance = 0.45
-				RunManager.DificultadBot.DIFICIL:
-					parry_chance = 0.30
-				RunManager.DificultadBot.MEDIO:
-					parry_chance = 0.18
-				RunManager.DificultadBot.FACIL:
-					parry_chance = 0.08
-				RunManager.DificultadBot.MUY_FACIL:
-					parry_chance = 0.0
-
-			_bullet_parry_decisions[b_id] = (randf() < parry_chance)
-
-		# Si esta bala fue asignada para ser parada por el bot:
-		if _bullet_parry_decisions[b_id]:
-			var trigger_window := 0.16
-			match dificultad:
-				RunManager.DificultadBot.HACKER:
-					trigger_window = 0.18
-				RunManager.DificultadBot.MUY_DIFICIL:
-					trigger_window = 0.17
-				RunManager.DificultadBot.DIFICIL:
-					trigger_window = 0.15
-				RunManager.DificultadBot.MEDIO:
-					trigger_window = 0.13
-				_:
-					trigger_window = 0.11
-
-			if time_to_hit <= trigger_window:
-				_ragdoll_just_pressed = true
-				_bullet_parry_decisions[b_id] = false # Ya ejecutó el parry para esta bala
-
-				# Cooldown para no parrear ráfagas continuas de forma injusta
-				match dificultad:
-					RunManager.DificultadBot.HACKER:
-						_parry_cooldown_timer = 1.2
-					RunManager.DificultadBot.MUY_DIFICIL:
-						_parry_cooldown_timer = 1.8
-					RunManager.DificultadBot.DIFICIL:
-						_parry_cooldown_timer = 2.4
-					RunManager.DificultadBot.MEDIO:
-						_parry_cooldown_timer = 3.2
-					_:
-						_parry_cooldown_timer = 4.5
-				return
-
-
-func _update_aim(target: CharacterBody2D, delta: float) -> void:
-	var my_pos := player.global_position
-	var target_pos := target.global_position
-	var target_vel := target.velocity
-	var dist := my_pos.distance_to(target_pos)
-
-	var bullet_speed := 1050.0
-	if player.get("_stats") != null:
-		var s: float = float(player._stats.get_stat(&"bullet_speed"))
-		if s > 100.0:
-			bullet_speed = s
-
-	var predicted_pos := target_pos
-
-	match dificultad:
-		RunManager.DificultadBot.HACKER:
-			# Puntería predictiva de 2 pasos exacta (alta precisión)
-			var t1 := dist / bullet_speed
-			var p1 := target_pos + target_vel * t1
-			var t2 := my_pos.distance_to(p1) / bullet_speed
-			predicted_pos = target_pos + target_vel * t2
-			predicted_pos.y -= 0.5 * 1200.0 * (t2 * t2) * 0.35
-			_aim_dir = (predicted_pos - my_pos).normalized()
-			return
-
-		RunManager.DificultadBot.MUY_DIFICIL:
-			var t := (dist / bullet_speed) * 0.95
-			predicted_pos = target_pos + target_vel * t
-			predicted_pos.y -= 0.5 * 1200.0 * (t * t) * 0.25
-
-		RunManager.DificultadBot.DIFICIL:
-			var t := (dist / bullet_speed) * 0.75
-			predicted_pos = target_pos + target_vel * t
-
-		RunManager.DificultadBot.MEDIO:
-			var t := (dist / bullet_speed) * 0.40
-			predicted_pos = target_pos + target_vel * t
-
-		RunManager.DificultadBot.FACIL, RunManager.DificultadBot.MUY_FACIL:
-			predicted_pos = target_pos
-
-	# Dispersión y retraso de seguimiento según dificultad
-	_spread_timer -= delta
-	if _spread_timer <= 0.0:
-		_spread_timer = randf_range(0.15, 0.45)
-		var max_spread := 0.0
-		match dificultad:
-			RunManager.DificultadBot.MUY_DIFICIL:
-				max_spread = deg_to_rad(2.0)
-			RunManager.DificultadBot.DIFICIL:
-				max_spread = deg_to_rad(5.0)
-			RunManager.DificultadBot.MEDIO:
-				max_spread = deg_to_rad(12.0)
-			RunManager.DificultadBot.FACIL:
-				max_spread = deg_to_rad(22.0)
-			RunManager.DificultadBot.MUY_FACIL:
-				max_spread = deg_to_rad(35.0)
-		_current_spread = randf_range(-max_spread, max_spread)
-
-	var desired_aim := (predicted_pos - my_pos).normalized().rotated(_current_spread)
-	var tracking_speed := 15.0
-	match dificultad:
-		RunManager.DificultadBot.MUY_DIFICIL:
-			tracking_speed = 30.0
-		RunManager.DificultadBot.DIFICIL:
-			tracking_speed = 18.0
-		RunManager.DificultadBot.MEDIO:
-			tracking_speed = 9.0
-		RunManager.DificultadBot.FACIL:
-			tracking_speed = 4.5
-		RunManager.DificultadBot.MUY_FACIL:
-			tracking_speed = 2.5
-
-	_aim_dir = _aim_dir.slerp(desired_aim, clampf(tracking_speed * delta, 0.0, 1.0)).normalized()
-
-
-func _update_shooting(target: CharacterBody2D, delta: float) -> void:
-	var my_pos := player.global_position
-	var to_target := (target.global_position - my_pos).normalized()
-	var angle_diff := absf(_aim_dir.angle_to(to_target))
-
-	_shoot_delay_timer = maxf(_shoot_delay_timer - delta, 0.0)
-
-	match dificultad:
-		RunManager.DificultadBot.HACKER:
-			_fire_pressed = (angle_diff < deg_to_rad(18.0))
-
-		RunManager.DificultadBot.MUY_DIFICIL:
-			if angle_diff < deg_to_rad(16.0):
-				if _shoot_delay_timer <= 0.0:
-					_fire_pressed = true
-					if randf() < 0.1:
-						_shoot_delay_timer = randf_range(0.05, 0.15)
-				else:
-					_fire_pressed = false
-			else:
-				_fire_pressed = false
-
-		RunManager.DificultadBot.DIFICIL:
-			if angle_diff < deg_to_rad(20.0):
-				if _shoot_delay_timer <= 0.0:
-					_fire_pressed = true
-					if randf() < 0.2:
-						_shoot_delay_timer = randf_range(0.1, 0.25)
-				else:
-					_fire_pressed = false
-			else:
-				_fire_pressed = false
-
-		RunManager.DificultadBot.MEDIO:
-			if angle_diff < deg_to_rad(25.0):
-				if _shoot_delay_timer <= 0.0:
-					_fire_pressed = true
-					if randf() < 0.35:
-						_shoot_delay_timer = randf_range(0.2, 0.5)
-				else:
-					_fire_pressed = false
-			else:
-				_fire_pressed = false
-
-		RunManager.DificultadBot.FACIL:
-			if angle_diff < deg_to_rad(32.0):
-				if _shoot_delay_timer <= 0.0:
-					_fire_pressed = true
-					if randf() < 0.5:
-						_shoot_delay_timer = randf_range(0.4, 0.9)
-				else:
-					_fire_pressed = false
-			else:
-				_fire_pressed = false
-
-		RunManager.DificultadBot.MUY_FACIL:
-			if angle_diff < deg_to_rad(40.0):
-				if _shoot_delay_timer <= 0.0:
-					_fire_pressed = true
-					_shoot_delay_timer = randf_range(0.7, 1.5)
-				else:
-					_fire_pressed = false
-			else:
-				_fire_pressed = false
-
-
-func _update_movement(target: CharacterBody2D, delta: float) -> void:
-	var my_pos := player.global_position
-	var target_pos := target.global_position
-	var dist := my_pos.distance_to(target_pos)
-	var dir_to_target_x := signf(target_pos.x - my_pos.x)
-
-	var opt_dist_min := 160.0
-	var opt_dist_max := 280.0
-
-	if dificultad == RunManager.DificultadBot.HACKER:
-		opt_dist_min = 180.0
-		opt_dist_max = 260.0
-
-	# 1. Distancia y posicionamiento deseado
-	if dist > opt_dist_max:
-		_move_axis = dir_to_target_x
-	elif dist < opt_dist_min:
-		_move_axis = -dir_to_target_x
-	else:
-		_strafe_timer -= delta
-		if _strafe_timer <= 0.0:
-			_strafe_timer = randf_range(0.4, 1.2)
-			_strafe_dir = -_strafe_dir if randf() < 0.6 else _strafe_dir
-		_move_axis = _strafe_dir * (0.8 if dificultad >= RunManager.DificultadBot.DIFICIL else 0.5)
-
-	# 2. Detección y evasión de precipicios / vacío en el mapa
-	_evitar_abismo(delta)
-
-	# 3. Detección de atasco contra pared o escalón
-	if player.is_on_floor() and absf(_move_axis) > 0.2:
-		if absf(player.velocity.x) < 25.0:
-			_blocked_time += delta
-			if _blocked_time > 0.15:
-				_jump_just_pressed = true
-				_blocked_time = 0.0
-		else:
-			_blocked_time = 0.0
-	else:
-		_blocked_time = 0.0
-
-	# 4. Salto vertical si el objetivo está en plataformas más altas
-	if target_pos.y < my_pos.y - 70.0 and absf(target_pos.x - my_pos.x) < 380.0:
-		if player.is_on_floor() and _hay_suelo(my_pos, 80.0) and randf() < (0.85 if dificultad >= RunManager.DificultadBot.DIFICIL else 0.4):
-			_jump_just_pressed = true
-
-	# 5. Salto táctico periódico en dificultades altas (solo si está seguro en el centro de la plataforma)
-	if dificultad >= RunManager.DificultadBot.DIFICIL:
-		_tactical_jump_timer -= delta
-		if _tactical_jump_timer <= 0.0:
-			_tactical_jump_timer = randf_range(1.4, 3.0)
-			if player.is_on_floor() and _hay_suelo(my_pos + Vector2(-45.0, 12.0), 90.0) and _hay_suelo(my_pos + Vector2(45.0, 12.0), 90.0) and randf() < 0.70:
-				_jump_just_pressed = true
-
-
-func _evitar_abismo(_delta: float) -> void:
-	var my_pos := player.global_position
-	var move_dir := signf(_move_axis)
-
-	# Si está en el suelo y moviéndose: sondear si hay suelo delante
-	if player.is_on_floor() and not is_zero_approx(move_dir):
-		# Lookahead dinámico según velocidad
-		var lookahead: float = clampf(absf(player.velocity.x) * 0.28 + 36.0, 36.0, 80.0)
-		var probe_cerca := Vector2(my_pos.x + move_dir * 22.0, my_pos.y + 12.0)
-		var probe_lejos := Vector2(my_pos.x + move_dir * lookahead, my_pos.y + 12.0)
-
-		var hay_suelo_cerca := _hay_suelo(probe_cerca, 130.0)
-		var hay_suelo_lejos := _hay_suelo(probe_lejos, 130.0)
-
-		if not hay_suelo_cerca or not hay_suelo_lejos:
-			# Detectó precipicio o final de plataforma
-			# Comprobar si hay una plataforma accesible para un salto seguro
-			var salto_seguro := false
-			for d_salto in [110.0, 150.0]:
-				var test_landing := Vector2(my_pos.x + move_dir * d_salto, my_pos.y - 20.0)
-				if _hay_suelo(test_landing, 100.0):
-					salto_seguro = true
-					break
-
-			if salto_seguro and absf(player.velocity.x) > 100.0:
-				# Solo saltar si tiene inercia hacia adelante y la plataforma está confirmada
-				_jump_just_pressed = true
-			else:
-				# Si no hay salto seguro garantizado: FRENAR DE FORMA ROTUNDA
-				_move_axis = -move_dir
-				if absf(player.velocity.x) > 20.0 and signf(player.velocity.x) == move_dir:
-					player.velocity.x *= 0.25 # Frenar inercia para no resbalar
-
-	# Si está en el aire (saltando o empujado):
-	elif not player.is_on_floor():
-		var suelo_debajo := _hay_suelo(my_pos, 220.0)
-		if not suelo_debajo:
-			# Está sobre el vacío: buscar la plataforma más cercana a los lados
-			var hay_izq := _hay_suelo(Vector2(my_pos.x - 70.0, my_pos.y), 220.0)
-			var hay_der := _hay_suelo(Vector2(my_pos.x + 70.0, my_pos.y), 220.0)
-			if hay_izq and not hay_der:
-				_move_axis = -1.0
-			elif hay_der and not hay_izq:
-				_move_axis = 1.0
-			elif not hay_izq and not hay_der:
-				var hay_izq_lejos := _hay_suelo(Vector2(my_pos.x - 140.0, my_pos.y), 240.0)
-				var hay_der_lejos := _hay_suelo(Vector2(my_pos.x + 140.0, my_pos.y), 240.0)
-				if hay_izq_lejos and not hay_der_lejos:
-					_move_axis = -1.0
-				elif hay_der_lejos and not hay_izq_lejos:
-					_move_axis = 1.0
+	# Mask 1: Sólidos y puertas cerradas
+	var query := PhysicsRayQueryParameters2D.create(from_pos, to_pos, 1)
+	query.exclude = [player.get_rid()]
+	var hit := space.intersect_ray(query)
+	if hit.is_empty():
+		return true
+	if _target != null and is_instance_valid(_target) and hit.get("collider") == _target:
+		return true
+	return false
 
 
 func _hay_suelo(origen: Vector2, distancia_abajo: float) -> bool:
@@ -503,7 +710,52 @@ func _hay_suelo(origen: Vector2, distancia_abajo: float) -> bool:
 	var space := player.get_world_2d().direct_space_state
 	if space == null:
 		return false
-	# World (1) + Plataforma (64): cuenta tambien las plataformas de una sola cara.
 	var query := PhysicsRayQueryParameters2D.create(origen, origen + Vector2(0.0, distancia_abajo), 1 | 64)
 	query.exclude = [player.get_rid()]
 	return not space.intersect_ray(query).is_empty()
+
+
+func _is_standing_on_one_way() -> bool:
+	if player == null or not is_instance_valid(player) or not player.is_inside_tree():
+		return false
+	var space := player.get_world_2d().direct_space_state
+	if space == null:
+		return false
+	var query := PhysicsRayQueryParameters2D.create(player.global_position, player.global_position + Vector2(0.0, 18.0), 64)
+	query.exclude = [player.get_rid()]
+	return not space.intersect_ray(query).is_empty()
+
+
+func _has_one_way_above() -> bool:
+	if player == null or not is_instance_valid(player) or not player.is_inside_tree():
+		return false
+	var space := player.get_world_2d().direct_space_state
+	if space == null:
+		return false
+	var query := PhysicsRayQueryParameters2D.create(player.global_position, player.global_position + Vector2(0.0, -110.0), 64)
+	query.exclude = [player.get_rid()]
+	return not space.intersect_ray(query).is_empty()
+
+
+func _get_tilemap() -> TileMapLayer:
+	if player == null or not is_instance_valid(player) or not player.is_inside_tree():
+		return null
+	var parent := player.get_parent()
+	if parent != null:
+		var tm := parent.get_node_or_null("NeonTileMap") as TileMapLayer
+		if tm != null:
+			return tm
+	var tms := get_tree().get_nodes_in_group("tilemap")
+	if not tms.is_empty() and tms[0] is TileMapLayer:
+		return tms[0]
+	return null
+
+
+func _limpiar_registro_balas() -> void:
+	var keys_to_remove: Array = []
+	for b_id in _bullet_parry_decisions:
+		var instance = instance_from_id(b_id)
+		if instance == null or not is_instance_valid(instance):
+			keys_to_remove.append(b_id)
+	for k in keys_to_remove:
+		_bullet_parry_decisions.erase(k)

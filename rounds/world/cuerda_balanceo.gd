@@ -46,6 +46,7 @@ func _ready() -> void:
 
 
 func _setup_arm() -> void:
+	add_to_group("cuerda_balanceo")
 	_arm.visible = true
 	_linea.points = PackedVector2Array([Vector2.ZERO, Vector2(0.0, _largo)])
 	_bob.position = Vector2(0.0, _largo)

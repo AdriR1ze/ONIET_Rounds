@@ -38,6 +38,7 @@ func _ready() -> void:
 	while tm.get_cell_source_id(cell + Vector2i(0, -n)) == sid:
 		n += 1
 	_alto = float(maxi(n, ALTO_MINIMO))
+	add_to_group("puerta")
 	var desplazamiento := 16.0 * (1.0 - _alto)
 	_sprite.position.y = desplazamiento
 	_sprite.scale.y = _alto
@@ -62,3 +63,7 @@ func _physics_process(_delta: float) -> void:
 	for c in _cuerpo.get_children():
 		if c is CollisionShape2D:
 			c.disabled = _abierta
+
+
+func is_open() -> bool:
+	return _abierta
