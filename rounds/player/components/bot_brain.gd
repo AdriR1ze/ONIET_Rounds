@@ -51,6 +51,7 @@ var _edge_safe_dir: float = 0.0
 var _wall_slide_timer: float = 0.0
 var _wall_jump_cooldown: float = 0.0
 var _platform_drop_cooldown: float = 0.0
+var _disengage_jump_cooldown: float = 0.0
 
 
 func _ready() -> void:
@@ -60,7 +61,7 @@ func _ready() -> void:
 		player_number = int(player.get("player_number"))
 	dificultad = RunManager.dificultad_bot
 	_steering = BotSteeringScript.new()
-	_tactical_jump_timer = randf_range(1.0, 2.5)
+	_tactical_jump_timer = randf_range(3.5, 6.0)
 
 	_tree = BTSelector.new([
 		BTSequence.new([
@@ -377,14 +378,19 @@ func _bt_handle_hazard_avoidance(delta: float) -> int:
 			var hazard_info: Dictionary = _steering.check_hazard_ahead(space, player, move_dir, lookahead, _get_tilemap())
 
 			if hazard_info.hazard_ahead:
-				# Si el bot tiene una ruta activa para cruzar a la siguiente plataforma:
-				# Saltar hacia adelante con el impulso completo hacia el waypoint
+				# Si el bot tiene una ruta activa para cruzar a la siguiente plataforma o descender:
 				if not _current_path.is_empty() and _path_index < _current_path.size():
 					var next_wp: Vector2 = _current_path[_path_index]
 					if signf(next_wp.x - player.global_position.x) == move_dir:
-						_jump_just_pressed = true
-						_move_axis = move_dir
-						return BTNode.Status.SUCCESS
+						if next_wp.y > player.global_position.y + 20.0:
+							# El camino desciende por este pozo o tubo: dejarse caer sin saltar
+							_move_axis = move_dir
+							return BTNode.Status.SUCCESS
+						else:
+							# El camino cruza hacia otra repisa elevada o distante: saltar
+							_jump_just_pressed = true
+							_move_axis = move_dir
+							return BTNode.Status.SUCCESS
 
 				if hazard_info.safe_jump_available:
 					# Salto seguro hacia adelante para cruzar a la repisa
@@ -495,15 +501,17 @@ func _bt_handle_wall_jump(delta: float) -> int:
 		wall_dir = player.get_wall_direction()
 
 	# 1. En el aire en contacto lateral con la pared: Wall-Jump reactivo hacia el lado opuesto
+	# NUNCA hacer wall jump si estamos bajando o cayendo por un pozo o tubo hacia un objetivo inferior.
 	if not player.is_on_floor() and wall_dir != 0:
-		if _wall_jump_cooldown <= 0.0:
+		var wants_descend := target_pos.y > my_pos.y + 30.0 or (not _current_path.is_empty() and _path_index < _current_path.size() and _current_path[_path_index].y > my_pos.y + 20.0)
+		if not wants_descend and _wall_jump_cooldown <= 0.0:
 			_wall_slide_timer += delta
 			if _wall_slide_timer >= 0.04:
 				_jump_just_pressed = true
 				_aim_dir = Vector2(-wall_dir, -0.65).normalized()
 				_move_axis = -float(wall_dir)
 				_wall_slide_timer = 0.0
-				_wall_jump_cooldown = 0.10
+				_wall_jump_cooldown = 0.12
 				return BTNode.Status.SUCCESS
 			else:
 				# Deslizar empujando hacia la pared antes del salto
@@ -513,15 +521,14 @@ func _bt_handle_wall_jump(delta: float) -> int:
 		_wall_slide_timer = 0.0
 
 	# 2. En el suelo frente a una pared hacia el objetivo elevado:
-	# Iniciar el primer salto hacia la pared para comenzar la escalada solo si el objetivo
-	# está arriba, en dirección a la pared y hay espacio vertical para escalar sin chocar techo.
-	if player.is_on_floor() and (player.is_on_wall() or wall_dir != 0):
+	# Solo si NO estamos siguiendo una ruta de NavGraph y el objetivo está claramente arriba
+	if _current_path.is_empty() and player.is_on_floor() and (player.is_on_wall() or wall_dir != 0):
 		var target_dx := target_pos.x - my_pos.x
 		var effective_wall_dir := wall_dir if wall_dir != 0 else int(signf(player.get_wall_normal().x * -1.0))
-		if target_pos.y < my_pos.y - 25.0 and effective_wall_dir != 0 and signf(target_dx) == float(effective_wall_dir):
+		if target_pos.y < my_pos.y - 35.0 and effective_wall_dir != 0 and (is_zero_approx(target_dx) or signf(target_dx) == float(effective_wall_dir)):
 			var space := player.get_world_2d().direct_space_state
 			if space != null:
-				var head_ray := PhysicsRayQueryParameters2D.create(my_pos, my_pos + Vector2(0.0, -45.0), 1)
+				var head_ray := PhysicsRayQueryParameters2D.create(my_pos, my_pos + Vector2(0.0, -50.0), 1)
 				head_ray.exclude = [player.get_rid()]
 				if space.intersect_ray(head_ray).is_empty():
 					_move_axis = float(effective_wall_dir)
@@ -599,6 +606,7 @@ func _bt_handle_doors(_delta: float) -> int:
 
 ## Navegación táctica y combate a distancia (Steering general y Waypoints).
 func _bt_handle_navigation_and_spacing(delta: float) -> int:
+	_disengage_jump_cooldown = maxf(_disengage_jump_cooldown - delta, 0.0)
 	if _target == null:
 		_move_axis = 0.0
 		return BTNode.Status.SUCCESS
@@ -613,33 +621,66 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 	var different_platform := absf(target_pos.y - my_pos.y) > 36.0
 	var has_los := _has_line_of_sight(my_pos, target_pos)
 
-	# 1. ESPACIADO DE COMBATE HUMANO: Nunca pegarse al rival cuerpo a cuerpo
-	if dist < 140.0 and not different_platform:
-		# Situación de cuerpo a cuerpo pegado: salto de desenganche y retroceso inmediato
-		_move_axis = _steering.flee(my_pos.x, target_pos.x)
-		if player.is_on_floor():
-			_jump_just_pressed = true
-			if player.is_on_wall():
-				_move_axis = _steering.seek(my_pos.x, target_pos.x)
-	elif dist < 220.0 and has_los and not different_platform:
-		# Retroceder manteniendo la mira para ganar ángulo de tiro
-		_move_axis = _steering.flee(my_pos.x, target_pos.x)
-	elif has_los and not different_platform:
-		var opt_min := 220.0
-		var opt_max := 400.0
+	# 1. SEGUIMIENTO DE RUTA ACTIVA (Prioridad absoluta de desplazamiento)
+	# Si el bot tiene una ruta de waypoints hacia una puerta, tubo, pozo o plataforma,
+	# debe seguirla directamente sin interrupciones ni movimientos erráticos.
+	if not _current_path.is_empty():
+		var follow_res: Dictionary = _steering.follow_path(my_pos, _current_path, _path_index, 36.0)
+		_path_index = follow_res["index"]
+		_move_axis = follow_res["move_axis"]
+		var wp: Vector2 = follow_res["target"]
 
-		if dist > opt_max:
-			_move_axis = _steering.seek(my_pos.x, target_pos.x)
-		elif dist < opt_min:
-			_move_axis = _steering.flee(my_pos.x, target_pos.x)
+		# Si llegó al final o ya tiene línea de visión directa a distancia de tiro en el mismo piso
+		if follow_res["finished"] or (has_los and not different_platform and dist < 260.0):
+			_current_path = PackedVector2Array()
+			_path_index = 0
 		else:
+			# Manejo de saltos y descensos precisos por waypoints
+			if player.is_on_floor():
+				var need_jump_up := wp.y < my_pos.y - 18.0
+				var need_drop_down := wp.y > my_pos.y + 18.0 and absf(wp.x - my_pos.x) < 48.0
+				if need_drop_down and _is_standing_on_one_way():
+					_crouch_pressed = true
+					if player.has_method("drop_through_platform"):
+						player.drop_through_platform()
+				elif need_jump_up:
+					_jump_just_pressed = true
+				else:
+					var gap_ahead := not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 26.0, 0.0), 40.0)
+					var wp_horizontal_jump := absf(wp.x - my_pos.x) > 36.0 and not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 24.0, 0.0), 30.0)
+					# Solo saltar si no queremos descender
+					if (gap_ahead or wp_horizontal_jump) and wp.y <= my_pos.y + 18.0:
+						_jump_just_pressed = true
+
+	# 2. ESPACIADO DE COMBATE DIRECTO (Solo cuando ambos están en el mismo piso, sin ruta y con visión despejada)
+	elif has_los and not different_platform:
+		if dist < 120.0:
+			# Peligro cuerpo a cuerpo pegado: retroceder con calma
+			_move_axis = _steering.flee(my_pos.x, target_pos.x)
+			if _disengage_jump_cooldown <= 0.0 and player.is_on_floor():
+				_jump_just_pressed = true
+				_disengage_jump_cooldown = 1.8
+		elif dist < 180.0:
+			# Retroceder para mantener distancia óptima de disparo
+			_move_axis = _steering.flee(my_pos.x, target_pos.x)
+		elif dist > 350.0:
+			# Acercarse al objetivo
+			_move_axis = _steering.seek(my_pos.x, target_pos.x)
+		else:
+			# Rango óptimo de combate (180 - 350 px): desplazamiento lateral táctico calmado
 			_strafe_timer -= delta
 			if _strafe_timer <= 0.0:
-				_strafe_timer = randf_range(0.3, 0.9)
-				_strafe_dir = -_strafe_dir if randf() < 0.6 else _strafe_dir
-			_move_axis = _steering.strafe(_strafe_dir, 0.85 if tier == DifficultyTier.DIFICIL else 0.55)
+				_strafe_timer = randf_range(1.2, 2.2)
+				_strafe_dir = -_strafe_dir if randf() < 0.5 else _strafe_dir
+			_move_axis = _steering.strafe(_strafe_dir, 0.70 if tier == DifficultyTier.DIFICIL else 0.45)
 
-	# 2. Navegación entre plataformas o sin línea de visión (Pathfinding por NavGraph)
+			# Salto táctico ocasional en combate abierto
+			_tactical_jump_timer -= delta
+			if _tactical_jump_timer <= 0.0 and player.is_on_floor():
+				_tactical_jump_timer = randf_range(3.5, 6.0)
+				_jump_just_pressed = true
+
+	# 3. Navegación entre plataformas, tubos o sin visión (Planificación de ruta por NavGraph)
 	else:
 		_path_update_timer -= delta
 		var tilemap := _get_tilemap()
@@ -654,26 +695,6 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 			var follow_res: Dictionary = _steering.follow_path(my_pos, _current_path, _path_index, 36.0)
 			_path_index = follow_res["index"]
 			_move_axis = follow_res["move_axis"]
-			var wp: Vector2 = follow_res["target"]
-
-			# Si llegó al final o ya tiene línea de visión directa a distancia de tiro en el mismo piso
-			if follow_res["finished"] or (has_los and not different_platform and dist < 320.0):
-				_current_path = PackedVector2Array()
-				_path_index = 0
-			else:
-				# Salto entre waypoints más altos o sobre huecos hacia la plataforma contigua
-				if player.is_on_floor():
-					var need_jump_up := wp.y < my_pos.y - 18.0
-					var need_drop_down := wp.y > my_pos.y + 18.0 and absf(wp.x - my_pos.x) < 48.0
-					if need_drop_down and _is_standing_on_one_way():
-						_crouch_pressed = true
-						if player.has_method("drop_through_platform"):
-							player.drop_through_platform()
-					else:
-						var gap_ahead := not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 26.0, 0.0), 40.0)
-						var wp_horizontal_jump := absf(wp.x - my_pos.x) > 36.0 and not _hay_suelo(my_pos + Vector2(signf(_move_axis) * 24.0, 0.0), 30.0)
-						if need_jump_up or gap_ahead or wp_horizontal_jump:
-							_jump_just_pressed = true
 		else:
 			# Si NavGraph no encuentra camino o el objetivo está tras una pared, buscar salida/puerta/cuerda
 			if not has_los:
@@ -693,39 +714,22 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 				else:
 					_move_axis = _buscar_salida_o_apertura(my_pos, target_pos)
 			else:
-				if dist > 260.0:
+				if dist > 350.0:
 					_move_axis = _steering.seek(my_pos.x, target_pos.x)
-				elif dist < 180.0:
+				elif dist < 170.0:
 					_move_axis = _steering.flee(my_pos.x, target_pos.x)
 
-	# Salto táctico frecuente para esquivar y ganar ángulos de disparo
-	_tactical_jump_timer -= delta
-	if _tactical_jump_timer <= 0.0 and player.is_on_floor():
-		_tactical_jump_timer = randf_range(0.9, 2.0)
-		_jump_just_pressed = true
-
-	# 3. Verificación de si el personaje CABE en el hueco frente a él (no meterse en rendijas)
-	if space != null and absf(_move_axis) > 0.1:
-		var ahead_pos := my_pos + Vector2(signf(_move_axis) * 22.0, 0.0)
-		if not _steering.can_character_fit(space, ahead_pos):
+	# 4. Superación de escalones físicos (SOLO si realmente estamos bloqueados contra un escalón de frente por más de 0.4s)
+	if player.is_on_floor() and absf(_move_axis) > 0.3 and player.is_on_wall():
+		var is_descending := not _current_path.is_empty() and _path_index < _current_path.size() and _current_path[_path_index].y > my_pos.y + 15.0
+		if not is_descending:
 			_blocked_time += delta
-			if _blocked_time > 0.12:
-				# Si cabe saltando por encima, saltar; de lo contrario dar media vuelta
-				var above_pos := my_pos + Vector2(0.0, -42.0)
-				if _steering.can_character_fit(space, above_pos) and player.is_on_floor():
+			if _blocked_time > 0.40:
+				var head_ray := PhysicsRayQueryParameters2D.create(my_pos, my_pos + Vector2(0.0, -45.0), 1)
+				head_ray.exclude = [player.get_rid()]
+				if space != null and space.intersect_ray(head_ray).is_empty():
 					_jump_just_pressed = true
-				else:
-					_move_axis = -signf(_move_axis)
-					_edge_turnaround_timer = 0.4
-					_edge_safe_dir = _move_axis
 				_blocked_time = 0.0
-		elif player.is_on_floor() and absf(player.velocity.x) < 20.0:
-			_blocked_time += delta
-			if _blocked_time > 0.15:
-				_jump_just_pressed = true
-				_blocked_time = 0.0
-		else:
-			_blocked_time = 0.0
 	else:
 		_blocked_time = 0.0
 
@@ -753,6 +757,10 @@ func _evitar_abismo(_delta: float) -> void:
 	var hazard_info: Dictionary = _steering.check_hazard_ahead(space, player, move_dir, lookahead, _get_tilemap())
 
 	if hazard_info.hazard_ahead:
+		if not _current_path.is_empty() and _path_index < _current_path.size():
+			var next_wp: Vector2 = _current_path[_path_index]
+			if signf(next_wp.x - player.global_position.x) == move_dir and next_wp.y > player.global_position.y + 20.0:
+				return
 		if hazard_info.safe_jump_available and absf(player.velocity.x) > 100.0:
 			_jump_just_pressed = true
 		else:

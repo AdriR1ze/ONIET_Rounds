@@ -5,6 +5,7 @@ func _ready() -> void:
 	await _test_one_way_drop()
 	await _test_bot_spacing_no_glue()
 	await _test_chained_platform_navigation()
+	await _test_clean_navigation_no_random_jumps_or_wall_bounces()
 	print("--- TODOS LOS TESTS PASARON EXITOSAMENTE ---")
 	get_tree().quit(0)
 
@@ -87,3 +88,42 @@ func _test_chained_platform_navigation() -> void:
 
 	map.queue_free()
 	await get_tree().physics_frame
+
+
+func _test_clean_navigation_no_random_jumps_or_wall_bounces() -> void:
+	var bot := _crear_bot(Vector2(200, 300), 2)
+	var target := _crear_bot(Vector2(200, 600), 1) # Target claramente abajo en un pozo/tubo
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+
+	var brain: BotBrain = bot.get_node("PlayerInput/BotBrain")
+	brain._target = target
+
+	# 1. Simular descenso aéreo en un pozo tocando la pared lateral
+	bot.velocity = Vector2(0.0, 150.0) # Cayendo en el aire
+	bot._wall_ray_right.target_position = Vector2(40.0, 0.0) # Tocando pared a la derecha
+	brain._current_path = PackedVector2Array([Vector2(200, 300), Vector2(200, 600)])
+	brain._path_index = 1
+
+	var wall_res := brain._bt_handle_wall_jump(0.016)
+	# Al descender hacia un objetivo inferior, NO debe wall-jumpear hacia arriba
+	assert(wall_res == BTNode.Status.FAILURE, "Al descender por un tubo, no debe hacer wall-jump hacia arriba")
+	assert(not brain.is_jump_just_pressed(), "No debe presionar salto al caer por un tubo")
+
+	# 2. Navegación en línea recta: no debe realizar saltos aleatorios ni girar 180°
+	bot.velocity = Vector2(100.0, 0.0)
+	brain._current_path = PackedVector2Array([Vector2(200, 300), Vector2(500, 300)])
+	brain._path_index = 1
+	target.global_position = Vector2(500, 300)
+
+	for i in range(10):
+		brain._bt_handle_navigation_and_spacing(0.016)
+		assert(brain.get_move_axis() > 0.0, "El bot debe avanzar directamente hacia el waypoint sin revertir dirección")
+		assert(not brain.is_jump_just_pressed(), "El bot no debe saltar aleatoriamente mientras camina en línea recta")
+		assert(brain._edge_turnaround_timer == 0.0, "No debe activar giros en U sin precipicio")
+
+	bot.queue_free()
+	target.queue_free()
+	await get_tree().physics_frame
+	print("✓ Navegación limpia y directa: sin saltos aleatorios, sin rebotes de pared al descender tubos y sin giros erráticos")
+
