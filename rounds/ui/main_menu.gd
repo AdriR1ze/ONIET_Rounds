@@ -23,6 +23,7 @@ const OPCIONES_JUGADORES := [2, 3, 4]
 @onready var _boton_salir: Button = $Centro/Menu/Salir
 
 var _inputs: Array[LineEdit] = []
+var _tweens_botones: Dictionary = {}
 
 
 func _ready() -> void:
@@ -45,6 +46,8 @@ func _ready() -> void:
 	_boton_opciones.pressed.connect(_mostrar_opciones)
 	_boton_salir.pressed.connect(_salir)
 	_opciones.cerrado.connect(_ocultar_opciones)
+
+	_configurar_efectos_botones()
 
 	_menu.visible = true
 	_boton_jugar.grab_focus()
@@ -157,3 +160,45 @@ func _poblar(boton: OptionButton, valores: Array, actual: int) -> void:
 
 func _valor(boton: OptionButton, valores: Array) -> int:
 	return int(valores[boton.selected])
+
+
+func _configurar_efectos_botones() -> void:
+	var botones: Array[Button] = [
+		_boton_jugar,
+		_boton_tutorial,
+		_boton_indice,
+		_boton_opciones,
+		_boton_salir
+	]
+	for btn in botones:
+		btn.pivot_offset = btn.custom_minimum_size * 0.5
+		btn.focus_entered.connect(_on_boton_focus.bind(btn, true))
+		btn.focus_exited.connect(_on_boton_focus.bind(btn, false))
+		btn.mouse_entered.connect(_on_boton_mouse.bind(btn))
+		btn.mouse_exited.connect(_on_boton_mouse_exit.bind(btn))
+
+
+func _on_boton_focus(btn: Button, enfocado: bool) -> void:
+	_animar_boton(btn, enfocado)
+	if enfocado and is_inside_tree():
+		if has_node("/root/AudioManager"):
+			get_node("/root/AudioManager").reproducir("ui_mover", 0.05)
+
+
+func _on_boton_mouse(btn: Button) -> void:
+	btn.grab_focus()
+
+
+func _on_boton_mouse_exit(btn: Button) -> void:
+	if not btn.has_focus():
+		_animar_boton(btn, false)
+
+
+func _animar_boton(btn: Button, activo: bool) -> void:
+	btn.z_index = 2 if activo else 0
+	if _tweens_botones.has(btn) and is_instance_valid(_tweens_botones[btn]):
+		_tweens_botones[btn].kill()
+	var tween := create_tween()
+	_tweens_botones[btn] = tween
+	var escala_meta := Vector2(1.1, 1.1) if activo else Vector2.ONE
+	tween.tween_property(btn, "scale", escala_meta, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
