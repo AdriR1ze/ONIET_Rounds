@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://oskpx6jvuqq3"
-path="res://.godot/imported/portada_gunanimals.png-92f4104b84e22e53448ae59548114147.ctex"
+uid="uid://dw738snmxmsg3"
+path="res://.godot/imported/Portada_gunimals_buena_resolucion .png-ace6226d1bbaca83f55f3c11d7852c1c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://sprite_sheets/portada_gunanimals.png"
-dest_files=["res://.godot/imported/portada_gunanimals.png-92f4104b84e22e53448ae59548114147.ctex"]
+source_file="res://sprite_sheets/Portada_gunimals_buena_resolucion .png"
+dest_files=["res://.godot/imported/Portada_gunimals_buena_resolucion .png-ace6226d1bbaca83f55f3c11d7852c1c.ctex"]
 
 [params]
 
