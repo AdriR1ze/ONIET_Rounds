@@ -51,6 +51,13 @@ var vidas: Dictionary = { 1: 2, 2: 2 }
 var nombres: Dictionary = { 1: "Jugador 1", 2: "Jugador 2" }
 var personajes: Dictionary = {}
 var partida_finalizada: bool = false
+var slots_activos: Array = [1, 2]
+var dificultades_bots: Dictionary = {
+	1: DificultadBot.MEDIO,
+	2: DificultadBot.MEDIO,
+	3: DificultadBot.MEDIO,
+	4: DificultadBot.MEDIO,
+}
 var _jugadores: Dictionary = {}
 var _mejoras: Dictionary = {}
 var _marcador: Dictionary = {}
@@ -161,7 +168,27 @@ func paleta_esqueleto(numero: int) -> Array:
 
 func set_cantidad_jugadores(cantidad: int) -> void:
 	cantidad_jugadores = clampi(cantidad, 2, 4)
+	slots_activos.clear()
+	for i in cantidad_jugadores:
+		slots_activos.append(i + 1)
 	_inicializar_jugadores()
+
+
+func set_slots_activos(slots: Array) -> void:
+	slots_activos.clear()
+	for s in slots:
+		var num: int = int(s)
+		if num >= 1 and num <= 4 and not slots_activos.has(num):
+			slots_activos.append(num)
+	slots_activos.sort()
+	if slots_activos.is_empty():
+		slots_activos = [1, 2]
+	cantidad_jugadores = slots_activos.size()
+	_inicializar_jugadores()
+
+
+func es_jugador_activo(numero: int) -> bool:
+	return slots_activos.has(numero)
 
 
 func nombre_jugador(numero: int) -> String:
@@ -169,10 +196,15 @@ func nombre_jugador(numero: int) -> String:
 
 
 func set_nombres(lista: Array) -> void:
-	for i in cantidad_jugadores:
+	for i in lista.size():
 		var numero := i + 1
-		var n := String(lista[i]).strip_edges() if i < lista.size() else ""
+		var n := String(lista[i]).strip_edges()
 		nombres[numero] = n if not n.is_empty() else "Jugador %d" % numero
+
+
+func set_nombre(numero: int, nombre: String) -> void:
+	var n := nombre.strip_edges()
+	nombres[numero] = n if not n.is_empty() else "Jugador %d" % numero
 
 
 func set_personaje(player_number: int, id: String) -> void:
@@ -195,11 +227,30 @@ func configurar_partida(rondas: int, vidas: int, dif_bot: int = -1) -> void:
 
 func set_dificultad_bot(dificultad: int) -> void:
 	dificultad_bot = clampi(dificultad, 0, DIFICULTADES_BOT.size() - 1)
+	for num in dificultades_bots:
+		dificultades_bots[num] = dificultad_bot
+
+
+func set_dificultad_bot_de(player_number: int, dif: int) -> void:
+	var d := clampi(dif, 0, DIFICULTADES_BOT.size() - 1)
+	dificultades_bots[player_number] = d
+	dificultad_bot = d
+
+
+func dificultad_bot_de(player_number: int) -> int:
+	return dificultades_bots.get(player_number, dificultad_bot)
 
 
 func dificultad_bot_nombre() -> String:
 	if dificultad_bot >= 0 and dificultad_bot < DIFICULTADES_BOT.size():
 		return DIFICULTADES_BOT[dificultad_bot]
+	return "Medio"
+
+
+func dificultad_bot_nombre_de(player_number: int) -> String:
+	var d := dificultad_bot_de(player_number)
+	if d >= 0 and d < DIFICULTADES_BOT.size():
+		return DIFICULTADES_BOT[d]
 	return "Medio"
 
 
@@ -314,7 +365,7 @@ func iniciar_partida() -> void:
 
 func iniciar_ronda(numero: int) -> void:
 	ronda = numero
-	for jugador_numero in range(1, cantidad_jugadores + 1):
+	for jugador_numero in slots_activos:
 		vidas[jugador_numero] = vidas_por_ronda
 	for jugador_numero in _jugadores:
 		vidas[jugador_numero] = vidas_por_ronda
@@ -353,7 +404,7 @@ func reiniciar() -> void:
 
 
 func _inicializar_jugadores() -> void:
-	for numero in range(1, cantidad_jugadores + 1):
+	for numero in slots_activos:
 		vidas[numero] = vidas_por_ronda
 		if not nombres.has(numero):
 			nombres[numero] = "Jugador %d" % numero

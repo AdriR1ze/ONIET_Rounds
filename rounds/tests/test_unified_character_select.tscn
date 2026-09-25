@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cxvh812163b71"]
+
+[ext_resource type="Script" path="res://tests/test_unified_character_select.gd" id="1_test"]
+
+[node name="TestUnifiedCharacterSelect" type="Node"]
+script = ExtResource("1_test")

@@ -59,7 +59,7 @@ func _ready() -> void:
 	if p is CharacterBody2D:
 		player = p
 		player_number = int(player.get("player_number"))
-	dificultad = RunManager.dificultad_bot
+	dificultad = RunManager.dificultad_bot_de(player_number)
 	_steering = BotSteeringScript.new()
 	_tactical_jump_timer = randf_range(3.5, 6.0)
 

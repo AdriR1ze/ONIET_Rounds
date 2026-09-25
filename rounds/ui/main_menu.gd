@@ -35,7 +35,7 @@ func _ready() -> void:
 	_poblar_dificultad_bot()
 
 	_jugadores.item_selected.connect(_on_jugadores_changed)
-	_boton_jugar.pressed.connect(_mostrar_modal_partida)
+	_boton_jugar.pressed.connect(_abrir_seleccion_personajes)
 	_boton_tutorial.pressed.connect(_abrir_tutorial)
 	_boton_iniciar.pressed.connect(_iniciar_partida)
 	_boton_volver_partida.pressed.connect(_ocultar_modal_partida)
@@ -58,6 +58,10 @@ func _poblar_dificultad_bot() -> void:
 	for i in RunManager.DIFICULTADES_BOT.size():
 		_dificultad_bot.add_item(RunManager.DIFICULTADES_BOT[i], i)
 	_dificultad_bot.selected = RunManager.dificultad_bot
+
+
+func _abrir_seleccion_personajes() -> void:
+	Transition.cambiar_escena(ESCENA_PERSONAJES)
 
 
 func _mostrar_modal_partida() -> void:

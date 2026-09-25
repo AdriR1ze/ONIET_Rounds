@@ -18,8 +18,7 @@ func mostrar(ganador: int) -> void:
 	_titulo.text = "¡Ganó %s!" % RunManager.nombre_jugador(ganador)
 	_titulo.modulate = RunManager.color_jugador(ganador)
 	var partes := PackedStringArray()
-	for i in RunManager.cantidad_jugadores:
-		var numero := i + 1
+	for numero in RunManager.slots_activos:
 		partes.append("%s %d" % [RunManager.nombre_jugador(numero), RunManager.marcador_de(numero)])
 	_marcador.text = "    ".join(partes)
 	visible = true

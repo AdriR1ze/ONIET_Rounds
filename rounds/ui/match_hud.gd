@@ -51,8 +51,7 @@ func _construir_esquinas() -> void:
 			hijo.queue_free()
 	_nombres.clear()
 	_vidas.clear()
-	for i in RunManager.cantidad_jugadores:
-		var numero := i + 1
+	for numero in RunManager.slots_activos:
 		var esquina := _crear_esquina(numero)
 		add_child(esquina)
 
@@ -113,9 +112,8 @@ func _actualizar_hud() -> void:
 		total_base = 5
 
 	var puntajes: Array = []
-	for i in RunManager.cantidad_jugadores:
-		var numero := i + 1
-		var izquierda := numero % 2 == 1
+	for numero in RunManager.slots_activos:
+		var izquierda: bool = (int(numero) % 2 == 1)
 		if _nombres.has(numero):
 			_nombres[numero].text = RunManager.nombre_jugador(numero)
 		if _vidas.has(numero):
