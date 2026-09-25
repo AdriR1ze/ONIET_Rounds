@@ -916,7 +916,7 @@ func apply_recoil(impulse: Vector2) -> void:
 	# Tope de acumulación: al spamear disparos el retroceso se suma, pero sin
 	# salir disparado fuera de la arena.
 	velocity.x = clampf(velocity.x, -700.0, 700.0)
-	velocity.y = clampf(velocity.y, -560.0, 900.0)
+	velocity.y = clampf(velocity.y, -640.0, 900.0)
 
 
 func apply_slow(factor: float, duration: float) -> void:
