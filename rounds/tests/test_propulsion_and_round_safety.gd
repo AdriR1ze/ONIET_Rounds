@@ -72,14 +72,21 @@ func test_pyramid_collapse_timing_and_bounds() -> void:
 	add_child(mapa)
 
 	var timer: Timer = mapa.get_node("ColapsoTimer")
-	# Al iniciar ronda debe esperar 20 segundos
+	# Al iniciar ronda (o al perder una vida) debe arrancar la gracia corta
 	mapa._on_ronda_iniciada(1)
-	assert(timer.wait_time == 20.0, "Tiempo inicial de gracia debe ser 20.0s, actual: %f" % timer.wait_time)
-	assert(mapa.ancho_capa == 1, "Debe caer 1 columna por paso para ser gradual")
+	assert(timer.wait_time == mapa.RETRASO_INICIAL, "El retraso inicial debe ser RETRASO_INICIAL, actual: %f" % timer.wait_time)
+	assert(mapa.ancho_capa >= 2, "Deben caer varias columnas por paso para que el colapso sea rápido")
 
-	# Al dispararse el primer timeout (termina la gracia de 20s), cambia al intervalo regular (2.5s)
+	# Al dispararse el primer timeout (termina la gracia), cambia al intervalo regular
 	mapa._on_timer_timeout()
-	assert(timer.wait_time == 2.5, "Intervalo de colapso debe ser 2.5s tras el inicio")
+	assert(timer.wait_time == mapa.INTERVALO_COLAPSO, "Intervalo de colapso debe ser INTERVALO_COLAPSO tras el inicio")
 
+	# Al perder una vida a mitad del colapso, todo se rehace desde la gracia
+	mapa._on_timer_timeout()
+	mapa._on_vida_perdida(1, 1)
+	assert(mapa._fase == mapa.Fase.GRACIA, "Perder una vida debe reiniciar el colapso")
+	assert(timer.wait_time == mapa.RETRASO_INICIAL, "Perder una vida debe reiniciar el retraso inicial")
+
+	print("✓ Tiempos de colapso de la pirámide: gracia de %ds, %ds por capa y reinicio total al perder una vida"
+		% [int(mapa.RETRASO_INICIAL), int(mapa.INTERVALO_COLAPSO)])
 	mapa.queue_free()
-	print("✓ Tiempos de colapso de la pirámide: 20s de gracia inicial y 2.5s por paso gradual de 1 columna")
