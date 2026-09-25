@@ -138,7 +138,7 @@ var _spawn_protection_timer: float = 0.0
 
 
 func _ready() -> void:
-	if player_number > RunManager.cantidad_jugadores:
+	if not RunManager.es_jugador_activo(player_number):
 		remove_from_group("player")
 		queue_free()
 		return

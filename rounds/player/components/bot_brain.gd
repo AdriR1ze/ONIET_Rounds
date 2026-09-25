@@ -34,7 +34,7 @@ func _ready() -> void:
 	if p is CharacterBody2D:
 		player = p
 		player_number = int(player.get("player_number"))
-	dificultad = RunManager.dificultad_bot
+	dificultad = RunManager.dificultad_bot_de(player_number)
 	_tactical_jump_timer = randf_range(1.0, 2.5)
 
 	_tree = BTSelector.new([

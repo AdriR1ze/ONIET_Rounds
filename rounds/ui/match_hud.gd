@@ -51,8 +51,7 @@ func _construir_esquinas() -> void:
 			hijo.queue_free()
 	_nombres.clear()
 	_vidas.clear()
-	for i in RunManager.cantidad_jugadores:
-		var numero := i + 1
+	for numero in RunManager.slots_activos:
 		var esquina := _crear_esquina(numero)
 		add_child(esquina)
 
