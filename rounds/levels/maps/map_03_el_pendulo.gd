@@ -1,20 +1,28 @@
 extends Node2D
 
-## Colapso de El Péndulo: cada vez que vence el ColapsoTimer se derrumba una
-## capa de bloques del borde, avanzando hacia el centro hasta que solo queda
-## el núcleo (el "corazón" del mapa).
+## Colapso de El Péndulo / La Pirámide:
+## Tras 20 segundos de gracia, se derrumban gradualmente las columnas de los bordes
+## exteriores (de izquierda y derecha, de arriba a abajo) avanzando hacia el centro
+## hasta que solo queda el núcleo / pirámide central.
 
-@export var radio_nucleo := 10.0   # radio (en celdas) que se conserva en el centro
-@export var ancho_capa := 6.0      # grosor de cada capa que cae
+const RETRASO_INICIAL := 20.0
+const INTERVALO_COLAPSO := 2.5
+
+@export var radio_nucleo: float = 12.0   # radio horizontal (en celdas) que se conserva en el centro
+@export var ancho_capa: int = 1          # cantidad de columnas que caen por paso en cada lado
 
 @onready var _layer: TileMapLayer = $NeonTileMap
 @onready var _timer: Timer = $ColapsoTimer
 
 var _celdas: Array[Vector2i] = []
 var _datos: Dictionary = {}
-var _centro := Vector2.ZERO
-var _radio_max := 0.0
-var _radio := 0.0
+var _min_x: int = 0
+var _max_x: int = 0
+var _centro_x: int = 0
+var _colapso_izq: int = 0
+var _colapso_der: int = 0
+var _radio: float = 999.0
+var _en_intervalo: bool = false
 var _tweens: Array[Tween] = []
 var _caidas: Array[Sprite2D] = []
 
@@ -28,18 +36,19 @@ func _ready() -> void:
 
 func _capturar() -> void:
 	_celdas = _layer.get_used_cells()
-	var suma := Vector2.ZERO
+	if _celdas.is_empty():
+		return
+	_min_x = _celdas[0].x
+	_max_x = _celdas[0].x
 	for c in _celdas:
 		_datos[c] = {
 			"source": _layer.get_cell_source_id(c),
 			"atlas": _layer.get_cell_atlas_coords(c),
 			"alt": _layer.get_cell_alternative_tile(c),
 		}
-		suma += Vector2(c)
-	_centro = suma / float(maxi(1, _celdas.size()))
-	_radio_max = 0.0
-	for c in _celdas:
-		_radio_max = maxf(_radio_max, Vector2(c).distance_to(_centro))
+		_min_x = mini(_min_x, c.x)
+		_max_x = maxi(_max_x, c.x)
+	_centro_x = int(round(float(_min_x + _max_x) / 2.0))
 
 
 func _on_ronda_iniciada(_numero: int) -> void:
@@ -49,23 +58,48 @@ func _on_ronda_iniciada(_numero: int) -> void:
 		for c in _datos:
 			var d: Dictionary = _datos[c]
 			_layer.set_cell(c, d["source"], d["atlas"], d["alt"])
-	_radio = _radio_max
-	_timer.start()
+	_colapso_izq = _min_x - 1
+	_colapso_der = _max_x + 1
+	_radio = float(_max_x - _min_x) / 2.0
+	_en_intervalo = false
+	if is_inside_tree() and _timer != null:
+		_timer.stop()
+		_timer.wait_time = RETRASO_INICIAL
+		_timer.start()
 
 
 func _on_timer_timeout() -> void:
-	if _radio <= radio_nucleo:
+	# Si estábamos en el retraso inicial de 20s, cambiar al intervalo regular
+	if not _en_intervalo:
+		_en_intervalo = true
+		_timer.stop()
+		_timer.wait_time = INTERVALO_COLAPSO
+		_timer.start()
+
+	var limite_izq := _centro_x - int(radio_nucleo)
+	var limite_der := _centro_x + int(radio_nucleo)
+
+	if _colapso_izq >= limite_izq and _colapso_der <= limite_der:
+		_radio = radio_nucleo
 		_timer.stop()
 		return
 
-	_radio = maxf(radio_nucleo, _radio - ancho_capa)
+	if _colapso_izq < limite_izq:
+		_colapso_izq = mini(_colapso_izq + ancho_capa, limite_izq)
+	if _colapso_der > limite_der:
+		_colapso_der = maxi(_colapso_der - ancho_capa, limite_der)
+
+	_radio = maxf(radio_nucleo, float(_colapso_der - _colapso_izq) / 2.0)
+
+	# Derribar todas las celdas en las columnas colapsadas de arriba a abajo
 	for c in _celdas:
 		if _layer.get_cell_source_id(c) == -1:
 			continue
-		if Vector2(c).distance_to(_centro) > _radio:
+		if c.x <= _colapso_izq or c.x >= _colapso_der:
 			_derribar(c)
 
-	if _radio <= radio_nucleo:
+	if _colapso_izq >= limite_izq and _colapso_der <= limite_der:
+		_radio = radio_nucleo
 		_timer.stop()
 
 

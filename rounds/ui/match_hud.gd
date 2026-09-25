@@ -186,7 +186,9 @@ func _actualizar_vidas_container(contenedor: VBoxContainer, vidas_actuales: int,
 			extra.queue_free()
 
 		var personaje: String = RunManager.personaje_de(player_num)
-		var texturas: Dictionary = TEXTURAS_CORAZONES.get(personaje, TEXTURAS_CORAZONES["esqueleto"])
+		var texturas: Dictionary = RunManager.obtener_texturas_corazon(personaje, player_num)
+		if texturas.is_empty():
+			texturas = TEXTURAS_CORAZONES.get(personaje, TEXTURAS_CORAZONES["esqueleto"])
 		var tam_pip := Vector2(22.0 * escala, 22.0 * escala)
 
 		for c in coras_en_esta_fila:

@@ -144,6 +144,10 @@ var _last_sepultador_source: Node = null
 var active_barrier: Node2D = null
 var _still_timer: float = 0.0
 
+# Invulnerabilidad y protección de spawn
+var invulnerable: bool = false
+var _spawn_protection_timer: float = 0.0
+
 # Propulsión (Rocket Jump)
 
 
@@ -171,6 +175,7 @@ func _physics_process(delta: float) -> void:
 	_update_buffs(delta)
 	_swing_release_timer = maxf(_swing_release_timer - delta, 0.0)
 	_rope_grace_timer = maxf(_rope_grace_timer - delta, 0.0)
+	_spawn_protection_timer = maxf(_spawn_protection_timer - delta, 0.0)
 	_update_state()
 	# Vivo y fuera del trompezar: el visual nunca debe quedar tumbado.
 	if current_state != PlayerState.DEAD and _ragdoll_timer <= 0.0:
@@ -229,22 +234,17 @@ func _update_state() -> void:
 
 func _configurar_personaje() -> void:
 	tipo_personaje = RunManager.personaje_de(player_number)
-	if not CHARACTER_FRAMES.has(tipo_personaje):
+	if not RunManager.PERSONAJES_VALIDOS.has(tipo_personaje):
 		tipo_personaje = "esqueleto"
 	if _skeleton_sprite != null:
 		_skeleton_sprite.visible = true
-		_skeleton_sprite.sprite_frames = CHARACTER_FRAMES[tipo_personaje]
+		var frames := RunManager.obtener_sprite_frames(tipo_personaje, player_number)
+		if frames != null:
+			_skeleton_sprite.sprite_frames = frames
+		elif CHARACTER_FRAMES.has(tipo_personaje):
+			_skeleton_sprite.sprite_frames = CHARACTER_FRAMES[tipo_personaje]
 		_skeleton_sprite.modulate = Color.WHITE
-		if tipo_personaje == "esqueleto":
-			var paleta := RunManager.paleta_esqueleto(player_number)
-			var mat := ShaderMaterial.new()
-			mat.shader = preload("res://player/skeleton_palette.gdshader")
-			mat.set_shader_parameter("color_highlight", paleta[0])
-			mat.set_shader_parameter("color_midtone", paleta[1])
-			mat.set_shader_parameter("color_shadow", paleta[2])
-			_skeleton_sprite.material = mat
-		else:
-			_skeleton_sprite.material = null
+		_skeleton_sprite.material = null
 		_skeleton_sprite.play("idle")
 	_body_animation.play("stand")
 
@@ -516,7 +516,6 @@ func _apply_corner_correction() -> void:
 		if not left_hit and not right_hit:
 			return
 
-
 func _corner_ray_hits(ray: RayCast2D) -> bool:
 	ray.force_raycast_update()
 	return ray.is_colliding()
@@ -726,6 +725,8 @@ func respawn() -> void:
 	global_position = _spawn_position
 	velocity = Vector2.ZERO
 	can_control = true
+	invulnerable = false
+	_spawn_protection_timer = 0.5
 	current_state = PlayerState.IDLE
 	_ragdoll_timer = 0.0
 	_stun_timer = 0.0
@@ -832,7 +833,7 @@ func _on_weapon_reload_started() -> void:
 
 
 func hurt(amount: int, source: Node = null) -> void:
-	if not is_alive():
+	if not is_alive() or invulnerable or _spawn_protection_timer > 0.0:
 		return
 
 	# Daño letal extremo de zonas de muerte / abismo

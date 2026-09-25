@@ -38,9 +38,9 @@ func _ready() -> void:
 
 	RunManager.iniciar_partida()
 	cargar_nuevo_mapa()
+	RunManager.iniciar_ronda(1)
 	_revivir_caidos()
 	_congelar_jugadores(true)
-	RunManager.iniciar_ronda(1)
 
 	if banner_intro != null and banner_intro.has_method("mostrar_intro"):
 		await banner_intro.mostrar_intro(1, _mapa_info_actual)
@@ -164,6 +164,8 @@ func _congelar_jugadores(congelar: bool) -> void:
 		jug.can_control = not congelar
 		jug.velocity = Vector2.ZERO
 		jug.set_physics_process(not congelar)
+		if "invulnerable" in jug:
+			jug.invulnerable = congelar
 
 
 func _revivir_caidos() -> void:
@@ -245,6 +247,8 @@ func cargar_nuevo_mapa() -> void:
 		return
 
 	if _mapa_actual != null and is_instance_valid(_mapa_actual):
+		if _mapa_actual.get_parent() != null:
+			_mapa_actual.get_parent().remove_child(_mapa_actual)
 		_mapa_actual.queue_free()
 		_mapa_actual = null
 
@@ -269,6 +273,15 @@ func _limpiar_proyectiles() -> void:
 	var tree := get_tree()
 	if tree == null:
 		return
-	for entidad in tree.get_nodes_in_group("bullet"):
-		if is_instance_valid(entidad):
-			entidad.queue_free()
+	for grupo in ["bullet", "grenade", "mine", "shockwave"]:
+		for entidad in tree.get_nodes_in_group(grupo):
+			if is_instance_valid(entidad):
+				if entidad is CollisionObject2D:
+					entidad.collision_layer = 0
+					entidad.collision_mask = 0
+				if entidad is Area2D:
+					entidad.monitoring = false
+					entidad.monitorable = false
+				if entidad.get_parent() != null:
+					entidad.get_parent().remove_child(entidad)
+				entidad.queue_free()

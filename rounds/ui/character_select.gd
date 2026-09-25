@@ -47,6 +47,7 @@ var _nav_cooldowns: Dictionary = {}
 
 
 func _ready() -> void:
+	randomize()
 	_btn_iniciar.focus_mode = Control.FOCUS_NONE
 	_btn_volver.focus_mode = Control.FOCUS_NONE
 	_btn_iniciar.pressed.connect(_iniciar_partida)
@@ -64,7 +65,10 @@ func _construir_paneles() -> void:
 		_numeros.append(i + 1)
 	for indice in _numeros.size():
 		var numero: int = _numeros[indice]
-		_choice[numero] = 0
+		if Settings.es_bot(numero):
+			_choice[numero] = randi() % PERSONAJES.size()
+		else:
+			_choice[numero] = 0
 		_listo[numero] = false
 		_panel_jugadores.add_child(_crear_panel(numero))
 		if indice < _numeros.size() - 1:
@@ -171,6 +175,7 @@ func _on_dispositivo_seleccionado(indice: int, numero: int) -> void:
 	var id := selector.get_item_id(indice)
 	if id == 99:
 		Settings.set_dispositivo(numero, Settings.DISPOSITIVO_BOT)
+		_choice[numero] = randi() % PERSONAJES.size()
 		_listo[numero] = true
 	else:
 		var prev_bot: bool = Settings.es_bot(numero)
@@ -191,21 +196,17 @@ func _crear_card_sprite(numero: int, color: Color, personaje: String, indice: in
 	var preview := Control.new()
 	preview.custom_minimum_size = Vector2(0, 100)
 	var sprite := AnimatedSprite2D.new()
-	if personaje == "esqueleto":
-		var paleta := RunManager.paleta_esqueleto(numero)
-		var mat := ShaderMaterial.new()
-		mat.shader = SKEL_SHADER
-		mat.set_shader_parameter("color_highlight", paleta[0])
-		mat.set_shader_parameter("color_midtone", paleta[1])
-		mat.set_shader_parameter("color_shadow", paleta[2])
-		sprite.material = mat
+	var frames := RunManager.obtener_sprite_frames(personaje, numero)
+	sprite.sprite_frames = frames if frames != null else SPRITE_FRAMES.get(personaje)
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite.position = Vector2(60, 55)
 	sprite.scale = Vector2(3.4, 3.4)
-	sprite.sprite_frames = SPRITE_FRAMES[personaje]
 	sprite.animation = &"walk"
 	sprite.frame_progress = 0.5
 	preview.add_child(sprite)
+	preview.resized.connect(func():
+		sprite.position.x = preview.size.x * 0.5
+	)
 	vbox.add_child(preview)
 	vbox.add_child(_texto(NOMBRES_PERSONAJES[personaje], 15, Color.WHITE))
 	vbox.add_child(_texto(DESCRIPCIONES_PERSONAJES[personaje], 11, Color(0.7, 0.72, 0.8)))
@@ -246,7 +247,7 @@ func _estilo_card(color: Color, seleccionada: bool) -> StyleBoxFlat:
 
 func _on_card_input(event: InputEvent, numero: int, eleccion: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if not _listo[numero]:
+		if Settings.es_bot(numero) or not _listo[numero]:
 			_choice[numero] = eleccion
 			_actualizar_ui()
 

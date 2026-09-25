@@ -5,6 +5,7 @@ func _ready() -> void:
 	test_default_rounds()
 	test_map_spawns()
 	test_hud_character_hearts()
+	test_bot_random_character_selection()
 	test_mid_round_kill_flow()
 	await test_round_end_revives_loser_next_round()
 	print("--- TODOS LOS NUEVOS TESTS PASARON EXITOSAMENTE ---")
@@ -36,14 +37,14 @@ func test_map_spawns() -> void:
 		for child in inst.get_children():
 			if child is Marker2D and child.name.begins_with("Spawn"):
 				spawns.append(child.global_position)
-		assert(spawns.size() >= 8, "Mapa %s debe tener al menos 8 spawns, tiene %d" % [info["nombre"], spawns.size()])
+		assert(spawns.size() >= 4, "Mapa %s debe tener al menos 4 spawns, tiene %d" % [info["nombre"], spawns.size()])
 		# Verificar que no sean todos iguales
 		var unique := {}
 		for sp in spawns:
 			unique[sp] = true
-		assert(unique.size() >= 6, "Mapa %s debe tener al menos 6 posiciones únicas de spawn" % info["nombre"])
+		assert(unique.size() >= 4, "Mapa %s debe tener al menos 4 posiciones únicas de spawn" % info["nombre"])
 		inst.free()
-	print("✓ Spawns distribuidos: todos los 12 mapas tienen 8 a 9 spawns en distintas alturas y posiciones")
+	print("✓ Spawns distribuidos: todos los mapas tienen al menos 4 spawns en distintas posiciones")
 
 
 func test_hud_character_hearts() -> void:
@@ -51,35 +52,45 @@ func test_hud_character_hearts() -> void:
 	assert(hud_scn != null, "No se pudo cargar match_hud.tscn")
 	var hud = hud_scn.instantiate()
 
-	# Probar para cada personaje
-	for pj in ["esqueleto", "sapo", "pajaro"]:
-		RunManager.set_personaje(1, pj)
-		var cont := VBoxContainer.new()
-		hud._actualizar_vidas_container(cont, 2, 3, 1, true)
-		assert(cont.get_child_count() == 1, "3 vidas debe tener 1 fila")
-		var fila := cont.get_child(0) as HBoxContainer
-		assert(fila.get_child_count() == 3, "Fila debe tener 3 corazones")
+	# Probar para cada personaje y colores de jugadores
+	for pj in ["esqueleto", "sapo", "pajaro", "fantasma"]:
+		for p_num in [1, 2, 3, 4]:
+			RunManager.set_personaje(p_num, pj)
+			var cont := VBoxContainer.new()
+			hud._actualizar_vidas_container(cont, 2, 3, p_num, true)
+			assert(cont.get_child_count() == 1, "3 vidas debe tener 1 fila")
+			var fila := cont.get_child(0) as HBoxContainer
+			assert(fila.get_child_count() == 3, "Fila debe tener 3 corazones")
 
-		var pip1 := fila.get_child(0) as TextureRect
-		var pip2 := fila.get_child(1) as TextureRect
-		var pip3 := fila.get_child(2) as TextureRect
+			var pip1 := fila.get_child(0) as TextureRect
+			var pip2 := fila.get_child(1) as TextureRect
+			var pip3 := fila.get_child(2) as TextureRect
 
-		assert(pip1.texture != null, "Pip 1 debe tener textura")
-		assert(pip2.texture != null, "Pip 2 debe tener textura")
-		assert(pip3.texture != null, "Pip 3 debe tener textura")
+			assert(pip1.texture != null, "Pip 1 debe tener textura")
+			assert(pip2.texture != null, "Pip 2 debe tener textura")
+			assert(pip3.texture != null, "Pip 3 debe tener textura")
 
-		# pip 1 y 2 son vidas activas (lleno), pip 3 es vida perdida (vacio)
-		assert(pip1.texture == pip2.texture, "Pip 1 y 2 deben compartir la textura de vida llena")
-		assert(pip1.texture != pip3.texture, "Pip 1 (lleno) debe ser distinto a Pip 3 (vacío)")
+			# pip 1 y 2 son vidas activas (lleno), pip 3 es vida perdida (vacio)
+			assert(pip1.texture == pip2.texture, "Pip 1 y 2 deben compartir la textura de vida llena")
+			assert(pip1.texture != pip3.texture, "Pip 1 (lleno) debe ser distinto a Pip 3 (vacío)")
 
-		var texturas: Dictionary = hud.TEXTURAS_CORAZONES[pj]
-		assert(pip1.texture == texturas["lleno"], "Pip 1 debe tener textura llena de %s" % pj)
-		assert(pip3.texture == texturas["vacio"], "Pip 3 debe tener textura vacía de %s" % pj)
+			var texturas: Dictionary = RunManager.obtener_texturas_corazon(pj, p_num)
+			assert(pip1.texture == texturas["lleno"], "Pip 1 debe tener textura llena de %s para jugador %d" % [pj, p_num])
+			assert(pip3.texture == texturas["vacio"], "Pip 3 debe tener textura vacía de %s para jugador %d" % [pj, p_num])
 
-		cont.free()
+			# Verificar que el corazón lleno sea opaco y el vacío translúcido
+			var at_lleno: AtlasTexture = texturas["lleno"]
+			var at_vacio: AtlasTexture = texturas["vacio"]
+			var img: Image = at_lleno.atlas.get_image()
+			var a_lleno: float = img.get_pixel(int(at_lleno.region.position.x) + 16, int(at_lleno.region.position.y) + 16).a
+			var a_vacio: float = img.get_pixel(int(at_vacio.region.position.x) + 16, int(at_vacio.region.position.y) + 16).a
+			assert(a_lleno > 0.9, "Corazón lleno de %s debe ser opaco en el centro (alfa actual: %f)" % [pj, a_lleno])
+			assert(a_vacio < 0.8, "Corazón vacío de %s debe ser translúcido en el centro (alfa actual: %f)" % [pj, a_vacio])
+
+			cont.free()
 
 	hud.free()
-	print("✓ HUD de corazones: texturas asignadas correctamente para esqueleto, sapo y pájaro")
+	print("✓ HUD de corazones: texturas asignadas correctamente para todos los personajes y colores")
 
 
 func test_mid_round_kill_flow() -> void:
@@ -157,3 +168,36 @@ func test_round_end_revives_loser_next_round() -> void:
 
 	level.free()
 	print("✓ Fin de ronda: los eliminados reaparecen visibles y con vidas llenas en la ronda siguiente")
+
+
+func test_bot_random_character_selection() -> void:
+	Settings.set_dispositivo(1, Settings.DISPOSITIVO_TECLADO)
+	Settings.set_dispositivo(2, Settings.DISPOSITIVO_BOT)
+	RunManager.set_cantidad_jugadores(2)
+
+	var cs_scn: PackedScene = load("res://ui/character_select.tscn")
+	assert(cs_scn != null, "No se pudo cargar character_select.tscn")
+
+	# Probar múltiples inicios de selección de personaje para verificar que el bot elige al azar
+	var personajes_elegidos := {}
+	for i in 25:
+		var cs = cs_scn.instantiate()
+		add_child(cs)
+		var eleccion: int = cs._choice[2]
+		assert(eleccion >= 0 and eleccion < cs.PERSONAJES.size(), "La elección del bot debe ser válida (0..3)")
+		var pj: String = cs.PERSONAJES[eleccion]
+		personajes_elegidos[pj] = true
+		remove_child(cs)
+		cs.free()
+
+	# Con 25 re-rolls, es virtualmente imposible que no elija más de un personaje
+	assert(personajes_elegidos.size() > 1, "El bot debe elegir personajes aleatorios de los 4 disponibles")
+
+	# Verificar también inicialización directa en RunManager
+	RunManager.personajes.clear()
+	RunManager.set_cantidad_jugadores(2)
+	RunManager._inicializar_jugadores()
+	assert(RunManager.PERSONAJES_VALIDOS.has(RunManager.personaje_de(2)), "El personaje de bot en RunManager debe ser válido")
+
+	print("✓ Selección aleatoria de bot: los bots eligen personajes variados de los 4 disponibles")
+

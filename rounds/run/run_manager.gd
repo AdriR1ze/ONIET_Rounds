@@ -37,18 +37,18 @@ const COLORES_JUGADOR := {
 	1: Color(1.0, 0.85, 0.2, 1.0),
 	2: Color(0.35, 0.75, 1.0, 1.0),
 	3: Color(0.45, 0.95, 0.45, 1.0),
-	4: Color(1.0, 0.45, 0.8, 1.0),
+	4: Color(0.95, 0.25, 0.25, 1.0),
 }
 const PALETAS_ESQUELETO := {
 	1: [Color(1.0, 0.95, 0.25, 1.0), Color(1.0, 0.85, 0.15, 1.0), Color(0.65, 0.48, 0.08, 1.0)],
 	2: [Color(0.80, 0.98, 1.0, 1.0), Color(0.35, 0.78, 1.0, 1.0), Color(0.08, 0.20, 0.38, 1.0)],
 	3: [Color(0.85, 1.0, 0.80, 1.0), Color(0.45, 0.95, 0.45, 1.0), Color(0.10, 0.40, 0.12, 1.0)],
-	4: [Color(1.0, 0.85, 0.95, 1.0), Color(1.0, 0.45, 0.80, 1.0), Color(0.45, 0.10, 0.30, 1.0)],
+	4: [Color(1.0, 0.85, 0.85, 1.0), Color(0.95, 0.28, 0.28, 1.0), Color(0.50, 0.10, 0.10, 1.0)],
 }
 
 var vidas: Dictionary = { 1: 2, 2: 2 }
 var nombres: Dictionary = { 1: "Jugador 1", 2: "Jugador 2" }
-var personajes: Dictionary = { 1: "esqueleto", 2: "esqueleto" }
+var personajes: Dictionary = {}
 var partida_finalizada: bool = false
 var _jugadores: Dictionary = {}
 var _mejoras: Dictionary = {}
@@ -57,6 +57,97 @@ var _marcador: Dictionary = {}
 
 func _ready() -> void:
 	rng.randomize()
+
+const NOMBRES_COLOR_JUGADOR := {
+	1: "amarillo",
+	2: "azul",
+	3: "verde",
+	4: "rojo",
+}
+
+const PERSONAJES_VALIDOS := ["esqueleto", "sapo", "pajaro", "fantasma"]
+
+var _sprite_frames_cache: Dictionary = {}
+var _corazones_cache: Dictionary = {}
+
+
+func color_nombre_jugador(numero: int) -> String:
+	return NOMBRES_COLOR_JUGADOR.get(numero, "amarillo")
+
+
+func obtener_sprite_frames(personaje: String, player_number: int) -> SpriteFrames:
+	if not PERSONAJES_VALIDOS.has(personaje):
+		personaje = "esqueleto"
+	var color_nom := color_nombre_jugador(player_number)
+	var cache_key := "%s_%s" % [personaje, color_nom]
+	if _sprite_frames_cache.has(cache_key):
+		return _sprite_frames_cache[cache_key]
+
+	var path := "res://sprite_sheets/personajes/%s/tabla_%s_%s.png" % [personaje, personaje, color_nom]
+	var tex: Texture2D = load(path)
+	if tex == null:
+		push_warning("No se pudo cargar tabla: %s" % path)
+		return null
+
+	var sf := SpriteFrames.new()
+	sf.add_animation("idle")
+	sf.set_animation_speed("idle", 5.0)
+	sf.set_animation_loop("idle", true)
+	for i in 4:
+		var at := AtlasTexture.new()
+		at.atlas = tex
+		at.region = Rect2(i * 32, 0, 32, 32)
+		sf.add_frame("idle", at)
+
+	sf.add_animation("walk")
+	sf.set_animation_speed("walk", 8.0)
+	sf.set_animation_loop("walk", true)
+	for i in 4:
+		var at := AtlasTexture.new()
+		at.atlas = tex
+		at.region = Rect2(i * 32, 32, 32, 32)
+		sf.add_frame("walk", at)
+
+	sf.add_animation("dead")
+	sf.set_animation_speed("dead", 5.0)
+	sf.set_animation_loop("dead", false)
+	var at_dead := AtlasTexture.new()
+	at_dead.atlas = tex
+	at_dead.region = Rect2(0, 0, 32, 32)
+	sf.add_frame("dead", at_dead)
+
+	_sprite_frames_cache[cache_key] = sf
+	return sf
+
+
+func obtener_texturas_corazon(personaje: String, player_number: int) -> Dictionary:
+	if not PERSONAJES_VALIDOS.has(personaje):
+		personaje = "esqueleto"
+	var color_nom := color_nombre_jugador(player_number)
+	var cache_key := "%s_%s" % [personaje, color_nom]
+	if _corazones_cache.has(cache_key):
+		return _corazones_cache[cache_key]
+
+	var path := "res://sprite_sheets/personajes/%s/tabla_%s_%s.png" % [personaje, personaje, color_nom]
+	var tex: Texture2D = load(path)
+	if tex == null:
+		push_warning("No se pudo cargar tabla de corazones: %s" % path)
+		return {}
+
+	var at_vacio := AtlasTexture.new()
+	at_vacio.atlas = tex
+	at_vacio.region = Rect2(0, 64, 32, 32)
+
+	var at_lleno := AtlasTexture.new()
+	at_lleno.atlas = tex
+	at_lleno.region = Rect2(32, 64, 32, 32)
+
+	var dict := {
+		"vacio": at_vacio,
+		"lleno": at_lleno,
+	}
+	_corazones_cache[cache_key] = dict
+	return dict
 
 
 func color_jugador(numero: int) -> Color:
@@ -221,6 +312,8 @@ func iniciar_partida() -> void:
 
 func iniciar_ronda(numero: int) -> void:
 	ronda = numero
+	for jugador_numero in range(1, cantidad_jugadores + 1):
+		vidas[jugador_numero] = vidas_por_ronda
 	for jugador_numero in _jugadores:
 		vidas[jugador_numero] = vidas_por_ronda
 	ronda_iniciada.emit(ronda)
@@ -263,7 +356,10 @@ func _inicializar_jugadores() -> void:
 		if not nombres.has(numero):
 			nombres[numero] = "Jugador %d" % numero
 		if not personajes.has(numero):
-			personajes[numero] = "esqueleto"
+			if Settings.es_bot(numero):
+				personajes[numero] = PERSONAJES_VALIDOS[randi() % PERSONAJES_VALIDOS.size()]
+			else:
+				personajes[numero] = "esqueleto"
 
 
 func _cumple_requisitos(player_number: int, def: UpgradeDefinition) -> bool:

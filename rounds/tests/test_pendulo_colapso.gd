@@ -16,14 +16,15 @@ func _ready() -> void:
 	assert(total_inicial > 0, "El mapa debe tener celdas")
 
 	# Avanzar todas las capas (el handler se detiene solo al llegar al núcleo)
-	for i in range(40):
+	for i in range(50):
 		mapa._on_timer_timeout()
 	assert(mapa._radio <= mapa.radio_nucleo, "El colapso debe terminar en el núcleo")
 
-	# Solo sobreviven celdas dentro del núcleo
+	# Solo sobreviven celdas dentro de las columnas del núcleo
+	var limite_izq: int = int(mapa.get("_centro_x")) - int(mapa.radio_nucleo)
+	var limite_der: int = int(mapa.get("_centro_x")) + int(mapa.radio_nucleo)
 	for c in layer.get_used_cells():
-		var dist := Vector2(c).distance_to(mapa._centro)
-		assert(dist <= mapa.radio_nucleo + 0.001, "Celda %s quedó fuera del núcleo (dist %.2f)" % [c, dist])
+		assert(c.x >= limite_izq and c.x <= limite_der, "Celda %s quedó fuera del núcleo (límites %d..%d)" % [c, limite_izq, limite_der])
 
 	var restantes := layer.get_used_cells().size()
 	assert(restantes > 0, "Debe quedar el centro")
