@@ -1,15 +1,22 @@
 extends Node2D
 
 ## Colapso de El Péndulo / La Pirámide:
-## Tras 20 segundos de gracia, se derrumban gradualmente las columnas de los bordes
-## exteriores (de izquierda y derecha, de arriba a abajo) avanzando hacia el centro
-## hasta que solo queda el núcleo / pirámide central.
+## Tras un tiempo de gracia se derrumban gradualmente las columnas de los bordes
+## exteriores (de izquierda y derecha, de arriba a abajo) avanzando hacia el centro.
+## Cuando el núcleo queda solo, una última fase tira todo el andamiaje verde: el
+## mapa termina reducido a la viga y al arco de elipses.
+## Al perder una vida y reiniciar, todo el colapso se rehace desde cero.
 
-const RETRASO_INICIAL := 20.0
-const INTERVALO_COLAPSO := 2.5
+const RETRASO_INICIAL := 8.0
+const INTERVALO_COLAPSO := 1.0
+const PAUSA_NUCLEO := 1.5
+const SOURCE_VERDE := 0
+const ATLAS_VERDE := Vector2i(0, 0)
+
+enum Fase { GRACIA, COLAPSO, PAUSA, VERDE, TERMINADA }
 
 @export var radio_nucleo: float = 12.0   # radio horizontal (en celdas) que se conserva en el centro
-@export var ancho_capa: int = 1          # cantidad de columnas que caen por paso en cada lado
+@export var ancho_capa: int = 2          # cantidad de columnas que caen por paso en cada lado
 
 @onready var _layer: TileMapLayer = $NeonTileMap
 @onready var _timer: Timer = $ColapsoTimer
@@ -22,7 +29,7 @@ var _centro_x: int = 0
 var _colapso_izq: int = 0
 var _colapso_der: int = 0
 var _radio: float = 999.0
-var _en_intervalo: bool = false
+var _fase: Fase = Fase.GRACIA
 var _tweens: Array[Tween] = []
 var _caidas: Array[Sprite2D] = []
 
@@ -31,6 +38,7 @@ func _ready() -> void:
 	_capturar()
 	_timer.timeout.connect(_on_timer_timeout)
 	RunManager.ronda_iniciada.connect(_on_ronda_iniciada)
+	RunManager.vida_perdida.connect(_on_vida_perdida)
 	_on_ronda_iniciada(RunManager.ronda)
 
 
@@ -52,6 +60,15 @@ func _capturar() -> void:
 
 
 func _on_ronda_iniciada(_numero: int) -> void:
+	_reiniciar_colapso()
+
+
+func _on_vida_perdida(_jugador: int, _vidas_restantes: int) -> void:
+	# El jugador reaparece dentro de la misma ronda, así que el colapso arranca de cero.
+	_reiniciar_colapso()
+
+
+func _reiniciar_colapso() -> void:
 	_limpiar_caidas()
 	if not _datos.is_empty():
 		_layer.clear()
@@ -61,7 +78,7 @@ func _on_ronda_iniciada(_numero: int) -> void:
 	_colapso_izq = _min_x - 1
 	_colapso_der = _max_x + 1
 	_radio = float(_max_x - _min_x) / 2.0
-	_en_intervalo = false
+	_fase = Fase.GRACIA
 	if is_inside_tree() and _timer != null:
 		_timer.stop()
 		_timer.wait_time = RETRASO_INICIAL
@@ -69,20 +86,28 @@ func _on_ronda_iniciada(_numero: int) -> void:
 
 
 func _on_timer_timeout() -> void:
-	# Si estábamos en el retraso inicial de 20s, cambiar al intervalo regular
-	if not _en_intervalo:
-		_en_intervalo = true
-		_timer.stop()
-		_timer.wait_time = INTERVALO_COLAPSO
-		_timer.start()
+	match _fase:
+		Fase.GRACIA:
+			_fase = Fase.COLAPSO
+			_timer.wait_time = INTERVALO_COLAPSO
+		Fase.COLAPSO:
+			_paso_colapso()
+			_timer.wait_time = PAUSA_NUCLEO if _fase == Fase.PAUSA else INTERVALO_COLAPSO
+		Fase.PAUSA:
+			_fase = Fase.VERDE
+			_timer.wait_time = PAUSA_NUCLEO
+		Fase.VERDE:
+			_tirar_verde()
+			_fase = Fase.TERMINADA
+			return
+		_:
+			return
+	_timer.start()
 
+
+func _paso_colapso() -> void:
 	var limite_izq := _centro_x - int(radio_nucleo)
 	var limite_der := _centro_x + int(radio_nucleo)
-
-	if _colapso_izq >= limite_izq and _colapso_der <= limite_der:
-		_radio = radio_nucleo
-		_timer.stop()
-		return
 
 	if _colapso_izq < limite_izq:
 		_colapso_izq = mini(_colapso_izq + ancho_capa, limite_izq)
@@ -100,7 +125,16 @@ func _on_timer_timeout() -> void:
 
 	if _colapso_izq >= limite_izq and _colapso_der <= limite_der:
 		_radio = radio_nucleo
-		_timer.stop()
+		_fase = Fase.PAUSA
+
+
+func _tirar_verde() -> void:
+	# Última fase: el andamiaje verde (marco exterior y plataformas) también cae.
+	for c in _celdas:
+		if _layer.get_cell_source_id(c) != SOURCE_VERDE:
+			continue
+		if _layer.get_cell_atlas_coords(c) == ATLAS_VERDE:
+			_derribar(c)
 
 
 func _derribar(c: Vector2i) -> void:

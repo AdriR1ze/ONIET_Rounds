@@ -13,6 +13,11 @@ const CHARACTER_FRAMES := {
 	"fantasma": preload("res://player/fantasma_frames.tres"),
 }
 
+# Bajar atravesando plataformas de una sola cara (one-way).
+const ONE_WAY_LAYER := 7
+const DROP_THROUGH_TIME := 0.22
+const DROP_THROUGH_SPEED := 120.0
+
 # Cuerdas: trepar (subir/bajar) y balanceo (colgarse y columpiarse).
 const CLIMB_SPEED := 150.0
 # W es a la vez "arriba" y "saltar" en el teclado: al agarrarte ignoramos el
@@ -85,6 +90,7 @@ var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
 var _wall_jump_lockout_timer: float = 0.0
 var _last_wall_jump_side: int = 0
+var _drop_through_timer: float = 0.0
 var _climb_ropes: Array = []
 var _swing: Node = null
 var _swing_release_timer: float = 0.0
@@ -199,6 +205,7 @@ func _physics_process(delta: float) -> void:
 				_handle_jump()
 				_handle_aim()
 				_handle_actions()
+		_handle_drop_through(delta)
 
 	_apply_corner_correction()
 	move_and_slide()
@@ -371,6 +378,27 @@ func _try_wall_jump() -> bool:
 	_coyote_timer = 0.0
 	AudioManager.reproducir("salto", 0.05)
 	return true
+
+
+func _handle_drop_through(delta: float) -> void:
+	if _drop_through_timer > 0.0:
+		_drop_through_timer -= delta
+		if _drop_through_timer <= 0.0:
+			set_collision_mask_value(ONE_WAY_LAYER, true)
+		else:
+			velocity.y = maxf(velocity.y, DROP_THROUGH_SPEED)
+		return
+	if not can_control or current_state == PlayerState.DEAD:
+		return
+	if not is_on_floor() or not _input.is_crouch_pressed():
+		return
+	# Suelta la plataforma de una sola cara: ignora esa capa un instante para
+	# caer. Sobre suelo firme no pasa nada porque eso va en la capa World.
+	_drop_through_timer = DROP_THROUGH_TIME
+	set_collision_mask_value(ONE_WAY_LAYER, false)
+	velocity.y = DROP_THROUGH_SPEED
+	_coyote_timer = 0.0
+	_jump_buffer_timer = 0.0
 
 
 func enter_climb_rope(rope: Node) -> void:
