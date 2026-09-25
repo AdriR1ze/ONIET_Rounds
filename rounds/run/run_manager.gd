@@ -6,6 +6,7 @@ signal mejoras_cambiadas(player_number: int)
 signal marcador_cambiado
 signal vidas_cambiadas
 signal partida_terminada(ganador: int)
+signal vida_perdida(jugador: int, vidas_restantes: int)
 
 var ronda: int = 0
 var rondas_para_ganar: int = 5
@@ -251,6 +252,7 @@ func perder_vida(player_number: int) -> void:
 	actual = maxi(actual - 1, 0)
 	vidas[player_number] = actual
 	vidas_cambiadas.emit()
+	vida_perdida.emit(player_number, actual)
 
 
 func ganar_vida(player_number: int) -> void:

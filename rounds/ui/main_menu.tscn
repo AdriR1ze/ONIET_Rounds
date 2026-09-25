@@ -1,11 +1,11 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene format=3 uid="uid://bu3ep4gy0gg0b"]
 
-[ext_resource type="Script" path="res://ui/main_menu.gd" id="1_menu"]
+[ext_resource type="Script" uid="uid://b46gc7mq4dbvs" path="res://ui/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://ui/options_screen.tscn" id="2_opts"]
 [ext_resource type="PackedScene" path="res://ui/upgrade_index_screen.tscn" id="3_idx"]
-[ext_resource type="Script" path="res://ui/number_picker_button.gd" id="4_picker"]
+[ext_resource type="Script" uid="uid://cvv31qa33fgnj" path="res://ui/number_picker_button.gd" id="4_picker"]
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" unique_id=2027172279]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -14,7 +14,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
 
-[node name="Fondo" type="ColorRect" parent="."]
+[node name="Fondo" type="ColorRect" parent="." unique_id=613075599]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -23,7 +23,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.05, 0.06, 0.1, 1)
 
-[node name="Centro" type="CenterContainer" parent="."]
+[node name="Centro" type="CenterContainer" parent="." unique_id=1528039507]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -31,48 +31,48 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Menu" type="VBoxContainer" parent="Centro"]
+[node name="Menu" type="VBoxContainer" parent="Centro" unique_id=1754146403]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Titulo" type="Label" parent="Centro/Menu"]
+[node name="Titulo" type="Label" parent="Centro/Menu" unique_id=1309891717]
 layout_mode = 2
 theme_override_font_sizes/font_size = 52
-horizontal_alignment = 1
 text = "UNIMALS"
+horizontal_alignment = 1
 
-[node name="Subtitulo" type="Label" parent="Centro/Menu"]
+[node name="Subtitulo" type="Label" parent="Centro/Menu" unique_id=2074462925]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-horizontal_alignment = 1
 text = "ONIET"
+horizontal_alignment = 1
 
-[node name="Jugar" type="Button" parent="Centro/Menu"]
+[node name="Jugar" type="Button" parent="Centro/Menu" unique_id=2055548511]
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 text = "Jugar"
 
-[node name="Tutorial" type="Button" parent="Centro/Menu"]
+[node name="Tutorial" type="Button" parent="Centro/Menu" unique_id=363253568]
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 text = "Tutorial"
 
-[node name="Indice" type="Button" parent="Centro/Menu"]
+[node name="Indice" type="Button" parent="Centro/Menu" unique_id=1782993608]
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 text = "Índice"
 
-[node name="Opciones" type="Button" parent="Centro/Menu"]
+[node name="Opciones" type="Button" parent="Centro/Menu" unique_id=65647171]
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 text = "Opciones"
 
-[node name="Salir" type="Button" parent="Centro/Menu"]
+[node name="Salir" type="Button" parent="Centro/Menu" unique_id=999713371]
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 text = "Salir"
 
-[node name="ModalPartida" type="ColorRect" parent="."]
+[node name="ModalPartida" type="ColorRect" parent="." unique_id=924596782]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -82,7 +82,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.04, 0.05, 0.08, 0.95)
 
-[node name="Centro" type="CenterContainer" parent="ModalPartida"]
+[node name="Centro" type="CenterContainer" parent="ModalPartida" unique_id=19640158]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -90,120 +90,117 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Marco" type="PanelContainer" parent="ModalPartida/Centro"]
+[node name="Marco" type="PanelContainer" parent="ModalPartida/Centro" unique_id=916340504]
 custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 
-[node name="Margin" type="MarginContainer" parent="ModalPartida/Centro/Marco"]
+[node name="Margin" type="MarginContainer" parent="ModalPartida/Centro/Marco" unique_id=83709530]
 layout_mode = 2
 theme_override_constants/margin_left = 28
 theme_override_constants/margin_top = 24
 theme_override_constants/margin_right = 28
 theme_override_constants/margin_bottom = 24
 
-[node name="VBox" type="VBoxContainer" parent="ModalPartida/Centro/Marco/Margin"]
+[node name="VBox" type="VBoxContainer" parent="ModalPartida/Centro/Marco/Margin" unique_id=1378553271]
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="Titulo" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox"]
+[node name="Titulo" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox" unique_id=454271851]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-horizontal_alignment = 1
 text = "Configuración de Partida"
+horizontal_alignment = 1
 
-[node name="Config" type="VBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox"]
+[node name="Config" type="VBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox" unique_id=1907278181]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Jugadores" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox/Config"]
+[node name="Jugadores" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox/Config" unique_id=1008870545]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Etiqueta" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Jugadores"]
+[node name="Etiqueta" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Jugadores" unique_id=334970847]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Jugadores"
 
-[node name="Valor" type="OptionButton" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Jugadores"]
+[node name="Valor" type="OptionButton" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Jugadores" unique_id=440700898]
 layout_mode = 2
 
-[node name="Rondas" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox/Config"]
+[node name="Rondas" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox/Config" unique_id=1183273088]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Etiqueta" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Rondas"]
+[node name="Etiqueta" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Rondas" unique_id=1300283592]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Rondas para ganar"
 
-[node name="Valor" type="Button" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Rondas"]
+[node name="Valor" type="Button" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Rondas" unique_id=315645510]
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 script = ExtResource("4_picker")
-min_value = 1
-max_value = 99
 value = 5
 
-[node name="Vidas" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox/Config"]
+[node name="Vidas" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox/Config" unique_id=1462939327]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Etiqueta" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Vidas"]
+[node name="Etiqueta" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Vidas" unique_id=1142780417]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Vidas por ronda"
 
-[node name="Valor" type="Button" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Vidas"]
+[node name="Valor" type="Button" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/Vidas" unique_id=1965100894]
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
 script = ExtResource("4_picker")
-min_value = 1
 max_value = 20
 value = 2
 
-[node name="DificultadBot" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox/Config"]
+[node name="DificultadBot" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox/Config" unique_id=920586947]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Etiqueta" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/DificultadBot"]
+[node name="Etiqueta" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/DificultadBot" unique_id=711680574]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Dificultad del Bot"
 
-[node name="Valor" type="OptionButton" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/DificultadBot"]
+[node name="Valor" type="OptionButton" parent="ModalPartida/Centro/Marco/Margin/VBox/Config/DificultadBot" unique_id=1049151741]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
 
-[node name="HSeparator" type="HSeparator" parent="ModalPartida/Centro/Marco/Margin/VBox"]
+[node name="HSeparator" type="HSeparator" parent="ModalPartida/Centro/Marco/Margin/VBox" unique_id=160074491]
 layout_mode = 2
 
-[node name="SubtituloNombres" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox"]
+[node name="SubtituloNombres" type="Label" parent="ModalPartida/Centro/Marco/Margin/VBox" unique_id=751773016]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-horizontal_alignment = 1
 text = "Nombres de los Jugadores"
+horizontal_alignment = 1
 
-[node name="Campos" type="VBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox"]
+[node name="Campos" type="VBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox" unique_id=873190630]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Botones" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox"]
+[node name="Botones" type="HBoxContainer" parent="ModalPartida/Centro/Marco/Margin/VBox" unique_id=257688746]
 layout_mode = 2
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="Comenzar" type="Button" parent="ModalPartida/Centro/Marco/Margin/VBox/Botones"]
+[node name="Comenzar" type="Button" parent="ModalPartida/Centro/Marco/Margin/VBox/Botones" unique_id=2144384444]
 custom_minimum_size = Vector2(180, 36)
 layout_mode = 2
 text = "Elegir Personajes"
 
-[node name="Volver" type="Button" parent="ModalPartida/Centro/Marco/Margin/VBox/Botones"]
+[node name="Volver" type="Button" parent="ModalPartida/Centro/Marco/Margin/VBox/Botones" unique_id=1791994652]
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
 text = "Volver"
 
-[node name="OptionsScreen" parent="." instance=ExtResource("2_opts")]
+[node name="OptionsScreen" parent="." unique_id=1569061371 instance=ExtResource("2_opts")]
 visible = false
 
-[node name="UpgradeIndexScreen" parent="." instance=ExtResource("3_idx")]
+[node name="UpgradeIndexScreen" parent="." unique_id=354419963 instance=ExtResource("3_idx")]
 visible = false

@@ -25,6 +25,9 @@ var reload_time: float = 1.7
 var idle_reload_delay: float = 1.0
 var _reload_timer: float = 0.0
 var _reload_interval: float = 0.0
+# Recarga obligatoria (cargador vacío): bloquea el disparo y no se puede cortar.
+# La de relleno por inactividad no bloquea y se corta al disparar.
+var _reload_locked: bool = false
 var _ammo_at_reload_start: int = 0
 var _time_since_shot: float = 0.0
 var _quickdraw_ready: bool = false
@@ -69,24 +72,26 @@ func _process(delta: float) -> void:
 	if is_reloading:
 		_reload_timer -= delta
 		if _reload_timer <= 0.0:
-			# Recarga incremental: suma balas de a una y no bloquea el disparo.
+			# Recarga incremental: suma balas de a una.
 			current_ammo += 1
 			ammo_changed.emit(current_ammo, max_ammo)
 			if current_ammo >= max_ammo:
 				is_reloading = false
+				_reload_locked = false
 				_on_reload_finished()
 				reload_completed.emit()
 			else:
 				_reload_timer += _reload_interval
 	elif current_ammo < max_ammo and _time_since_shot >= idle_reload_delay:
-		# Sin disparar por un segundo: recarga automática.
-		start_reload()
+		# Sin disparar por un segundo: relleno automático, no bloquea el arma.
+		start_reload(false)
 
 
-func start_reload() -> void:
+func start_reload(bloquea: bool = false) -> void:
 	if is_reloading or current_ammo >= max_ammo:
 		return
 	is_reloading = true
+	_reload_locked = bloquea
 	_ammo_at_reload_start = current_ammo
 	# El tiempo de recarga reparte el cargador completo: cada bala tarda
 	# reload_time / max_ammo en sumarse (vacío a lleno = reload_time total).
@@ -106,6 +111,7 @@ func get_reload_progress() -> float:
 
 func reset_ammo() -> void:
 	is_reloading = false
+	_reload_locked = false
 	_reload_timer = 0.0
 	_time_since_shot = 0.0
 	current_ammo = max_ammo
@@ -125,18 +131,23 @@ func set_aim(direction: Vector2) -> void:
 
 
 func can_fire() -> bool:
-	# La recarga incremental no bloquea el arma: seguís usando las balas que tenés.
-	return _cooldown <= 0.0 and bullet_scene != null and current_ammo > 0
+	if _cooldown > 0.0 or bullet_scene == null or current_ammo <= 0:
+		return false
+	# La recarga obligatoria deja el arma inútil hasta llenar el cargador.
+	# La de relleno no bloquea: se puede seguir disparando con lo que hay.
+	return not (_reload_locked and is_reloading)
 
 
 func try_fire() -> bool:
 	if current_ammo <= 0:
-		# Sin balas: la recarga sigue aunque se siga apretando el gatillo.
+		# Sin balas: arranca la recarga obligatoria, que bloquea el arma.
 		if not is_reloading:
-			start_reload()
+			start_reload(true)
 		return false
-	if is_reloading:
-		# Disparar interrumpe la recarga automática en curso.
+	# Sólo la recarga de relleno se corta al disparar. La obligatoria sigue
+	# hasta llenar el cargador: cancelarla hacía que cada tiro reiniciara el
+	# ciclo y el arma quedara permanentemente en una bala.
+	if is_reloading and not _reload_locked:
 		is_reloading = false
 	if not can_fire():
 		return false
@@ -254,7 +265,7 @@ func try_fire() -> bool:
 	current_ammo -= 1
 	ammo_changed.emit(current_ammo, max_ammo)
 	if current_ammo <= 0:
-		start_reload()
+		start_reload(true)
 
 	_cooldown = 1.0 / maxf(_stat(&"fire_rate", 5.0), 0.1)
 	if is_melee:

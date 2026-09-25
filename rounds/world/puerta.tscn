@@ -4,28 +4,28 @@
 [ext_resource type="Texture2D" uid="uid://ufshtb7t2hxy" path="res://sprite_sheets/Puerta.png" id="2_puerta"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cuerpo"]
-size = Vector2(28, 64)
+size = Vector2(32, 63)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_detector"]
-size = Vector2(59, 78)
+size = Vector2(68, 164)
 
 [node name="Puerta" type="Node2D" unique_id=1237114267]
 script = ExtResource("1_puerta")
 
 [node name="Cuerpo" type="StaticBody2D" parent="." unique_id=819802201]
-visible = false
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Cuerpo" unique_id=476111964]
-visible = false
-position = Vector2(0, -16)
+position = Vector2(0, -15.5)
 shape = SubResource("RectangleShape2D_cuerpo")
 
 [node name="Sprite" type="Sprite2D" parent="." unique_id=982201605]
-position = Vector2(0, -8.18)
-scale = Vector2(2, 2.66)
+position = Vector2(0, -15.02)
+scale = Vector2(1.549, 2.718)
 texture = ExtResource("2_puerta")
 hframes = 4
+region_enabled = true
+region_rect = Rect2(0, 1, 128, 24)
 
 [node name="Detector" type="Area2D" parent="." unique_id=1988528541]
 visible = false
@@ -34,5 +34,5 @@ collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Detector" unique_id=1380328035]
 visible = false
-position = Vector2(0, -18)
+position = Vector2(0, -48)
 shape = SubResource("RectangleShape2D_detector")
