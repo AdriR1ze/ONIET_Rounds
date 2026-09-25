@@ -8,12 +8,6 @@
 [sub_resource type="Resource" id="Resource_nem0v"]
 script = ExtResource("2_x2o74")
 
-[sub_resource type="Resource" id="Resource_uirxn"]
-script = ExtResource("4_efnwy")
-stat = &"damage"
-op = 1
-value = 0.9
-
 [resource]
 script = ExtResource("3_jmf8j")
 id = &"perforadora_vital"
@@ -24,7 +18,7 @@ descripcion = "Las balas aplican sangrado porcentual: 3 ticks que drenan un 4% d
 rareza = 1
 tema = &"sangre"
 ventajas = Array[String](["Sangrado porcentual: 4% vida máx por tick (3 ticks)"])
-desventajas = Array[String](["-10% Daño directo de bala"])
+desventajas = Array[String]([])
 mecanicas = Array[String](["Sangrado (DOT) basado en vida máxima rival"])
-stats = Array[ExtResource("4_efnwy")]([SubResource("Resource_uirxn")])
+stats = Array[ExtResource("4_efnwy")]([])
 efectos = Array[ExtResource("1_4gcu1")]([SubResource("Resource_nem0v")])

@@ -8,12 +8,6 @@
 [sub_resource type="Resource" id="Resource_wv42w"]
 script = ExtResource("2_ufd6r")
 
-[sub_resource type="Resource" id="Resource_02b44"]
-script = ExtResource("4_avprr")
-stat = &"damage"
-op = 1
-value = 0.9
-
 [resource]
 script = ExtResource("3_rcr1y")
 id = &"deuda_sangre"
@@ -25,7 +19,7 @@ rareza = 2
 categoria = 1
 tema = &"sangre"
 ventajas = Array[String](["5s de gracia al recibir daño letal para curarte"])
-desventajas = Array[String](["-10% Daño de bala", "Mueres si no te curas en 5s (10s cooldown)"])
+desventajas = Array[String](["Mueres si no te curas en 5s (10s cooldown)"])
 mecanicas = Array[String](["Estado de deuda de sangre y supervivencia"])
-stats = Array[ExtResource("4_avprr")]([SubResource("Resource_02b44")])
+stats = Array[ExtResource("4_avprr")]([])
 efectos = Array[ExtResource("1_a5mui")]([SubResource("Resource_wv42w")])

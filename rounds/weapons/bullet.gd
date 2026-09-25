@@ -517,7 +517,19 @@ func _on_body_exited(body: Node) -> void:
 func parry(new_shooter: Node) -> void:
 	shooter = new_shooter
 	player = new_shooter
-	velocity = -velocity * PARRY_SPEED_MULT
+	var parry_speed: float = velocity.length() * PARRY_SPEED_MULT
+	if parry_speed < 100.0 and speed > 0.0:
+		parry_speed = speed * PARRY_SPEED_MULT
+	# La bala parada viaja hacia donde apunta quien la parreó, no al revés de la
+	# trayectoria de llegada.
+	if new_shooter != null and new_shooter.has_method("get_parry_direction"):
+		var aim: Vector2 = new_shooter.get_parry_direction()
+		if not aim.is_zero_approx():
+			velocity = aim.normalized() * parry_speed
+		else:
+			velocity = -velocity.normalized() * parry_speed
+	else:
+		velocity = -velocity.normalized() * parry_speed
 	direction = velocity.normalized()
 	rotation = velocity.angle()
 	global_position += direction * 8.0
@@ -553,7 +565,7 @@ func _on_area_entered(area: Area2D) -> void:
 	if area.has_method("try_parry") and area.try_parry(self):
 		return
 	var parent: Node = area.get_parent()
-	if parent != null and parent.has_method("can_parry") and parent.can_parry():
+	if parent != null and parent.has_method("can_parry") and parent.can_parry(self):
 		parry(parent)
 		if parent.has_method("on_parry"):
 			parent.on_parry(self)
@@ -568,6 +580,9 @@ func _on_area_entered(area: Area2D) -> void:
 	var hit_damage := damage
 	if ricochet_bonus > 0.0 and bounce_count > 0:
 		hit_damage = int(round(damage * (1.0 + ricochet_bonus * bounce_count)))
+	for efecto in effects:
+		if "damage_growth_per_sec" in efecto and float(efecto.damage_growth_per_sec) > 0.0:
+			hit_damage = int(round(float(hit_damage) * (1.0 + float(efecto.damage_growth_per_sec) * _time_alive)))
 	damage = hit_damage
 
 	for efecto in effects:

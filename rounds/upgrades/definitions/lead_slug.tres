@@ -25,7 +25,7 @@ value = 0.65
 script = ExtResource("3_bb032")
 stat = &"bullet_gravity"
 op = 1
-value = 1.6
+value = 1.5
 
 [resource]
 script = ExtResource("2_k7rgx")
@@ -37,6 +37,6 @@ descripcion = "Balas pesadas con caída pronunciada, daño mejorado (+35%) y emp
 rareza = 1
 tema = &"pesado"
 ventajas = Array[String](["+35% Daño de impacto", "+450 Fuerza de empuje"])
-desventajas = Array[String](["-35% Velocidad de bala", "+60% Caída por gravedad"])
+desventajas = Array[String](["-35% Velocidad de bala", "+50% Caída por gravedad"])
 mecanicas = Array[String](["Empuje cinético masivo"])
 stats = Array[ExtResource("3_bb032")]([SubResource("Resource_stcl8"), SubResource("Resource_cm3i6"), SubResource("Resource_k1p0b"), SubResource("Resource_pnflq")])

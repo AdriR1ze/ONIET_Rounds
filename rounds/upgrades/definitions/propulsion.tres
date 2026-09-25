@@ -8,12 +8,6 @@
 [sub_resource type="Resource" id="Resource_cqy52"]
 script = ExtResource("2_2ix4u")
 
-[sub_resource type="Resource" id="Resource_sow3m"]
-script = ExtResource("4_tyo7r")
-stat = &"damage"
-op = 1
-value = 0.9
-
 [sub_resource type="Resource" id="Resource_2nhg2"]
 script = ExtResource("4_tyo7r")
 stat = &"max_ammo"
@@ -30,7 +24,7 @@ rareza = 1
 categoria = 2
 tema = &"rapido"
 ventajas = Array[String](["Retroceso al disparar", "+2 Balas en el cargador"])
-desventajas = Array[String](["-10% Daño de bala"])
+desventajas = Array[String]([])
 mecanicas = Array[String](["Impulso hacia atrás y cargador ampliado"])
-stats = Array[ExtResource("4_tyo7r")]([SubResource("Resource_sow3m"), SubResource("Resource_2nhg2")])
+stats = Array[ExtResource("4_tyo7r")]([SubResource("Resource_2nhg2")])
 efectos = Array[ExtResource("1_jw7l8")]([SubResource("Resource_cqy52")])

@@ -44,7 +44,7 @@ func take_hit(amount: int, source: Node = null) -> void:
 
 func try_parry(bullet: Node) -> bool:
 	var parent: Node = get_parent()
-	if parent != null and parent.has_method("can_parry") and parent.can_parry():
+	if parent != null and parent.has_method("can_parry") and parent.can_parry(bullet):
 		if bullet.has_method("parry"):
 			bullet.parry(parent)
 		parried.emit(bullet)

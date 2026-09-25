@@ -13,11 +13,6 @@ const CHARACTER_FRAMES := {
 	"fantasma": preload("res://player/fantasma_frames.tres"),
 }
 
-# Bajar atravesando plataformas de una sola cara (one-way).
-const ONE_WAY_LAYER := 7
-const DROP_THROUGH_TIME := 0.22
-const DROP_THROUGH_SPEED := 120.0
-
 # Cuerdas: trepar (subir/bajar) y balanceo (colgarse y columpiarse).
 const CLIMB_SPEED := 150.0
 # W es a la vez "arriba" y "saltar" en el teclado: al agarrarte ignoramos el
@@ -41,7 +36,11 @@ enum PlayerState {
 @export var air_control: float = 0.70
 @export var gravity: float = 1800.0
 @export var max_fall_speed: float = 1100.0
-@export var ragdoll_time: float = 0.35
+@export var ragdoll_time: float = 0.175
+
+@export_group("Parry")
+@export var parry_cooldown_time: float = 4.0
+@export var parry_arc_deg: float = 90.0
 
 @export_group("Jump Game Feel")
 @export var coyote_time: float = 0.12
@@ -68,6 +67,7 @@ enum PlayerState {
 @onready var _wall_ray_right: RayCast2D = $WallRayRight
 @onready var _skeleton_sprite: AnimatedSprite2D = $Visual.get_node_or_null("SkeletonSprite")
 @onready var _floating_hp: Node2D = get_node_or_null("FloatingHealthBar")
+@onready var _parry_effect: AnimatedSprite2D = get_node_or_null("ParryEffect")
 
 var facing: int = 1
 var can_control: bool = true
@@ -79,12 +79,12 @@ var _active_dots: Array = []
 var _toxic_cloud_count: int = 0
 var _poison_flash_timer: float = 0.0
 var _ragdoll_timer: float = 0.0
+var _parry_cooldown: float = 0.0
 var _stun_timer: float = 0.0
 var _coyote_timer: float = 0.0
 var _jump_buffer_timer: float = 0.0
 var _wall_jump_lockout_timer: float = 0.0
 var _last_wall_jump_side: int = 0
-var _drop_through_timer: float = 0.0
 var _climb_ropes: Array = []
 var _swing: Node = null
 var _swing_release_timer: float = 0.0
@@ -103,11 +103,6 @@ var jump_force_multiplier: float = 1.0
 # Armadura y Mitigación
 var _adaptive_armor_stacks: int = 0
 var _adaptive_armor_timer: float = 0.0
-var _harvest_armor_stacks: int = 0
-var _harvest_armor_timer: float = 0.0
-var _charge_armor: float = 0.0
-var _running_time: float = 0.0
-var _charge_hit_cooldown: float = 0.0
 
 # Regeneración (Segunda Piel)
 var _second_skin_timer: float = 0.0
@@ -123,11 +118,6 @@ var _gravity_mult_timer: float = 0.0
 var _jump_mult: float = 1.0
 var _jump_mult_timer: float = 0.0
 
-# Corazón de Titanio
-var has_titanium_heart: bool = false
-var _titanium_heart_ready: bool = true
-var _titanium_heart_cooldown: float = 0.0
-
 # Deuda de Sangre
 var has_blood_debt: bool = false
 var _in_blood_debt: bool = false
@@ -135,19 +125,9 @@ var _blood_debt_timer: float = 0.0
 var _blood_debt_healed: int = 0
 var _blood_debt_cooldown: float = 0.0
 
-# Sepultador (empuje contra pared)
-var _sepultador_timer: float = 0.0
-var _sepultador_damage: int = 0
-var _last_sepultador_source: Node = null
-
-# Barrera (Muro Vivo)
-var active_barrier: Node2D = null
-var _still_timer: float = 0.0
-
 # Invulnerabilidad y protección de spawn
 var invulnerable: bool = false
 var _spawn_protection_timer: float = 0.0
-
 # Propulsión (Rocket Jump)
 
 
@@ -164,6 +144,11 @@ func _ready() -> void:
 	if _floating_hp != null:
 		_floating_hp.setup(player_number, _health.health, _health.max_health)
 		_health.health_changed.connect(_floating_hp.update_health)
+	if _parry_effect != null:
+		_parry_effect.visible = false
+		_parry_effect.animation_finished.connect(func() -> void:
+			_parry_effect.visible = false
+		)
 
 
 func _physics_process(delta: float) -> void:
@@ -176,6 +161,10 @@ func _physics_process(delta: float) -> void:
 	_swing_release_timer = maxf(_swing_release_timer - delta, 0.0)
 	_rope_grace_timer = maxf(_rope_grace_timer - delta, 0.0)
 	_spawn_protection_timer = maxf(_spawn_protection_timer - delta, 0.0)
+	var prev_parry_cooldown := _parry_cooldown
+	_parry_cooldown = maxf(_parry_cooldown - delta, 0.0)
+	if prev_parry_cooldown > 0.0 and _parry_cooldown <= 0.0 and is_alive():
+		_on_parry_recharged()
 	_update_state()
 	# Vivo y fuera del trompezar: el visual nunca debe quedar tumbado.
 	if current_state != PlayerState.DEAD and _ragdoll_timer <= 0.0:
@@ -188,7 +177,6 @@ func _physics_process(delta: float) -> void:
 
 	if _swing != null and is_instance_valid(_swing):
 		_handle_swing(delta)
-		_check_sepultador_collision()
 		return
 
 	var climbing := _is_climbing()
@@ -211,11 +199,9 @@ func _physics_process(delta: float) -> void:
 				_handle_jump()
 				_handle_aim()
 				_handle_actions()
-		_handle_drop_through(delta)
 
 	_apply_corner_correction()
 	move_and_slide()
-	_check_sepultador_collision()
 
 
 func _update_state() -> void:
@@ -387,27 +373,6 @@ func _try_wall_jump() -> bool:
 	return true
 
 
-func _handle_drop_through(delta: float) -> void:
-	if _drop_through_timer > 0.0:
-		_drop_through_timer -= delta
-		if _drop_through_timer <= 0.0:
-			set_collision_mask_value(ONE_WAY_LAYER, true)
-		else:
-			velocity.y = maxf(velocity.y, DROP_THROUGH_SPEED)
-		return
-	if not can_control or current_state == PlayerState.DEAD:
-		return
-	if not is_on_floor() or not _input.is_crouch_pressed():
-		return
-	# Suelta la plataforma de una sola cara: ignora esa capa un instante para
-	# caer. Sobre suelo firme no pasa nada porque eso va en la capa World.
-	_drop_through_timer = DROP_THROUGH_TIME
-	set_collision_mask_value(ONE_WAY_LAYER, false)
-	velocity.y = DROP_THROUGH_SPEED
-	_coyote_timer = 0.0
-	_jump_buffer_timer = 0.0
-
-
 func enter_climb_rope(rope: Node) -> void:
 	if not _climb_ropes.has(rope):
 		_climb_ropes.append(rope)
@@ -532,11 +497,11 @@ func _handle_aim() -> void:
 
 
 func _handle_actions() -> void:
-	if _input.is_fire_pressed():
+	if _input.is_fire_pressed() and _ragdoll_timer <= 0.0:
 		_weapon.try_fire()
 	if _input.is_grab_just_pressed():
 		grabbed.emit(player_number)
-	if _input.is_ragdoll_just_pressed():
+	if _input.is_ragdoll_just_pressed() and _parry_cooldown <= 0.0:
 		_start_ragdoll()
 	if _input.is_quack_just_pressed():
 		quacked.emit(player_number)
@@ -554,21 +519,52 @@ func _update_visual_facing() -> void:
 
 
 func _start_ragdoll() -> void:
-	current_state = PlayerState.RAGDOLL
+	_parry_cooldown = parry_cooldown_time
 	_ragdoll_timer = ragdoll_time
-	can_control = false
-	velocity.x *= 0.4
-	_body_animation.play("ragdoll")
+	_play_parry_animation()
+
+
+func _play_parry_animation() -> void:
+	if _parry_effect == null:
+		return
+	var aim := get_parry_direction()
+	_parry_effect.rotation = aim.angle() + deg_to_rad(45.0)
+	_parry_effect.visible = true
+	_parry_effect.frame = 0
+	_parry_effect.play(&"parry")
 
 
 func _update_ragdoll(delta: float) -> void:
 	if _ragdoll_timer <= 0.0:
 		return
-	_ragdoll_timer -= delta
-	if _ragdoll_timer <= 0.0:
-		can_control = true
-		$Visual.rotation = 0.0
-		_body_animation.play("stand")
+	_ragdoll_timer = maxf(_ragdoll_timer - delta, 0.0)
+
+
+func _on_parry_recharged() -> void:
+	if not is_inside_tree() or not is_alive():
+		return
+	var tw_flash := create_tween()
+	$Visual.modulate = Color(1.3, 1.8, 2.5, 1.0)
+	tw_flash.tween_property($Visual, "modulate", Color.WHITE, 0.25)
+
+	var ring := Line2D.new()
+	ring.width = 2.5
+	ring.default_color = Color(0.45, 0.9, 1.0, 0.85)
+	ring.z_index = 6
+	var pts := PackedVector2Array()
+	for a in 24:
+		var ang := float(a) / 24.0 * TAU
+		pts.append(Vector2(cos(ang), sin(ang)) * 12.0)
+	pts.append(pts[0])
+	ring.points = pts
+	ring.position = Vector2.ZERO
+	add_child(ring)
+
+	var tw_ring := ring.create_tween()
+	tw_ring.set_parallel(true)
+	tw_ring.tween_property(ring, "scale", Vector2(2.8, 2.8), 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tw_ring.tween_property(ring, "modulate:a", 0.0, 0.3)
+	tw_ring.chain().tween_callback(ring.queue_free)
 
 
 func is_alive() -> bool:
@@ -579,8 +575,29 @@ func is_spinning() -> bool:
 	return is_alive() and _ragdoll_timer > 0.0
 
 
-func can_parry() -> bool:
-	return is_spinning()
+func can_parry(bullet: Node = null) -> bool:
+	if not is_spinning():
+		return false
+	if bullet == null:
+		return true
+	return _bullet_in_parry_arc(bullet)
+
+
+# Dirección a la que se desvía la bala parada: el aim actual del arma.
+func get_parry_direction() -> Vector2:
+	if _weapon != null and not _weapon.aim_direction.is_zero_approx():
+		return _weapon.aim_direction.normalized()
+	return Vector2(facing, 0.0)
+
+
+# Solo se parrea una bala que viene dentro del cono del aim (apuntar donde parrear).
+func _bullet_in_parry_arc(bullet: Node) -> bool:
+	var aim := get_parry_direction()
+	var b_vel: Vector2 = bullet.get("velocity") if bullet != null and "velocity" in bullet else Vector2.ZERO
+	if b_vel.length_squared() < 1.0:
+		return false
+	var from := -b_vel.normalized()
+	return from.dot(aim) >= cos(deg_to_rad(parry_arc_deg * 0.5))
 
 
 func on_parry(bullet: Node) -> void:
@@ -661,6 +678,9 @@ func _on_died() -> void:
 	current_state = PlayerState.DEAD
 	_ragdoll_timer = 0.0
 	_body_animation.stop()
+	if _parry_effect != null:
+		_parry_effect.visible = false
+		_parry_effect.stop()
 
 	if _floating_hp != null:
 		_floating_hp.update_health(0, _health.max_health)
@@ -729,6 +749,10 @@ func respawn() -> void:
 	_spawn_protection_timer = 0.5
 	current_state = PlayerState.IDLE
 	_ragdoll_timer = 0.0
+	_parry_cooldown = 0.0
+	if _parry_effect != null:
+		_parry_effect.visible = false
+		_parry_effect.stop()
 	_stun_timer = 0.0
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
@@ -741,11 +765,6 @@ func respawn() -> void:
 	jump_force_multiplier = 1.0
 	_adaptive_armor_stacks = 0
 	_adaptive_armor_timer = 0.0
-	_harvest_armor_stacks = 0
-	_harvest_armor_timer = 0.0
-	_charge_armor = 0.0
-	_running_time = 0.0
-	_charge_hit_cooldown = 0.0
 	_second_skin_timer = 0.0
 	_second_skin_tick_timer = 0.0
 	_slow_factor = 1.0
@@ -754,18 +773,10 @@ func respawn() -> void:
 	_gravity_mult_timer = 0.0
 	_jump_mult = 1.0
 	_jump_mult_timer = 0.0
-	_titanium_heart_ready = true
-	_titanium_heart_cooldown = 0.0
 	_in_blood_debt = false
 	_blood_debt_timer = 0.0
 	_blood_debt_healed = 0
 	_blood_debt_cooldown = 0.0
-	_sepultador_timer = 0.0
-	_sepultador_damage = 0
-	_last_sepultador_source = null
-	if is_instance_valid(active_barrier):
-		active_barrier.queue_free()
-		active_barrier = null
 	visible = true
 	modulate = Color(1.0, 1.0, 1.0, 1.0)
 	if _skeleton_sprite != null:
@@ -803,11 +814,7 @@ func respawn() -> void:
 func aplicar_mejoras(upgrades: Array) -> void:
 	_effects.clear()
 	_stats.limpiar()
-	has_titanium_heart = false
 	has_blood_debt = false
-	if is_instance_valid(active_barrier):
-		active_barrier.queue_free()
-		active_barrier = null
 
 	for def in upgrades:
 		for mod in def.stats:
@@ -841,24 +848,9 @@ func hurt(amount: int, source: Node = null) -> void:
 		_health.apply_damage(_health.health, source)
 		return
 
-	# Intercepción por Barrera de Muro Vivo
-	if is_instance_valid(active_barrier) and active_barrier.has_method("absorb_hit"):
-		if active_barrier.absorb_hit():
-			return
-
-	# Mitigación por armadura (Piel Adaptativa, Cosecha, Carga Blindada)
+	# Mitigación por armadura (Piel Adaptativa)
 	var armor_red := get_armor_reduction()
 	var final_amount: int = maxi(int(round(float(amount) * (1.0 - armor_red))), 1)
-
-	# Corazón de Titanio: no puede bajarte de 25% max HP si está listo
-	if has_titanium_heart and _titanium_heart_ready:
-		var floor_hp := int(ceil(float(_health.max_health) * 0.25))
-		if _health.health > floor_hp and (_health.health - final_amount) < floor_hp:
-			final_amount = _health.health - floor_hp
-			_titanium_heart_ready = false
-			_titanium_heart_cooldown = 12.0
-			CombatCamera.shake_viewport(self, 3.0, 0.15)
-			AudioManager.reproducir("golpe", 0.15)
 
 	# Deuda de Sangre: sobrevive en deuda por 5 segundos si el daño es letal
 	if has_blood_debt:
@@ -892,9 +884,6 @@ func get_armor_reduction() -> float:
 	var total: float = 0.0
 	if _adaptive_armor_stacks > 0:
 		total += float(_adaptive_armor_stacks) * 0.08
-	if _harvest_armor_stacks > 0:
-		total += float(_harvest_armor_stacks) * 0.05
-	total += _charge_armor
 	return clampf(total, 0.0, 0.75)
 
 
@@ -902,15 +891,11 @@ func get_speed_multiplier() -> float:
 	var mult: float = 1.0
 	if _slow_timer > 0.0:
 		mult *= _slow_factor
-	if has_effect_id("ira_sangre") and _health.health <= int(float(_health.max_health) * 0.5):
-		mult *= 1.15
 	return mult
 
 
 func get_damage_multiplier() -> float:
 	var mult: float = 1.0
-	if has_effect_id("ira_sangre") and _health.health <= int(float(_health.max_health) * 0.5):
-		mult *= 1.25
 	return mult
 
 
@@ -928,6 +913,10 @@ func apply_recoil(impulse: Vector2) -> void:
 	if impulse.y < -50.0 and velocity.y > 0.0:
 		velocity.y = 0.0
 	velocity += impulse
+	# Tope de acumulación: al spamear disparos el retroceso se suma, pero sin
+	# salir disparado fuera de la arena.
+	velocity.x = clampf(velocity.x, -700.0, 700.0)
+	velocity.y = clampf(velocity.y, -560.0, 900.0)
 
 
 func apply_slow(factor: float, duration: float) -> void:
@@ -946,37 +935,12 @@ func apply_gravity_debuff(grav_scale: float, jump_scale: float, duration: float 
 	_jump_mult_timer = maxf(_jump_mult_timer, duration)
 
 
-func mark_sepultador(source: Node, bullet_dmg: int, duration: float = 0.6) -> void:
-	_last_sepultador_source = source
-	_sepultador_damage = bullet_dmg
-	_sepultador_timer = duration
-
-
-func _check_sepultador_collision() -> void:
-	if _sepultador_timer <= 0.0 or current_state == PlayerState.DEAD:
-		return
-	if is_on_wall() and absf(velocity.x) > 30.0:
-		var bonus_dmg := maxi(int(round(float(_sepultador_damage) * 0.50)), 1)
-		hurt(bonus_dmg, _last_sepultador_source)
-		stun(0.40)
-		CombatCamera.shake_viewport(self, 5.0, 0.2)
-		AudioManager.reproducir("golpe", 0.15)
-		_sepultador_timer = 0.0
-		_last_sepultador_source = null
-
-
 func _update_buffs(delta: float) -> void:
 	# Armadura Adaptativa
 	if _adaptive_armor_timer > 0.0:
 		_adaptive_armor_timer -= delta
 		if _adaptive_armor_timer <= 0.0:
 			_adaptive_armor_stacks = 0
-
-	# Cosecha de Balas
-	if _harvest_armor_timer > 0.0:
-		_harvest_armor_timer -= delta
-		if _harvest_armor_timer <= 0.0:
-			_harvest_armor_stacks = 0
 
 	# Regeneración (Segunda Piel)
 	if _second_skin_timer > 0.0:
@@ -1003,12 +967,6 @@ func _update_buffs(delta: float) -> void:
 		if _jump_mult_timer <= 0.0:
 			_jump_mult = 1.0
 
-	# Corazón de Titanio
-	if _titanium_heart_cooldown > 0.0:
-		_titanium_heart_cooldown -= delta
-		if _titanium_heart_cooldown <= 0.0:
-			_titanium_heart_ready = true
-
 	# Deuda de Sangre
 	if _blood_debt_cooldown > 0.0:
 		_blood_debt_cooldown -= delta
@@ -1020,16 +978,6 @@ func _update_buffs(delta: float) -> void:
 				_health.apply_damage(_health.health, null)
 			else:
 				_blood_debt_cooldown = 10.0
-
-	# Sepultador
-	if _sepultador_timer > 0.0:
-		_sepultador_timer -= delta
-		if _sepultador_timer <= 0.0:
-			_last_sepultador_source = null
-
-	# Cooldown de Carga Blindada
-	if _charge_hit_cooldown > 0.0:
-		_charge_hit_cooldown -= delta
 
 	# Notificar a los efectos activos
 	for ef in _effects:
@@ -1104,7 +1052,5 @@ func _update_dots(delta: float) -> void:
 			modulate = Color(0.4, 2.2, 0.4, 1.0)
 		elif is_poisoned or _toxic_cloud_count > 0:
 			modulate = Color(0.55, 1.25, 0.55, 1.0)
-		elif has_effect_id("ira_sangre") and _health.health <= int(float(_health.max_health) * 0.5):
-			modulate = Color(1.35, 0.8, 0.8, 1.0)
 		elif modulate != Color(1.0, 1.0, 1.0, 1.0):
 			modulate = Color(1.0, 1.0, 1.0, 1.0)

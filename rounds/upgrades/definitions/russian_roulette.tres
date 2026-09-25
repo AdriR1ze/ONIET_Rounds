@@ -12,7 +12,7 @@ script = ExtResource("2_ly2hj")
 script = ExtResource("4_gdf50")
 stat = &"damage"
 op = 1
-value = 0.88
+value = 0.85
 
 [resource]
 script = ExtResource("3_vj2cf")
@@ -20,11 +20,11 @@ id = &"russian_roulette"
 titulo = "Ruleta Rusa"
 subtitulo = "Una bala secreta inflige daño colosal"
 nivel = 4
-descripcion = "Al recargar, hay 50% de probabilidad de que una bala aleatoria del cargador inflija daño crítico devastador (+300%). Daño base ligeramente reducido."
+descripcion = "Al recargar, hay 50% de probabilidad de que una bala aleatoria del cargador inflija daño crítico devastador (+200%). Daño base ligeramente reducido."
 rareza = 2
 tema = &"roulette"
-ventajas = Array[String](["+300% Daño crítico devastador (x4 daño)"])
-desventajas = Array[String](["-12% Daño en balas normales"])
+ventajas = Array[String](["+200% Daño crítico devastador (x3 daño)"])
+desventajas = Array[String](["-15% Daño en balas normales"])
 mecanicas = Array[String](["50% chance por recarga de bala letal"])
 stats = Array[ExtResource("4_gdf50")]([SubResource("Resource_kjtxw")])
 efectos = Array[ExtResource("1_867yx")]([SubResource("Resource_hyfre")])

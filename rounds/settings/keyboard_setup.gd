@@ -267,15 +267,15 @@ public sealed class RawKeyboardForm : Form
 
     void Send(int player, ushort vkey, bool down)
     {
-        string line = player.ToString() + "|" + vkey.ToString() + "|" + (down ? "1" : "0");
+		string line = player.ToString() + "|" + vkey.ToString() + "|" + (down ? "1" : "0");
         byte[] bytes = Encoding.ASCII.GetBytes(line);
         udp.Send(bytes, bytes.Length, target);
     }
 
-    [DllImport("user32.dll", SetLastError = true)]
+	[DllImport("user32.dll", SetLastError = true)]
     static extern bool RegisterRawInputDevices(RAWINPUTDEVICE[] pRawInputDevices, uint uiNumDevices, uint cbSize);
 
-    [DllImport("user32.dll", SetLastError = true)]
+	[DllImport("user32.dll", SetLastError = true)]
     static extern uint GetRawInputData(IntPtr hRawInput, uint uiCommand, IntPtr pData, ref uint pcbSize, uint cbSizeHeader);
 
     [StructLayout(LayoutKind.Sequential)]

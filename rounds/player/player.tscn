@@ -11,6 +11,7 @@
 [ext_resource type="Shader" uid="uid://dn3jsyx8tn2ow" path="res://player/skeleton_palette.gdshader" id="10_shader"]
 [ext_resource type="Script" uid="uid://d0x7epd2j2fcw" path="res://player/components/floating_health_bar.gd" id="11_healthbar"]
 [ext_resource type="Script" uid="uid://biixnmy2jkeho" path="res://player/components/ammo_display.gd" id="12_ammo"]
+[ext_resource type="SpriteFrames" uid="uid://c6x8m3q2k1y8a" path="res://player/parry_frames.tres" id="13_parry"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_skel"]
 shader = ExtResource("10_shader")
@@ -284,6 +285,14 @@ autoplay = &"stand"
 
 [node name="HitFlash" type="AnimationPlayer" parent="." unique_id=1685867087]
 libraries/ = SubResource("AnimationLibrary_hit")
+
+[node name="ParryEffect" type="AnimatedSprite2D" parent="." unique_id=2948192834]
+visible = false
+z_index = 5
+texture_filter = 1
+scale = Vector2(2.4, 2.4)
+sprite_frames = ExtResource("13_parry")
+animation = &"parry"
 
 [connection signal="hurt" from="HurtboxComponent" to="." method="hurt"]
 [connection signal="damaged" from="HealthComponent" to="." method="_on_damaged"]

@@ -12,7 +12,7 @@ script = ExtResource("2_73bu7")
 script = ExtResource("4_chftr")
 stat = &"damage"
 op = 1
-value = 0.8
+value = 0.9
 
 [resource]
 script = ExtResource("3_krh11")
@@ -25,7 +25,7 @@ rareza = 1
 categoria = 2
 tema = &"sismico"
 ventajas = Array[String](["Empuje masivo (+550) y aturde 0.35s"])
-desventajas = Array[String](["-20% Daño de bala"])
+desventajas = Array[String](["-10% Daño de bala"])
 mecanicas = Array[String](["Empuje masivo y aturdimiento contundente"])
 stats = Array[ExtResource("4_chftr")]([SubResource("Resource_b24go")])
 efectos = Array[ExtResource("1_fd8rc")]([SubResource("Resource_kpj0a")])

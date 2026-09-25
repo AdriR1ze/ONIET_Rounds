@@ -7,7 +7,7 @@
 [sub_resource type="Resource" id="Resource_1t740"]
 script = ExtResource("3_tov2n")
 stat = &"max_health"
-value = 40.0
+value = 30.0
 
 [sub_resource type="Resource" id="Resource_uh7b8"]
 script = ExtResource("3_tov2n")
@@ -20,9 +20,9 @@ script = ExtResource("2_ldskh")
 id = &"vitalidad_solida"
 titulo = "Vitalidad Sólida"
 subtitulo = "Salud base plana, no porcentual"
-descripcion = "Aumenta tu salud máxima base en +40 puntos directos (no porcentual). Ligeramente más lento al moverte."
+descripcion = "Aumenta tu salud máxima base en +30 puntos directos (no porcentual). Ligeramente más lento al moverte."
 categoria = 1
-ventajas = Array[String](["+40 Salud base máxima (plana)"])
+ventajas = Array[String](["+30 Salud base máxima (plana)"])
 desventajas = Array[String](["-8% Velocidad de movimiento"])
 mecanicas = Array[String](["Incremento de salud base no porcentual"])
 stats = Array[ExtResource("3_tov2n")]([SubResource("Resource_1t740"), SubResource("Resource_uh7b8")])

@@ -19,6 +19,7 @@ const COLORES_RAREZA := {
 @onready var _titulo: Label = $Titulo
 
 var _activo := false
+var _cantidad_opciones: int = OPCIONES_POR_JUGADOR
 var _jugadores: Array = []
 var _opciones: Dictionary = {}
 var _indices: Dictionary = {}
@@ -39,10 +40,11 @@ func _ready() -> void:
 	visible = false
 
 
-func abrir() -> void:
+func abrir(cantidad_opciones: int = OPCIONES_POR_JUGADOR) -> void:
 	if _activo:
 		return
 	_activo = true
+	_cantidad_opciones = cantidad_opciones
 	visible = true
 	PauseManager.tomar(self)
 	_grupos = _construir_grupos()
@@ -108,7 +110,7 @@ func _mostrar_grupo(grupo: Array) -> void:
 	for i in _jugadores.size():
 		var jugador = _jugadores[i]
 		var numero: int = jugador.player_number
-		_opciones[numero] = RunManager.opciones_para(numero, OPCIONES_POR_JUGADOR)
+		_opciones[numero] = RunManager.opciones_para(numero, _cantidad_opciones)
 		_indices[numero] = 0
 		_confirmados[numero] = false
 

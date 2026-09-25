@@ -8,12 +8,6 @@
 [sub_resource type="Resource" id="Resource_r4or4"]
 script = ExtResource("2_pyb1r")
 
-[sub_resource type="Resource" id="Resource_8o3jg"]
-script = ExtResource("4_1edhk")
-stat = &"max_health"
-op = 1
-value = 0.85
-
 [resource]
 script = ExtResource("3_8jyvk")
 id = &"segunda_piel"
@@ -25,7 +19,7 @@ rareza = 2
 categoria = 1
 tema = &"vampirico"
 ventajas = Array[String](["Al recibir daño: +4 vida/s durante 3s (12 HP)"])
-desventajas = Array[String](["-15% Salud máxima"])
+desventajas = Array[String]([])
 mecanicas = Array[String](["Regeneración reactiva en combate"])
-stats = Array[ExtResource("4_1edhk")]([SubResource("Resource_8o3jg")])
+stats = Array[ExtResource("4_1edhk")]([])
 efectos = Array[ExtResource("1_k7c3b")]([SubResource("Resource_r4or4")])

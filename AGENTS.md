@@ -14,6 +14,7 @@ These are workflow preferences for working with this user.
 - Do not change working architecture merely because another architecture is
   theoretically cleaner.
 - If a larger refactor is genuinely needed, explain why before doing it.
+- Do not ask for permission for operational tasks (running commands, modifying files, testing). Act autonomously and only ask when facing key logical, functional or design decisions.
 
 ## Godot
 

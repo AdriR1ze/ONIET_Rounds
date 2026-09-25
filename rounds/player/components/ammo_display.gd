@@ -84,10 +84,10 @@ func _draw() -> void:
 	var total_w := float(max_ammo - 1) * spacing
 	var start_x := -total_w * 0.5
 
-	# Cuantos puntitos grises deben verse durante la recarga
-	var gray_dots := 0
+	# Cuántos puntitos grises (balas ya recargadas) mostramos por encima de las actuales
+	var refilled := 0
 	if is_reloading:
-		gray_dots = int(floor(reload_progress * float(max_ammo)))
+		refilled = int(floor(reload_progress * float(maxi(max_ammo - current_ammo, 0))))
 
 	for i in range(max_ammo):
 		var center := Vector2(start_x + float(i) * spacing, 0.0)
@@ -96,11 +96,14 @@ func _draw() -> void:
 		draw_circle(center, dot_radius + 0.9, Color(0.06, 0.07, 0.1, 0.85))
 
 		if is_reloading:
-			if i < gray_dots:
-				# Puntito cargado en gris
+			if i < current_ammo:
+				# Bala que ya tenés: sigue activa en naranja durante la recarga
+				draw_circle(center, dot_radius, COLOR_AMMO)
+			elif i < current_ammo + refilled:
+				# Bala ya recargada en gris
 				draw_circle(center, dot_radius, COLOR_RELOAD_GRAY)
 			else:
-				# Puntito todavia vacio
+				# Bala que todavía no se recargó
 				draw_arc(center, dot_radius - 0.2, 0.0, TAU, 16, COLOR_EMPTY_OUTLINE, 1.0)
 		else:
 			if i < current_ammo:
