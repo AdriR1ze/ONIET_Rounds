@@ -90,6 +90,7 @@ func _test_shoot_when_clear() -> void:
 
 	var brain: BotBrain = bot.get_node("PlayerInput/BotBrain")
 	brain.dificultad = RunManager.DificultadBot.HACKER
+	brain._shoot_delay_timer = 0.0
 	brain._target = target
 	brain._aim_dir = Vector2.RIGHT
 

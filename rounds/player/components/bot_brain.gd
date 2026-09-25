@@ -34,6 +34,7 @@ var _nav_graph: NavGraph = null
 var _current_path: PackedVector2Array = PackedVector2Array()
 var _path_index: int = 0
 var _path_update_timer: float = 0.0
+var _cached_tilemap: TileMapLayer = null
 
 # Timers y estados tácticos
 var _parry_cooldown_timer: float = 0.0
@@ -167,7 +168,6 @@ func _bt_stop(_delta: float) -> int:
 
 ## Interrupción reactiva de Parry: Comprueba proyectiles hostiles en trayectoria de colisión.
 func _bt_check_parry(delta: float) -> int:
-	dificultad = RunManager.dificultad_bot
 	_parry_cooldown_timer = maxf(_parry_cooldown_timer - delta, 0.0)
 	if _bullet_parry_decisions.size() > 40:
 		_limpiar_registro_balas()
@@ -571,13 +571,13 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 	var space := player.get_world_2d().direct_space_state
 
 	# Comprobar si el objetivo está en otra plataforma o a distinta elevación
-	var different_platform := absf(target_pos.y - my_pos.y) > 28.0 or dist > 220.0
+	var different_platform := absf(target_pos.y - my_pos.y) > 36.0
 	var has_los := _has_line_of_sight(my_pos, target_pos)
 
 	# 1. Navegación con línea de visión despejada
 	if has_los and not different_platform:
-		var opt_min := 140.0
-		var opt_max := 240.0
+		var opt_min := 160.0
+		var opt_max := 320.0
 
 		if dist > opt_max:
 			_move_axis = _steering.seek(my_pos.x, target_pos.x)
@@ -589,12 +589,6 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 				_strafe_timer = randf_range(0.3, 0.9)
 				_strafe_dir = -_strafe_dir if randf() < 0.6 else _strafe_dir
 			_move_axis = _steering.strafe(_strafe_dir, 0.85 if tier == DifficultyTier.DIFICIL else 0.55)
-
-		# Salto táctico frecuente para esquivar y ganar ángulos
-		_tactical_jump_timer -= delta
-		if _tactical_jump_timer <= 0.0 and player.is_on_floor():
-			_tactical_jump_timer = randf_range(1.2, 2.4)
-			_jump_just_pressed = true
 
 	# 2. Navegación entre plataformas o sin línea de visión (Pathfinding por NavGraph)
 	else:
@@ -627,6 +621,12 @@ func _bt_handle_navigation_and_spacing(delta: float) -> int:
 				_move_axis = _steering.seek(my_pos.x, target_pos.x)
 				if target_pos.y < my_pos.y - 25.0 and player.is_on_floor():
 					_jump_just_pressed = true
+
+	# Salto táctico frecuente para esquivar y ganar ángulos de disparo
+	_tactical_jump_timer -= delta
+	if _tactical_jump_timer <= 0.0 and player.is_on_floor():
+		_tactical_jump_timer = randf_range(1.0, 2.2)
+		_jump_just_pressed = true
 
 	# 3. Verificación de si el personaje CABE en el hueco frente a él (no meterse en rendijas)
 	if space != null and absf(_move_axis) > 0.1:
@@ -731,6 +731,8 @@ func _find_target() -> CharacterBody2D:
 
 		if score > best_score:
 			best_score = score
+			best = p
+
 	if best == null and _target != null and is_instance_valid(_target) and (_target is CharacterBody2D):
 		if not (_target.has_method("is_alive") and not _target.is_alive()):
 			return _target
@@ -818,16 +820,20 @@ func _has_one_way_above() -> bool:
 
 
 func _get_tilemap() -> TileMapLayer:
+	if _cached_tilemap != null and is_instance_valid(_cached_tilemap) and _cached_tilemap.is_inside_tree():
+		return _cached_tilemap
 	if player == null or not is_instance_valid(player) or not player.is_inside_tree():
 		return null
 	var parent := player.get_parent()
 	if parent != null:
-		var tm := parent.get_node_or_null("NeonTileMap") as TileMapLayer
+		var tm := parent.find_child("NeonTileMap", true, false) as TileMapLayer
 		if tm != null:
-			return tm
+			_cached_tilemap = tm
+			return _cached_tilemap
 	var tms := get_tree().get_nodes_in_group("tilemap")
 	if not tms.is_empty() and tms[0] is TileMapLayer:
-		return tms[0]
+		_cached_tilemap = tms[0]
+		return _cached_tilemap
 	return null
 
 
