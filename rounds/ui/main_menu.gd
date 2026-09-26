@@ -21,6 +21,7 @@ const OPCIONES_JUGADORES := [2, 3, 4]
 @onready var _boton_indice: Button = $Centro/Menu/Indice
 @onready var _boton_opciones: Button = $Centro/Menu/Opciones
 @onready var _boton_salir: Button = $Centro/Menu/Salir
+@onready var _video_fondo: VideoStreamPlayer = get_node_or_null("VideoFondo")
 
 var _inputs: Array[LineEdit] = []
 var _tweens_botones: Dictionary = {}
@@ -28,6 +29,7 @@ var _tweens_botones: Dictionary = {}
 
 func _ready() -> void:
 	get_tree().paused = false
+	_iniciar_video_fondo()
 	_modal_partida.visible = false
 	_poblar(_jugadores, OPCIONES_JUGADORES, RunManager.cantidad_jugadores)
 	_rondas.value = RunManager.rondas_para_ganar
@@ -53,6 +55,26 @@ func _ready() -> void:
 	_boton_jugar.grab_focus()
 
 
+func _iniciar_video_fondo() -> void:
+	if _video_fondo == null:
+		return
+	_video_fondo.loop = true
+	if not _video_fondo.finished.is_connected(_on_video_finished):
+		_video_fondo.finished.connect(_on_video_finished)
+	if not _video_fondo.is_playing():
+		_video_fondo.play()
+
+
+func _on_video_finished() -> void:
+	if is_instance_valid(_video_fondo) and is_inside_tree():
+		_video_fondo.play()
+
+
+func _detener_video() -> void:
+	if is_instance_valid(_video_fondo):
+		_video_fondo.stop()
+
+
 func _poblar_dificultad_bot() -> void:
 	_dificultad_bot.clear()
 	for i in RunManager.DIFICULTADES_BOT.size():
@@ -61,6 +83,7 @@ func _poblar_dificultad_bot() -> void:
 
 
 func _abrir_seleccion_personajes() -> void:
+	_detener_video()
 	Transition.cambiar_escena(ESCENA_PERSONAJES)
 
 
@@ -123,6 +146,7 @@ func _iniciar_partida() -> void:
 	RunManager.set_nombres(nombres)
 	RunManager.configurar_partida(int(_rondas.value), int(_vidas.value), _dificultad_bot.selected)
 	RunManager.reiniciar()
+	_detener_video()
 	Transition.cambiar_escena(ESCENA_PERSONAJES)
 
 
@@ -147,6 +171,7 @@ func _ocultar_opciones() -> void:
 
 
 func _abrir_tutorial() -> void:
+	_detener_video()
 	Transition.cambiar_escena(ESCENA_TUTORIAL)
 
 

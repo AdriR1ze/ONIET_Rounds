@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://bu3ep4gy0gg0b"]
+[gd_scene load_steps=24 format=3 uid="uid://bu3ep4gy0gg0b"]
 
 [ext_resource type="Script" uid="uid://b46gc7mq4dbvs" path="res://ui/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://ui/options_screen.tscn" id="2_opts"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://sprite_sheets/Botones_pajaro.png" id="8_bird"]
 [ext_resource type="Texture2D" path="res://sprite_sheets/Botones_sapo.png" id="9_frog"]
 [ext_resource type="Texture2D" path="res://sprite_sheets/Botones_fantasma.png" id="10_ghost"]
+[ext_resource type="VideoStream" path="res://Video_Menu/video_menu.ogv" id="11_video"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_skel_norm"]
 texture = ExtResource("7_skel")
@@ -104,6 +105,29 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.05, 0.06, 0.1, 1)
+
+[node name="VideoFondo" type="VideoStreamPlayer" parent="." unique_id=1849201948]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+stream = ExtResource("11_video")
+autoplay = true
+loop = true
+expand = true
+
+[node name="Oscurecedor" type="ColorRect" parent="." unique_id=1849201949]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.03, 0.04, 0.07, 0.62)
 
 [node name="Centro" type="CenterContainer" parent="." unique_id=1528039507]
 layout_mode = 1
