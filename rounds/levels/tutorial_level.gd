@@ -43,6 +43,7 @@ var _paso: int = Paso.MOVER
 var _piso_previo: bool = true
 var _bala_drill: Node = null
 var _drill_resuelto: bool = false
+var _usando_control: bool = false
 
 
 func _ready() -> void:
@@ -53,7 +54,23 @@ func _ready() -> void:
 	_boton_saltear.pressed.connect(_saltar_paso)
 	_boton_volver.pressed.connect(_volver_al_menu)
 	_piso_previo = _player.is_on_floor()
+	_blanco.desactivar()
+	_usando_control = Settings.dispositivo_de(_player.player_number) >= 0 or (Input.get_connected_joypads().size() > 0 and not Settings.es_teclado(_player.player_number))
 	_actualizar_hud()
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventJoypadButton or (event is InputEventJoypadMotion and absf(event.axis_value) > 0.45):
+		if not _usando_control:
+			_usando_control = true
+			if event.device >= 0:
+				Settings.set_dispositivo(_player.player_number, event.device)
+			_actualizar_hud()
+	elif event is InputEventKey and event.pressed and not event.echo:
+		if _usando_control:
+			_usando_control = false
+			Settings.set_dispositivo(_player.player_number, Settings.DISPOSITIVO_TECLADO)
+			_actualizar_hud()
 
 
 func _physics_process(_delta: float) -> void:
@@ -95,7 +112,7 @@ func _ir_al_paso(nuevo: int) -> void:
 	_paso = nuevo
 	match _paso:
 		Paso.DISPARAR:
-			# Por si el jugador rompió el blanco antes de tiempo o hay que reintentar.
+			# El blanco sólo aparece y se activa al llegar a este paso.
 			_blanco.revive()
 		Paso.PARRY_LATERAL, Paso.PARRY_ARRIBA:
 			_iniciar_drill()
@@ -105,6 +122,8 @@ func _ir_al_paso(nuevo: int) -> void:
 
 
 func _limpiar_paso(paso: int) -> void:
+	if paso == Paso.DISPARAR:
+		_blanco.desactivar()
 	if paso != Paso.PARRY_LATERAL and paso != Paso.PARRY_ARRIBA:
 		return
 	_drill_resuelto = true
@@ -121,6 +140,22 @@ func _actualizar_hud() -> void:
 
 
 func _texto_paso(paso: int) -> String:
+	if _usando_control:
+		match paso:
+			Paso.MOVER:
+				return "Movete hasta la marca  (Stick Izquierdo / D-Pad)"
+			Paso.SALTAR:
+				return "Saltá  (Botón A)"
+			Paso.DISPARAR:
+				return "Rompé el blanco  (Gatillo RT / R2)"
+			Paso.PARRY_LATERAL:
+				return "Viene una bala de costado: parreala apuntando hacia ella  (Botón B)"
+			Paso.PARRY_ARRIBA:
+				return "Cae una bala desde arriba: apuntá arriba con el Stick y parreala con Botón B"
+			Paso.MEJORAS:
+				return "Elegí tu mejora"
+			_:
+				return "¡Listo! Completaste el tutorial."
 	match paso:
 		Paso.MOVER:
 			return "Movete hasta la marca  (%s / %s)" % [_tecla("left"), _tecla("right")]

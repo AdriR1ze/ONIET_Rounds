@@ -154,18 +154,18 @@ func _construir_bottom_slots() -> void:
 		inactive_view.add_theme_constant_override("separation", 18)
 
 		var lbl_inact := Label.new()
-		lbl_inact.text = "JUGADOR %d\n[CERRADO]" % n
+		lbl_inact.text = "JUGADOR %d\n[CERRADO]\n(Pulsá X o A para unirte)" % n
 		lbl_inact.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_inact.add_theme_font_override("font", FONT_PIXEL)
-		lbl_inact.add_theme_font_size_override("font_size", 22)
+		lbl_inact.add_theme_font_size_override("font_size", 18)
 		lbl_inact.add_theme_color_override("font_color", Color(0.52, 0.55, 0.65))
 		inactive_view.add_child(lbl_inact)
 
 		var btn_activar := Button.new()
-		btn_activar.text = "+ ACTIVAR"
+		btn_activar.text = "+ ACTIVAR (X / A)"
 		btn_activar.add_theme_font_override("font", FONT_PIXEL)
 		btn_activar.add_theme_font_size_override("font_size", 18)
-		btn_activar.custom_minimum_size = Vector2(160, 48)
+		btn_activar.custom_minimum_size = Vector2(170, 48)
 		btn_activar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		btn_activar.focus_mode = Control.FOCUS_NONE
 		btn_activar.pressed.connect(_toggle_slot_activo.bind(n))
@@ -523,7 +523,7 @@ func _actualizar_ui() -> void:
 				status.text = "BOT (%s) • ¡LISTO!" % RunManager.dificultad_bot_nombre_de(n).to_upper()
 				status.modulate = Color(0.35, 0.8, 1.0, 1.0)
 			elif _listo.get(n, false):
-				btn.text = "CANCELAR"
+				btn.text = "CANCELAR (B)"
 				status.text = "¡LISTO PARA COMBATIR!"
 				status.modulate = COLOR_LISTO
 			else:
@@ -531,7 +531,7 @@ func _actualizar_ui() -> void:
 				if Settings.es_teclado(n):
 					status.text = "WASD • Dispará/Enter"
 				else:
-					status.text = "Mando • Dispará/A"
+					status.text = "Mando • Stick/D-Pad • A/X: Listo"
 				status.modulate = Color(0.7, 0.7, 0.7, 1.0)
 
 
@@ -598,6 +598,103 @@ func _volver_al_menu() -> void:
 		get_tree().change_scene_to_file(ESCENA_MENU)
 
 
+func _obtener_slot_de_mando(dev: int) -> int:
+	for n in _numeros:
+		if not Settings.es_bot(n) and Settings.dispositivo_de(n) == dev:
+			return n
+	return -1
+
+
+func _unir_mando(dev: int) -> void:
+	# Prioridad 1: Si hay algún slot activo en Teclado y no listo, asignarle este mando
+	for n in _numeros:
+		if _slot_activo.get(n, false) and Settings.es_teclado(n) and not _listo.get(n, false):
+			Settings.set_dispositivo(n, dev)
+			if _disp_sel.has(n):
+				_disp_sel[n].select(_disp_sel[n].get_item_index(dev + 1))
+			_jugador_enfocado = n
+			AudioManager.reproducir("salto", 0.05)
+			_actualizar_ui()
+			return
+
+	# Prioridad 2: Buscar el primer slot inactivo disponible y activarlo con este mando
+	for n in _numeros:
+		if not _slot_activo.get(n, false):
+			Settings.set_dispositivo(n, dev)
+			if _disp_sel.has(n):
+				_disp_sel[n].select(_disp_sel[n].get_item_index(dev + 1))
+			_slot_activo[n] = true
+			_listo[n] = false
+			_jugador_enfocado = n
+			AudioManager.reproducir("salto", 0.05)
+			_actualizar_ui()
+			_comprobar_inicio_automatico()
+			return
+
+	# Prioridad 3: Reemplazar un bot no listo
+	for n in _numeros:
+		if Settings.es_bot(n) and not _listo.get(n, false):
+			Settings.set_dispositivo(n, dev)
+			if _disp_sel.has(n):
+				_disp_sel[n].select(_disp_sel[n].get_item_index(dev + 1))
+			_listo[n] = false
+			_jugador_enfocado = n
+			AudioManager.reproducir("salto", 0.05)
+			_actualizar_ui()
+			_comprobar_inicio_automatico()
+			return
+
+
+func _input(event: InputEvent) -> void:
+	if _esta_escribiendo_nombre():
+		return
+
+	if event is InputEventJoypadButton and event.pressed:
+		var joy_event: InputEventJoypadButton = event as InputEventJoypadButton
+		var dev: int = joy_event.device
+		var btn: JoyButton = joy_event.button_index
+		var slot: int = _obtener_slot_de_mando(dev)
+
+		# Mando no asignado a ningún jugador: unirse con A, X o Start
+		if slot == -1:
+			if btn == JOY_BUTTON_A or btn == JOY_BUTTON_X or btn == JOY_BUTTON_START:
+				_unir_mando(dev)
+				get_viewport().set_input_as_handled()
+				return
+			return
+
+		# Si el slot asignado está inactivo, activarlo
+		if not _slot_activo.get(slot, false):
+			if btn == JOY_BUTTON_A or btn == JOY_BUTTON_X or btn == JOY_BUTTON_START:
+				_toggle_slot_activo(slot)
+				get_viewport().set_input_as_handled()
+			return
+
+		# Slot activo y asignado a este mando
+		match btn:
+			JOY_BUTTON_A, JOY_BUTTON_X, JOY_BUTTON_START:
+				_toggle_ready(slot)
+				get_viewport().set_input_as_handled()
+			JOY_BUTTON_B:
+				if _listo.get(slot, false):
+					_toggle_ready(slot)
+					get_viewport().set_input_as_handled()
+				elif slot > 1:
+					_toggle_slot_activo(slot)
+					get_viewport().set_input_as_handled()
+				else:
+					_volver_al_menu()
+					get_viewport().set_input_as_handled()
+			JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_LEFT_SHOULDER:
+				if not _listo.get(slot, false):
+					_mover_eleccion(slot, -1)
+					get_viewport().set_input_as_handled()
+			JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_RIGHT_SHOULDER:
+				if not _listo.get(slot, false):
+					_mover_eleccion(slot, 1)
+					get_viewport().set_input_as_handled()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _esta_escribiendo_nombre():
 		if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
@@ -609,7 +706,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event.is_action_pressed("ui_cancel"):
-		_volver_al_menu()
+		var alguno_listo := false
+		for n in _numeros:
+			if _slot_activo.get(n, false) and not Settings.es_bot(n) and _listo.get(n, false):
+				_toggle_ready(n)
+				alguno_listo = true
+		if not alguno_listo:
+			_volver_al_menu()
 	elif event is InputEventKey and event.pressed and not event.echo:
 		var p_teclado := Settings.primer_jugador_teclado()
 		if (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE) and p_teclado > 0:
@@ -640,6 +743,12 @@ func _process(delta: float) -> void:
 		# Jugadores de mando o teclado estándar
 		if not _listo.get(numero, false):
 			var mx := Input.get_axis("p%d_left" % numero, "p%d_right" % numero)
+			if not Settings.es_teclado(numero):
+				var dev := Settings.dispositivo_de(numero)
+				if dev >= 0:
+					var stick_x := Input.get_joy_axis(dev, JOY_AXIS_LEFT_X)
+					if absf(stick_x) > absf(mx):
+						mx = stick_x
 			var cd: float = maxf(float(_nav_cooldowns.get(numero, 0.0)) - delta, 0.0)
 			if absf(mx) < 0.35:
 				_nav_cooldowns[numero] = 0.0

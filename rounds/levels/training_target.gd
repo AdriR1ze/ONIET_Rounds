@@ -30,6 +30,14 @@ func revive() -> void:
 	_shape.set_deferred("disabled", false)
 
 
+# Oculta y deshabilita la colisión del blanco hasta su momento.
+func desactivar() -> void:
+	if _visual != null:
+		_visual.visible = false
+	if _shape != null:
+		_shape.set_deferred("disabled", true)
+
+
 func _on_died() -> void:
 	_shape.set_deferred("disabled", true)
 	_visual.visible = false

@@ -30,17 +30,15 @@ const DEFINICIONES_MAPAS: Array[Dictionary] = [
 		"color": Color(0.2, 0.9, 1.0),
 		"atlas_id": 1,
 	},
-		{
-		"id": &"a",
-		"nombre": "a",
-		"tipo": "Boceto 1 / Geometría",
-		"descripcion": "Viga central inclinada a 45 grados rodeada por un arco de elipses flotantes y base de combate.",
+	{
+		"id": &"repisas_orbes",
+		"nombre": "Repisas y Orbes",
+		"tipo": "Boceto 2 / Asimétrico",
+		"descripcion": "Estantes y repisas escalonadas en el centro con columnas verticales de orbes circulares a los lados.",
 		"escena": "res://levels/maps/map_04_repisas_orbes.tscn",
-		"color": Color(0.2, 0.9, 1.0),
-		"atlas_id": 1,
+		"color": Color(1.0, 0.65, 0.15),
+		"atlas_id": 0,
 	},
-	
-
 ]
 
 var desactivados: Dictionary = {}

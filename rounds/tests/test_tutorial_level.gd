@@ -13,6 +13,7 @@ var _fallos: int = 0
 
 
 func _ready() -> void:
+	Settings.set_dispositivo(1, Settings.DISPOSITIVO_TECLADO)
 	print("--- TEST NIVEL TUTORIAL (SALA DE PRÁCTICA INTERACTIVA) ---")
 	_test_boton_menu()
 
@@ -113,6 +114,8 @@ func _test_estado_inicial(nivel) -> void:
 	_check(nivel._paso == 0, "Estado inicial = paso 1 (MOVER), es %d" % nivel._paso)
 	_check(nivel._progreso_label.text == "1 / 6", "Progreso inicial '1 / 6', es '%s'" % nivel._progreso_label.text)
 
+	_check(not nivel._blanco._visual.visible, "La diana no aparece inicialmente (oculta hasta su momento)")
+
 	# La instrucción debe contener las teclas REALES de los bindings vivos.
 	var izq := _clave("p1_left")
 	var der := _clave("p1_right")
@@ -121,6 +124,22 @@ func _test_estado_inicial(nivel) -> void:
 	_check(nivel._paso_label.text.contains(izq), "El paso 1 contiene la tecla real izquierda '%s'" % izq)
 	_check(nivel._paso_label.text.contains(der), "El paso 1 contiene la tecla real derecha '%s'" % der)
 	print("  (paso 1 = '%s')" % nivel._paso_label.text)
+
+	# Detección dinámica de mando y cambio de instrucciones
+	var joy_ev := InputEventJoypadButton.new()
+	joy_ev.device = 0
+	joy_ev.button_index = JOY_BUTTON_A
+	joy_ev.pressed = true
+	nivel._input(joy_ev)
+	_check(nivel._usando_control, "Detecta mando dinámicamente al presionar botón de control")
+	_check(nivel._paso_label.text.contains("Stick"), "Instrucción muestra controles de mando para moverse")
+
+	# Volver a teclado
+	var key_ev := InputEventKey.new()
+	key_ev.pressed = true
+	key_ev.keycode = KEY_A
+	nivel._input(key_ev)
+	_check(not nivel._usando_control, "Retorna a modo teclado al pulsar una tecla")
 
 
 func _test_no_avanza_solo(nivel) -> void:

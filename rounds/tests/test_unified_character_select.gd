@@ -8,6 +8,7 @@ func _ready() -> void:
 	test_dispositivo_y_dificultad_bot()
 	test_condicion_inicio_partida()
 	test_bloqueo_al_escribir_nombre()
+	test_control_unirse_y_navegacion()
 	print("--- TODOS LOS TESTS DEL MENÚ UNIFICADO PASARON EXITOSAMENTE ---")
 	get_tree().quit(0)
 
@@ -181,3 +182,72 @@ func test_bloqueo_al_escribir_nombre() -> void:
 
 	cs.queue_free()
 	print("✓ Bloqueo al escribir nombre: no permite otras acciones hasta confirmar con ENTER")
+
+
+func test_control_unirse_y_navegacion() -> void:
+	var scn: PackedScene = load("res://ui/character_select.tscn")
+	var cs = scn.instantiate()
+	add_child(cs)
+
+	for n in [1, 2, 3, 4]:
+		Settings.set_dispositivo(n, Settings.DISPOSITIVO_TECLADO)
+	RunManager.set_slots_activos([1, 2])
+
+	# Simular pulsación de botón X (JOY_BUTTON_X) en mando 0 para unirse
+	var joy_x := InputEventJoypadButton.new()
+	joy_x.device = 0
+	joy_x.button_index = JOY_BUTTON_X
+	joy_x.pressed = true
+	cs._input(joy_x)
+
+	assert(Settings.dispositivo_de(1) == 0, "Mando 0 debe haberse unido y asignado a P1")
+	assert(cs._slot_activo[1] == true, "Slot 1 debe estar activo")
+
+	# Mover personaje con D-Pad derecho en mando 0
+	var prev_choice = cs._choice[1]
+	var joy_right := InputEventJoypadButton.new()
+	joy_right.device = 0
+	joy_right.button_index = JOY_BUTTON_DPAD_RIGHT
+	joy_right.pressed = true
+	cs._input(joy_right)
+	assert(cs._choice[1] != prev_choice, "D-Pad derecho debe cambiar el personaje de P1")
+
+	# Pulsar A (JOY_BUTTON_A) para ponerse ¡LISTO!
+	var joy_a := InputEventJoypadButton.new()
+	joy_a.device = 0
+	joy_a.button_index = JOY_BUTTON_A
+	joy_a.pressed = true
+	cs._input(joy_a)
+	assert(cs._listo[1] == true, "Botón A debe marcar P1 como LISTO")
+
+	# Pulsar B (JOY_BUTTON_B) para cancelar ¡LISTO!
+	var joy_b := InputEventJoypadButton.new()
+	joy_b.device = 0
+	joy_b.button_index = JOY_BUTTON_B
+	joy_b.pressed = true
+	cs._input(joy_b)
+	assert(cs._listo[1] == false, "Botón B debe cancelar el estado LISTO de P1")
+
+	# Simular segundo mando (device 1) uniéndose con botón A
+	var joy2_a := InputEventJoypadButton.new()
+	joy2_a.device = 1
+	joy2_a.button_index = JOY_BUTTON_A
+	joy2_a.pressed = true
+	cs._input(joy2_a)
+
+	assert(Settings.dispositivo_de(2) == 1, "Mando 1 debe haberse unido y asignado a P2")
+	assert(cs._slot_activo[2] == true, "Slot 2 debe estar activo para el segundo mando")
+
+	# Botón B en P2 cuando no está listo debe desactivar la ranura
+	var joy2_b := InputEventJoypadButton.new()
+	joy2_b.device = 1
+	joy2_b.button_index = JOY_BUTTON_B
+	joy2_b.pressed = true
+	cs._input(joy2_b)
+	assert(cs._slot_activo[2] == false, "Botón B en P2 no listo debe cerrar/desactivar la ranura")
+
+	cs.queue_free()
+	for n in [1, 2, 3, 4]:
+		Settings.set_dispositivo(n, Settings.DISPOSITIVO_TECLADO)
+	RunManager.set_slots_activos([1, 2])
+	print("✓ Soporte de mandos: unirse con X/A, navegación completa con stick/D-pad y confirmación/cancelación con A/B")
