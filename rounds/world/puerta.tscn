@@ -7,12 +7,14 @@
 size = Vector2(15, 61)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_detector"]
-size = Vector2(68, 164)
+size = Vector2(32.33533, 61)
 
 [node name="Puerta" type="Node2D" unique_id=1237114267]
+scale = Vector2(1.67, 1)
 script = ExtResource("1_puerta")
 
 [node name="Cuerpo" type="StaticBody2D" parent="." unique_id=819802201]
+visible = false
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Cuerpo" unique_id=476111964]
@@ -28,11 +30,10 @@ region_enabled = true
 region_rect = Rect2(0, 1, 128, 24)
 
 [node name="Detector" type="Area2D" parent="." unique_id=1988528541]
-visible = false
 collision_layer = 0
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Detector" unique_id=1380328035]
-visible = false
-position = Vector2(0, -48)
+position = Vector2(-0.5988001, -15.499994)
+scale = Vector2(0.9999998, 0.9999998)
 shape = SubResource("RectangleShape2D_detector")

@@ -257,11 +257,17 @@ func dificultad_bot_nombre_de(player_number: int) -> String:
 func registrar_jugador(player: Node) -> void:
 	var numero: int = player.player_number
 	_jugadores[numero] = player
+	player.tree_exiting.connect(_olvidar_jugador.bind(player, numero), CONNECT_ONE_SHOT)
 	if not _mejoras.has(numero):
 		_mejoras[numero] = []
 	if not vidas.has(numero):
 		vidas[numero] = vidas_por_ronda
 	_recalcular(numero)
+
+
+func _olvidar_jugador(player: Node, numero: int) -> void:
+	if _jugadores.get(numero) == player:
+		_jugadores.erase(numero)
 
 
 func jugadores() -> Array:

@@ -1,60 +1,56 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene format=3 uid="uid://cwb00jk3ojkxi"]
 
-[ext_resource type="Script" path="res://levels/tutorial_level.gd" id="1_level"]
-[ext_resource type="PackedScene" path="res://levels/maps/map_02_tres_pisos.tscn" id="2_map"]
+[ext_resource type="Script" uid="uid://cd8upylmkkigj" path="res://levels/tutorial_level.gd" id="1_level"]
+[ext_resource type="PackedScene" uid="uid://b57benk4dq5mw" path="res://levels/maps/map_02_tres_pisos.tscn" id="2_map"]
 [ext_resource type="PackedScene" path="res://player/player_1.tscn" id="3_p1"]
-[ext_resource type="Script" path="res://effects/combat_camera.gd" id="4_camera"]
+[ext_resource type="Script" uid="uid://dm2yv8olo5bff" path="res://effects/combat_camera.gd" id="4_camera"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="5_pause"]
-[ext_resource type="PackedScene" path="res://levels/training_target.tscn" id="6_blanco"]
+[ext_resource type="PackedScene" uid="uid://7j6i6xbus8cc" path="res://levels/training_target.tscn" id="6_blanco"]
 [ext_resource type="PackedScene" path="res://ui/upgrade_screen.tscn" id="7_upgrade"]
 
-[node name="TutorialLevel" type="Node2D"]
+[node name="TutorialLevel" type="Node2D" unique_id=1430795345]
 script = ExtResource("1_level")
 
-[node name="MapContainer" type="Node2D" parent="."]
+[node name="MapContainer" type="Node2D" parent="." unique_id=763059392]
 
-[node name="MapTresPisos" parent="MapContainer" instance=ExtResource("2_map")]
+[node name="MapTresPisos" parent="MapContainer" unique_id=370342396 instance=ExtResource("2_map")]
 
-[node name="Player1" parent="." instance=ExtResource("3_p1")]
+[node name="Player1" parent="." unique_id=1452748329 instance=ExtResource("3_p1")]
 position = Vector2(258, 451)
 
-[node name="Camera" type="Camera2D" parent="."]
+[node name="Camera" type="Camera2D" parent="." unique_id=1784980301]
 position = Vector2(640, 368)
-anchor_mode = 1
 script = ExtResource("4_camera")
-min_zoom = 0.35
 max_zoom = 0.85
 
-[node name="PauseMenu" parent="." instance=ExtResource("5_pause")]
+[node name="PauseMenu" parent="." unique_id=1385684301 instance=ExtResource("5_pause")]
 visible = false
 
-[node name="Meta" type="Marker2D" parent="."]
-position = Vector2(410, 451)
+[node name="Meta" type="Marker2D" parent="." unique_id=1322527886]
+position = Vector2(471, 450)
 
-[node name="Visual" type="Node2D" parent="Meta"]
+[node name="Visual" type="Node2D" parent="Meta" unique_id=1877040370]
+position = Vector2(-55, 32)
 
-[node name="Poste" type="Polygon2D" parent="Meta/Visual"]
-color = Color(0.25, 0.9, 1, 1)
-polygon = PackedVector2Array(-3, -170, 3, -170, 3, 0, -3, 0)
-
-[node name="Flecha" type="Polygon2D" parent="Meta/Visual"]
+[node name="Flecha" type="Polygon2D" parent="Meta/Visual" unique_id=1686681621]
+position = Vector2(56, 71)
 color = Color(0.4, 1, 0.55, 1)
 polygon = PackedVector2Array(0, -132, 28, -104, 0, -76, -28, -104)
 
-[node name="Placement" type="Node2D" parent="."]
+[node name="Placement" type="Node2D" parent="." unique_id=2102814689]
 
-[node name="Blanco" parent="Placement" instance=ExtResource("6_blanco")]
-position = Vector2(475, 419)
+[node name="Blanco" parent="Placement" unique_id=478120779 instance=ExtResource("6_blanco")]
+position = Vector2(641, 354)
 
-[node name="DrillTimer" type="Timer" parent="."]
+[node name="DrillTimer" type="Timer" parent="." unique_id=2133826121]
 one_shot = true
 
-[node name="UpgradeScreen" parent="." instance=ExtResource("7_upgrade")]
+[node name="UpgradeScreen" parent="." unique_id=3358169 instance=ExtResource("7_upgrade")]
 visible = false
 
-[node name="TutorialHUD" type="CanvasLayer" parent="."]
+[node name="TutorialHUD" type="CanvasLayer" parent="." unique_id=2036292137]
 
-[node name="Arriba" type="MarginContainer" parent="TutorialHUD"]
+[node name="Arriba" type="MarginContainer" parent="TutorialHUD" unique_id=1711724046]
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 24.0
@@ -63,30 +59,29 @@ offset_right = -24.0
 offset_bottom = 168.0
 grow_horizontal = 2
 
-[node name="Info" type="VBoxContainer" parent="TutorialHUD/Arriba"]
+[node name="Info" type="VBoxContainer" parent="TutorialHUD/Arriba" unique_id=2007620963]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Paso" type="Label" parent="TutorialHUD/Arriba/Info"]
+[node name="Paso" type="Label" parent="TutorialHUD/Arriba/Info" unique_id=1550829368]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
+text = "Movete hasta la marca"
 horizontal_alignment = 1
 autowrap_mode = 3
-text = "Movete hasta la marca"
 
-[node name="Progreso" type="Label" parent="TutorialHUD/Arriba/Info"]
+[node name="Progreso" type="Label" parent="TutorialHUD/Arriba/Info" unique_id=347048127]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-horizontal_alignment = 1
 text = "1 / 6"
+horizontal_alignment = 1
 
-[node name="Aviso" type="Label" parent="TutorialHUD/Arriba/Info"]
+[node name="Aviso" type="Label" parent="TutorialHUD/Arriba/Info" unique_id=2108227094]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
-text = ""
 
-[node name="Abajo" type="MarginContainer" parent="TutorialHUD"]
+[node name="Abajo" type="MarginContainer" parent="TutorialHUD" unique_id=40858325]
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
@@ -98,18 +93,18 @@ offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="Botones" type="HBoxContainer" parent="TutorialHUD/Abajo"]
+[node name="Botones" type="HBoxContainer" parent="TutorialHUD/Abajo" unique_id=1292484797]
 layout_mode = 2
-alignment = 1
 theme_override_constants/separation = 24
+alignment = 1
 
-[node name="Saltear" type="Button" parent="TutorialHUD/Abajo/Botones"]
+[node name="Saltear" type="Button" parent="TutorialHUD/Abajo/Botones" unique_id=917576620]
 custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
 focus_mode = 0
 text = "SALTAR PASO"
 
-[node name="Volver" type="Button" parent="TutorialHUD/Abajo/Botones"]
+[node name="Volver" type="Button" parent="TutorialHUD/Abajo/Botones" unique_id=630161453]
 custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
 focus_mode = 0
