@@ -18,6 +18,7 @@ const PARRY_LIFETIME_REMAINING := 0.6
 @export var bounces: int = 0
 @export var splits: int = 0
 @export var wall_pierce: int = 0
+@export var ignore_world: bool = false
 @export var can_split: bool = false
 @export var ricochet_bonus: float = 0.0
 @export var stun_duration: float = 0.0
@@ -165,32 +166,34 @@ func _physics_process(delta: float) -> void:
 			_is_phasing_wall = false
 
 	# Raycast continuo contra el mundo (Capa 1: mundo/suelo, Capa 16: obstáculos)
-	var shape_rad: float = 4.0 * maxf(scale.x, 1.0)
-	var ray_end := next_pos + direction * shape_rad
-	var query_body := PhysicsRayQueryParameters2D.create(global_position, ray_end)
-	query_body.collision_mask = 1 | 16
-	query_body.collide_with_bodies = true
-	query_body.collide_with_areas = false
 	var excludes: Array[RID] = [get_rid()]
 	if shooter != null and shooter is CollisionObject2D:
 		excludes.append((shooter as CollisionObject2D).get_rid())
 	for pb in _phasing_bodies:
 		if is_instance_valid(pb) and pb is CollisionObject2D:
 			excludes.append((pb as CollisionObject2D).get_rid())
-	query_body.exclude = excludes
 
-	var hit_world := space_state.intersect_ray(query_body)
-	if not hit_world.is_empty():
-		var hit_collider: Node = hit_world.get("collider", null)
-		var hit_pos: Vector2 = hit_world.get("position", next_pos)
-		var hit_norm: Vector2 = hit_world.get("normal", Vector2.UP)
-		if hit_norm.is_zero_approx():
-			hit_norm = _get_contact_info(hit_collider).get("normal", -direction)
-		_handle_body_collision(hit_collider, hit_pos, hit_norm)
-		if not is_instance_valid(self) or is_queued_for_deletion():
-			return
-		step = velocity * delta
-		next_pos = global_position + step
+	if not ignore_world:
+		var shape_rad: float = 4.0 * maxf(scale.x, 1.0)
+		var ray_end := next_pos + direction * shape_rad
+		var query_body := PhysicsRayQueryParameters2D.create(global_position, ray_end)
+		query_body.collision_mask = 1 | 16
+		query_body.collide_with_bodies = true
+		query_body.collide_with_areas = false
+		query_body.exclude = excludes
+
+		var hit_world := space_state.intersect_ray(query_body)
+		if not hit_world.is_empty():
+			var hit_collider: Node = hit_world.get("collider", null)
+			var hit_pos: Vector2 = hit_world.get("position", next_pos)
+			var hit_norm: Vector2 = hit_world.get("normal", Vector2.UP)
+			if hit_norm.is_zero_approx():
+				hit_norm = _get_contact_info(hit_collider).get("normal", -direction)
+			_handle_body_collision(hit_collider, hit_pos, hit_norm)
+			if not is_instance_valid(self) or is_queued_for_deletion():
+				return
+			step = velocity * delta
+			next_pos = global_position + step
 
 	# Raycast continuo contra hurtboxes (Capa 4: hurtbox)
 	var query_area := PhysicsRayQueryParameters2D.create(global_position, next_pos)
@@ -502,6 +505,8 @@ func _get_contact_info(hit_body: Node) -> Dictionary:
 
 
 func _on_body_entered(body: Node) -> void:
+	if ignore_world:
+		return
 	if not _is_phasing_wall and not (body in _phasing_bodies):
 		var info := _get_contact_info(body)
 		_handle_body_collision(body, info.get("point", global_position), info.get("normal", -direction))

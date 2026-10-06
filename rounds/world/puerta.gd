@@ -54,14 +54,17 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	var hay_jugador := false
+	var jugador: Node2D = null
 	for b in _detector.get_overlapping_bodies():
 		if b.is_in_group("player"):
-			hay_jugador = true
+			jugador = b
 			break
+	var hay_jugador := jugador != null
 	if hay_jugador == _abierta:
 		return
 	_abierta = hay_jugador
+	if _abierta:
+		_sprite.flip_h = jugador.global_position.x > global_position.x
 	_sprite.frame = FRAME_ABIERTA if _abierta else FRAME_CERRADA
 	for c in _cuerpo.get_children():
 		if c is CollisionShape2D:

@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://effects/combat_camera.gd" id="17_camera"]
 [ext_resource type="PackedScene" path="res://ui/map_intro_banner.tscn" id="18_intro"]
 [ext_resource type="PackedScene" path="res://ui/kill_banner.tscn" id="21_kill"]
+[ext_resource type="PackedScene" path="res://ui/round_countdown.tscn" id="22_count"]
 
 [sub_resource type="Environment" id="Environment_glow"]
 background_mode = 3
@@ -73,6 +74,8 @@ visible = false
 [node name="MapIntroBanner" parent="." instance=ExtResource("18_intro")]
 
 [node name="KillBanner" parent="." instance=ExtResource("21_kill")]
+
+[node name="RoundCountdown" parent="." instance=ExtResource("22_count")]
 
 [node name="Camera" type="Camera2D" parent="."]
 position = Vector2(640, 360)

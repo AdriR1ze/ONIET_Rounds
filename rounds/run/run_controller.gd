@@ -5,6 +5,7 @@ extends Node
 @export var banner_ganador: CanvasLayer
 @export var banner_intro: CanvasLayer
 @export var banner_baja: CanvasLayer
+@export var round_countdown: CanvasLayer
 
 var _procesando: bool = false
 var _ronda_activa: bool = false
@@ -31,6 +32,8 @@ func _ready() -> void:
 		banner_intro = get_parent().get_node_or_null("MapIntroBanner")
 	if banner_baja == null and get_parent() != null:
 		banner_baja = get_parent().get_node_or_null("KillBanner")
+	if round_countdown == null and get_parent() != null:
+		round_countdown = get_parent().get_node_or_null("RoundCountdown")
 
 	for jugador in RunManager.jugadores():
 		var salud: Node = jugador.get_node_or_null("HealthComponent")
@@ -46,6 +49,7 @@ func _ready() -> void:
 	if banner_intro != null and banner_intro.has_method("mostrar_intro"):
 		await banner_intro.mostrar_intro(1, _mapa_info_actual)
 
+	await _mostrar_countdown()
 	_congelar_jugadores(false)
 	_ronda_activa = true
 
@@ -190,6 +194,7 @@ func _finalizar_ronda(vivos: Array) -> void:
 	if banner_intro != null and banner_intro.has_method("mostrar_intro"):
 		await banner_intro.mostrar_intro(RunManager.ronda, _mapa_info_actual)
 
+	await _mostrar_countdown()
 	_congelar_jugadores(false)
 	_ronda_activa = true
 	_procesando = false
@@ -238,6 +243,13 @@ func _congelar_jugadores(congelar: bool) -> void:
 		jug.set_physics_process(not congelar)
 		if "invulnerable" in jug:
 			jug.invulnerable = congelar
+
+
+func _mostrar_countdown(segundos: int = 3) -> void:
+	if round_countdown != null and round_countdown.has_method("mostrar_countdown"):
+		await round_countdown.mostrar_countdown(segundos)
+	else:
+		await get_tree().create_timer(float(segundos)).timeout
 
 
 func _revivir_caidos() -> void:

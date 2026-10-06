@@ -18,11 +18,13 @@ const TOTAL_PASOS := 6
 # En map_02_tres_pisos el jugador arranca y dispara parado sobre la plataforma
 # del SpawnP1 (fila de tiles gy15, techo y=480); a esa altura la fila gy14 está
 # despejada de pared a pared, así que el carril lateral no toca geometría.
-# La bala que cae recorre un tramo SIN techo: la plataforma gy11 termina en
-# y=384 y la bala aparece en y ≈ jugador.y - 55 (≈404), por debajo de ella.
+# La bala que cae nace ALTA (jugador.y - 120): por encima del jugador puede
+# haber techo (en map_02_tres_pisos la fila gy11 termina en y=384), así que esa
+# bala atraviesa el mundo con ignore_world y no se destruye al tocarlo. El parry
+# se resuelve por hurtbox, no necesita colisionar con el mundo.
 const DRILL_LATERAL_DIST := 170.0      # la bala lateral nace a la izquierda
 const DRILL_LATERAL_VELOCIDAD := 130.0
-const DRILL_ALTO_CAIDA := 55.0         # la bala que cae nace por encima
+const DRILL_ALTO_CAIDA := 120.0        # la bala que cae nace bien arriba
 const DRILL_CAIDA_VELOCIDAD := 50.0
 const DRILL_DANIO := 25
 const DRILL_ESPERA_MAXIMA := 4.0
@@ -214,13 +216,17 @@ func _crear_bala_drill() -> void:
 		bala.direction = Vector2.DOWN
 		bala.speed = DRILL_CAIDA_VELOCIDAD
 		bala.velocity = Vector2.DOWN * DRILL_CAIDA_VELOCIDAD
+		# Nace arriba del jugador, donde puede haber techo: que lo atraviese en
+		# vez de reventar contra él. El parry se detecta por hurtbox.
+		bala.ignore_world = true
 	else:
 		bala.direction = Vector2.RIGHT
 		bala.speed = DRILL_LATERAL_VELOCIDAD
 		bala.velocity = Vector2.RIGHT * DRILL_LATERAL_VELOCIDAD
 	bala.damage = DRILL_DANIO
 	# Sin gravedad: vuela perfectamente recto y predecible. SIN wall_pierce: el
-	# carril elegido está realmente despejado (nada de balas fantasma).
+	# carril lateral está realmente despejado (nada de balas fantasma). La bala
+	# que cae usa ignore_world porque nace por encima de plataformas.
 	bala.bullet_gravity = 0.0
 	bala.lifetime = DRILL_ESPERA_MAXIMA + 1.0
 	bala.shooter = null
