@@ -378,7 +378,7 @@ func _try_wall_jump() -> bool:
 	# horizontal, empuja alejándose como el salto clásico.
 	var aim := _input.aim()
 	var push_dir := aim.x
-	if aim.is_zero_approx() or signf(push_dir) == signf(float(wall_dir)):
+	if aim.is_zero_approx():
 		push_dir = float(-wall_dir)
 	velocity.y = _stats.get_stat(&"jump_velocity") * wall_jump_velocity_mult * total_jump_mult
 	velocity.x = push_dir * wall_jump_push

@@ -1,27 +1,27 @@
-[gd_scene load_steps=24 format=3 uid="uid://bu3ep4gy0gg0b"]
+[gd_scene format=3 uid="uid://bu3ep4gy0gg0b"]
 
 [ext_resource type="Script" uid="uid://b46gc7mq4dbvs" path="res://ui/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://ui/options_screen.tscn" id="2_opts"]
 [ext_resource type="PackedScene" path="res://ui/upgrade_index_screen.tscn" id="3_idx"]
 [ext_resource type="Script" uid="uid://cvv31qa33fgnj" path="res://ui/number_picker_button.gd" id="4_picker"]
-[ext_resource type="Texture2D" path="res://sprite_sheets/titulo_gunimals.png" id="5_titulo"]
-[ext_resource type="FontFile" path="res://Fuente_de_texto_pixel.ttf" id="6_font"]
-[ext_resource type="Texture2D" path="res://sprite_sheets/Botones_esqueleto.png" id="7_skel"]
-[ext_resource type="Texture2D" path="res://sprite_sheets/Botones_pajaro.png" id="8_bird"]
-[ext_resource type="Texture2D" path="res://sprite_sheets/Botones_sapo.png" id="9_frog"]
-[ext_resource type="Texture2D" path="res://sprite_sheets/Botones_fantasma.png" id="10_ghost"]
-[ext_resource type="VideoStream" path="res://Video_Menu/video_menu.ogv" id="11_video"]
+[ext_resource type="Texture2D" uid="uid://cf8pbixejusn0" path="res://sprite_sheets/titulo_gunimals.png" id="5_titulo"]
+[ext_resource type="FontFile" uid="uid://bkt5pxm6vet7j" path="res://Fuente_de_texto_pixel.ttf" id="6_font"]
+[ext_resource type="Texture2D" uid="uid://dnxalwgowq3cn" path="res://sprite_sheets/Botones_esqueleto.png" id="7_skel"]
+[ext_resource type="Texture2D" uid="uid://by8vkg47n7k7s" path="res://sprite_sheets/Botones_pajaro.png" id="8_bird"]
+[ext_resource type="Texture2D" uid="uid://7y808uuh84lv" path="res://sprite_sheets/Botones_sapo.png" id="9_frog"]
+[ext_resource type="Texture2D" uid="uid://b5pqx8ygkua3w" path="res://sprite_sheets/Botones_fantasma.png" id="10_ghost"]
+[ext_resource type="VideoStream" uid="uid://bj02g0b7tme6i" path="res://Video_Menu/video_menu.ogv" id="11_video"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_skel_norm"]
 texture = ExtResource("7_skel")
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_skel_hover"]
-texture = ExtResource("7_skel")
-modulate_color = Color(1.35, 1.35, 1.35, 1)
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_skel_pressed"]
 texture = ExtResource("7_skel")
 modulate_color = Color(0.82, 0.82, 0.82, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_skel_hover"]
+texture = ExtResource("7_skel")
+modulate_color = Color(1.35, 1.35, 1.35, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_skel_focus"]
 texture = ExtResource("7_skel")
@@ -30,13 +30,13 @@ modulate_color = Color(1.45, 1.45, 1.45, 1)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bird_norm"]
 texture = ExtResource("8_bird")
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bird_hover"]
-texture = ExtResource("8_bird")
-modulate_color = Color(1.3, 1.3, 1.1, 1)
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bird_pressed"]
 texture = ExtResource("8_bird")
 modulate_color = Color(0.82, 0.82, 0.82, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bird_hover"]
+texture = ExtResource("8_bird")
+modulate_color = Color(1.3, 1.3, 1.1, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bird_focus"]
 texture = ExtResource("8_bird")
@@ -45,13 +45,13 @@ modulate_color = Color(1.4, 1.4, 1.15, 1)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_frog_norm"]
 texture = ExtResource("9_frog")
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_frog_hover"]
-texture = ExtResource("9_frog")
-modulate_color = Color(1.3, 1.4, 1.3, 1)
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_frog_pressed"]
 texture = ExtResource("9_frog")
 modulate_color = Color(0.82, 0.82, 0.82, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_frog_hover"]
+texture = ExtResource("9_frog")
+modulate_color = Color(1.3, 1.4, 1.3, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_frog_focus"]
 texture = ExtResource("9_frog")
@@ -61,13 +61,13 @@ modulate_color = Color(1.4, 1.5, 1.4, 1)
 texture = ExtResource("9_frog")
 modulate_color = Color(0.85, 0.45, 1.25, 1)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_opt_hover"]
-texture = ExtResource("9_frog")
-modulate_color = Color(1.15, 0.75, 1.55, 1)
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_opt_pressed"]
 texture = ExtResource("9_frog")
 modulate_color = Color(0.7, 0.35, 1, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_opt_hover"]
+texture = ExtResource("9_frog")
+modulate_color = Color(1.15, 0.75, 1.55, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_opt_focus"]
 texture = ExtResource("9_frog")
@@ -76,13 +76,13 @@ modulate_color = Color(1.3, 0.85, 1.7, 1)
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ghost_norm"]
 texture = ExtResource("10_ghost")
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ghost_hover"]
-texture = ExtResource("10_ghost")
-modulate_color = Color(1.35, 1.2, 1.2, 1)
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ghost_pressed"]
 texture = ExtResource("10_ghost")
 modulate_color = Color(0.82, 0.82, 0.82, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ghost_hover"]
+texture = ExtResource("10_ghost")
+modulate_color = Color(1.35, 1.2, 1.2, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ghost_focus"]
 texture = ExtResource("10_ghost")
@@ -93,6 +93,7 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = 66.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
@@ -116,8 +117,8 @@ grow_vertical = 2
 mouse_filter = 2
 stream = ExtResource("11_video")
 autoplay = true
-loop = true
 expand = true
+loop = true
 
 [node name="Oscurecedor" type="ColorRect" parent="." unique_id=1849201949]
 layout_mode = 1
@@ -156,15 +157,13 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 0.95, 0.2, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 6
-theme_override_constants/shadow_offset_y = 3
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 30
-theme_override_styles/focus = SubResource("StyleBoxTexture_skel_focus")
-theme_override_styles/hover = SubResource("StyleBoxTexture_skel_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_skel_pressed")
 theme_override_styles/normal = SubResource("StyleBoxTexture_skel_norm")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_skel_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_skel_hover")
+theme_override_styles/focus = SubResource("StyleBoxTexture_skel_focus")
 text = "Jugar"
 
 [node name="Tutorial" type="Button" parent="Centro/Menu" unique_id=363253568]
@@ -175,15 +174,13 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 0.95, 0.2, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 6
-theme_override_constants/shadow_offset_y = 3
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 30
-theme_override_styles/focus = SubResource("StyleBoxTexture_bird_focus")
-theme_override_styles/hover = SubResource("StyleBoxTexture_bird_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_bird_pressed")
 theme_override_styles/normal = SubResource("StyleBoxTexture_bird_norm")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_bird_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_bird_hover")
+theme_override_styles/focus = SubResource("StyleBoxTexture_bird_focus")
 text = "Tutorial"
 
 [node name="Indice" type="Button" parent="Centro/Menu" unique_id=1782993608]
@@ -194,15 +191,13 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 0.95, 0.2, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 6
-theme_override_constants/shadow_offset_y = 3
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 30
-theme_override_styles/focus = SubResource("StyleBoxTexture_frog_focus")
-theme_override_styles/hover = SubResource("StyleBoxTexture_frog_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_frog_pressed")
 theme_override_styles/normal = SubResource("StyleBoxTexture_frog_norm")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_frog_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_frog_hover")
+theme_override_styles/focus = SubResource("StyleBoxTexture_frog_focus")
 text = "Índice"
 
 [node name="Opciones" type="Button" parent="Centro/Menu" unique_id=65647171]
@@ -213,15 +208,13 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 0.95, 0.2, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 6
-theme_override_constants/shadow_offset_y = 3
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 30
-theme_override_styles/focus = SubResource("StyleBoxTexture_opt_focus")
-theme_override_styles/hover = SubResource("StyleBoxTexture_opt_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_opt_pressed")
 theme_override_styles/normal = SubResource("StyleBoxTexture_opt_norm")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_opt_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_opt_hover")
+theme_override_styles/focus = SubResource("StyleBoxTexture_opt_focus")
 text = "Opciones"
 
 [node name="Salir" type="Button" parent="Centro/Menu" unique_id=999713371]
@@ -232,15 +225,13 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 0.95, 0.2, 1)
 theme_override_colors/font_hover_color = Color(1, 0.95, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 6
-theme_override_constants/shadow_offset_y = 3
 theme_override_fonts/font = ExtResource("6_font")
 theme_override_font_sizes/font_size = 30
-theme_override_styles/focus = SubResource("StyleBoxTexture_ghost_focus")
-theme_override_styles/hover = SubResource("StyleBoxTexture_ghost_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_ghost_pressed")
 theme_override_styles/normal = SubResource("StyleBoxTexture_ghost_norm")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_ghost_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_ghost_hover")
+theme_override_styles/focus = SubResource("StyleBoxTexture_ghost_focus")
 text = "Salir"
 
 [node name="ModalPartida" type="ColorRect" parent="." unique_id=924596782]

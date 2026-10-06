@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://ufshtb7t2hxy" path="res://sprite_sheets/Puerta.png" id="2_puerta"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cuerpo"]
-size = Vector2(32, 63)
+size = Vector2(15, 61)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_detector"]
 size = Vector2(68, 164)
@@ -16,7 +16,7 @@ script = ExtResource("1_puerta")
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Cuerpo" unique_id=476111964]
-position = Vector2(0, -15.5)
+position = Vector2(-0.5, -14.5)
 shape = SubResource("RectangleShape2D_cuerpo")
 
 [node name="Sprite" type="Sprite2D" parent="." unique_id=982201605]

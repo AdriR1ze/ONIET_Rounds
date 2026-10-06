@@ -52,22 +52,6 @@ func _ready() -> void:
 	else:
 		_alto = float(ALTO_MINIMO)
 
-	var pos_y := TILE * 0.5 - (_alto * TILE * 0.5)
-
-	var cuerpo_shape := RectangleShape2D.new()
-	cuerpo_shape.size = Vector2(ANCHO, _alto * TILE)
-	_cuerpo_forma.shape = cuerpo_shape
-	_cuerpo_forma.position = Vector2(0.0, pos_y)
-
-	var detector_shape := RectangleShape2D.new()
-	detector_shape.size = Vector2(72.0, _alto * TILE + MARGEN_DETECTOR * 2.0)
-	_detector_forma.shape = detector_shape
-	_detector_forma.position = Vector2(0.0, pos_y)
-
-	var tam_h := _alto * TILE
-	_sprite.scale = Vector2(1.0, tam_h / 24.0)
-	_sprite.position = Vector2(0.0, pos_y)
-
 
 func _physics_process(_delta: float) -> void:
 	var hay_jugador := false
