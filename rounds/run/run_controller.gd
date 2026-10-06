@@ -361,11 +361,9 @@ func _limpiar_proyectiles() -> void:
 		for entidad in tree.get_nodes_in_group(grupo):
 			if is_instance_valid(entidad):
 				if entidad is CollisionObject2D:
-					entidad.collision_layer = 0
-					entidad.collision_mask = 0
+					entidad.set_deferred("collision_layer", 0)
+					entidad.set_deferred("collision_mask", 0)
 				if entidad is Area2D:
-					entidad.monitoring = false
-					entidad.monitorable = false
-				if entidad.get_parent() != null:
-					entidad.get_parent().remove_child(entidad)
+					entidad.set_deferred("monitoring", false)
+					entidad.set_deferred("monitorable", false)
 				entidad.queue_free()

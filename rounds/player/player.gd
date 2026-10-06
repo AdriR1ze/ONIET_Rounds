@@ -738,7 +738,7 @@ func _on_died() -> void:
 	can_control = false
 	current_state = PlayerState.DEAD
 	_ragdoll_timer = 0.0
-	_body_animation.stop()
+	_body_animation.call_deferred("stop")
 	if _parry_effect != null:
 		_parry_effect.visible = false
 		_parry_effect.stop()
