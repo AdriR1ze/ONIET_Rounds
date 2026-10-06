@@ -90,6 +90,40 @@ func _draw() -> void:
 			_draw_iman(c)
 		&"sangre":
 			_draw_sangre(c)
+		&"division":
+			_draw_division(c)
+		&"ricochet":
+			_draw_ricochet(c)
+		&"bala_grande":
+			_draw_bala_grande(c)
+		&"minas":
+			_draw_minas(c)
+		&"regeneracion":
+			_draw_regeneracion(c)
+		&"desenfunde":
+			_draw_desenfunde(c)
+		&"electrico":
+			_draw_electrico(c)
+		&"contragolpe":
+			_draw_contragolpe(c)
+		&"onda":
+			_draw_onda(c)
+		&"titanico":
+			_draw_titanico(c)
+		&"sangrado":
+			_draw_sangrado(c)
+		&"deuda":
+			_draw_deuda(c)
+		&"anclaje":
+			_draw_anclaje(c)
+		&"tiempo":
+			_draw_tiempo(c)
+		&"piel":
+			_draw_piel(c)
+		&"vitalidad":
+			_draw_vitalidad(c)
+		&"corazon":
+			_draw_corazon(c)
 		_:
 			_draw_default(c)
 
@@ -381,8 +415,256 @@ func _draw_sangre(c: Vector2) -> void:
 	draw_circle(c + Vector2(-3, 2), 4.0, Color(1.0, 0.4, 0.4, 0.8))
 
 
-func _draw_default(c: Vector2) -> void:
-	draw_circle(c, 18.0, Color(border_color.r, border_color.g, border_color.b, 0.25))
-	draw_arc(c, 22.0, 0, TAU, 32, border_color, 1.5)
-	draw_circle(c, 4.0, border_color)
+func _draw_division(c: Vector2) -> void:
+	var f_col := Color(0.2, 0.95, 1.0, 0.9)
+	# Bala original a la izquierda
+	draw_circle(c + Vector2(-20, 0), 6.0, Color(1.0, 1.0, 1.0, 0.9))
+	# Tres fragmentos saliendo en abanico
+	var dirs: Array[Vector2] = [Vector2(1, -0.7), Vector2(1, 0), Vector2(1, 0.7)]
+	for d in dirs:
+		var end: Vector2 = c + d.normalized() * 26.0
+		draw_line(c + Vector2(-10, 0), end, Color(f_col.r, f_col.g, f_col.b, 0.55), 2.0)
+		draw_circle(end, 5.0, f_col)
 
+
+func _draw_ricochet(c: Vector2) -> void:
+	# Trayectoria de rebotes que se potencia
+	var pts := PackedVector2Array([
+		c + Vector2(-28, 16), c + Vector2(-13, -6), c + Vector2(2, 10),
+		c + Vector2(14, -12), c + Vector2(24, 2)
+	])
+	draw_polyline(pts, Color(0.2, 0.95, 1.0, 0.85), 2.5)
+	for p in pts:
+		draw_circle(p, 3.0, Color(1.0, 1.0, 0.4, 0.9))
+	# Proyectil final potenciado
+	draw_circle(c + Vector2(24, 2), 7.0, Color(1.0, 0.85, 0.3, 0.95))
+	# Chevrones de potencia
+	var chev := Color(1.0, 0.6, 0.1, 0.9)
+	draw_line(c + Vector2(4, -22), c + Vector2(14, -22), chev, 2.0)
+	draw_line(c + Vector2(9, -17), c + Vector2(19, -17), chev, 2.0)
+
+
+func _draw_bala_grande(c: Vector2) -> void:
+	var body := Color(0.8, 0.83, 0.9, 0.98)
+	var big := PackedVector2Array([
+		c + Vector2(-22, -20), c + Vector2(12, -20), c + Vector2(26, 0),
+		c + Vector2(12, 20), c + Vector2(-22, 20)
+	])
+	draw_colored_polygon(big, body)
+	draw_polyline(big, Color(0.3, 0.35, 0.45, 1.0), 2.0)
+	# Bandas de contundencia
+	draw_line(c + Vector2(-22, -7), c + Vector2(8, -7), Color(0.6, 0.65, 0.75, 0.8), 1.5)
+	draw_line(c + Vector2(-22, 7), c + Vector2(8, 7), Color(0.6, 0.65, 0.75, 0.8), 1.5)
+	# Líneas de impacto detrás
+	draw_line(c + Vector2(-30, -12), c + Vector2(-24, -12), Color(1.0, 0.6, 0.2, 0.7), 2.0)
+	draw_line(c + Vector2(-30, 12), c + Vector2(-24, 12), Color(1.0, 0.6, 0.2, 0.7), 2.0)
+
+
+func _draw_minas(c: Vector2) -> void:
+	# Cuerpo de la mina de proximidad
+	draw_circle(c, 13.0, Color(0.25, 0.3, 0.35, 0.95))
+	draw_arc(c, 13.0, 0, TAU, 24, Color(0.5, 0.55, 0.62, 0.9), 2.0)
+	# Sensores / púas
+	for i in 8:
+		var ang := float(i) * TAU / 8.0
+		var a := c + Vector2(cos(ang), sin(ang)) * 13.0
+		var b := c + Vector2(cos(ang), sin(ang)) * 21.0
+		draw_line(a, b, Color(0.4, 0.45, 0.5, 0.9), 2.0)
+	# LED parpadeante
+	var blink := 0.5 + 0.5 * sin(_time * 8.0)
+	draw_circle(c, 4.5, Color(1.0, 0.15, 0.15, blink))
+	draw_circle(c, 2.0, Color(1.0, 0.8, 0.8, 0.9))
+
+
+func _draw_regeneracion(c: Vector2) -> void:
+	var col := Color(0.3, 0.95, 0.45, 0.95)
+	# Corazón
+	var heart := PackedVector2Array([
+		c + Vector2(0, 16), c + Vector2(-16, -2), c + Vector2(-16, -12),
+		c + Vector2(-8, -18), c + Vector2(0, -10),
+		c + Vector2(8, -18), c + Vector2(16, -12), c + Vector2(16, -2)
+	])
+	draw_colored_polygon(heart, col)
+	# Cruz de regeneración
+	draw_line(c + Vector2(0, -6), c + Vector2(0, 8), Color.WHITE, 3.0)
+	draw_line(c + Vector2(-7, 1), c + Vector2(7, 1), Color.WHITE, 3.0)
+	# Anillo de pulso
+	var pulse := fmod(_time * 1.5, 1.0)
+	draw_arc(c, 14.0 + pulse * 14.0, 0, TAU, 24, Color(0.4, 1.0, 0.5, (1.0 - pulse) * 0.5), 2.0)
+
+
+func _draw_desenfunde(c: Vector2) -> void:
+	var steel := Color(0.7, 0.75, 0.82, 0.95)
+	# Cañón
+	draw_rect(Rect2(c + Vector2(-18, -6), Vector2(34, 10)), steel)
+	# Empuñadura
+	draw_rect(Rect2(c + Vector2(-16, 4), Vector2(12, 18)), Color(0.4, 0.35, 0.3, 0.95))
+	# Fogonazo del primer tiro
+	var flash := PackedVector2Array([
+		c + Vector2(18, -1), c + Vector2(30, -9), c + Vector2(34, -1), c + Vector2(30, 7)
+	])
+	draw_colored_polygon(flash, Color(1.0, 0.9, 0.3, 0.95))
+	# Estela de velocidad
+	draw_line(c + Vector2(-32, -1), c + Vector2(-20, -1), Color(1.0, 0.85, 0.2, 0.7), 2.0)
+
+
+func _draw_electrico(c: Vector2) -> void:
+	var bolt := PackedVector2Array([
+		c + Vector2(5, -24), c + Vector2(-12, 2), c + Vector2(0, 2),
+		c + Vector2(-6, 24), c + Vector2(14, -4), c + Vector2(2, -4)
+	])
+	# Resplandor
+	draw_colored_polygon(bolt, Color(0.5, 0.9, 1.0, 0.35))
+	# Rayo
+	draw_colored_polygon(bolt, Color(1.0, 0.95, 0.3, 0.95))
+	draw_polyline(bolt, Color(1.0, 1.0, 0.9, 1.0), 1.5)
+	# Chispas
+	var spark := 0.5 + 0.5 * sin(_time * 10.0)
+	draw_circle(c + Vector2(-18, -14), 3.0, Color(0.6, 0.95, 1.0, spark))
+	draw_circle(c + Vector2(18, 14), 3.0, Color(0.6, 0.95, 1.0, spark))
+
+
+func _draw_contragolpe(c: Vector2) -> void:
+	# Escudo enfrentando la embestida
+	var shield := PackedVector2Array([
+		c + Vector2(6, -22), c + Vector2(22, -10), c + Vector2(22, 10), c + Vector2(6, 22)
+	])
+	draw_colored_polygon(shield, Color(0.2, 0.45, 0.6, 0.85))
+	draw_polyline(shield, Color(0.4, 0.85, 1.0, 0.95), 2.0)
+	# Explosión radial del parry hacia atrás
+	var pulse := 0.85 + 0.15 * sin(_time * 7.0)
+	for i in 3:
+		draw_arc(c + Vector2(2, 0), (10.0 + i * 8.0) * pulse, PI * 0.6, PI * 1.4, 16, Color(1.0, 0.6, 0.2, 0.7 - i * 0.2), 2.0)
+	draw_circle(c + Vector2(-20, 0), 5.0, Color(1.0, 0.8, 0.3, 1.0))
+
+
+func _draw_onda(c: Vector2) -> void:
+	var col := Color(0.4, 0.8, 1.0, 0.85)
+	var pulse := fmod(_time * 1.6, 1.0)
+	# Anillos segmentados que se expanden
+	for i in 3:
+		var r := 10.0 + float(i) * 8.0
+		var alpha := 0.8 - float(i) * 0.2
+		for k in 4:
+			var a0 := float(k) * TAU / 4.0 + pulse * TAU / 4.0
+			draw_arc(c, r, a0, a0 + TAU / 8.0, 8, Color(col.r, col.g, col.b, alpha), 2.5)
+	draw_circle(c, 4.0, Color.WHITE)
+
+
+func _draw_titanico(c: Vector2) -> void:
+	var skin := Color(0.85, 0.65, 0.45, 0.95)
+	# Puño
+	draw_rect(Rect2(c + Vector2(-16, -12), Vector2(28, 24)), skin)
+	draw_circle(c + Vector2(-14, 0), 12.0, skin)
+	# Nudillos
+	for i in 3:
+		draw_circle(c + Vector2(6, -8 + i * 8), 4.0, Color(0.72, 0.52, 0.36, 1.0))
+	# Líneas de impacto
+	var imp := Color(1.0, 0.7, 0.2, 0.9)
+	draw_line(c + Vector2(18, -14), c + Vector2(26, -20), imp, 2.0)
+	draw_line(c + Vector2(20, 0), c + Vector2(30, 0), imp, 2.0)
+	draw_line(c + Vector2(18, 14), c + Vector2(26, 20), imp, 2.0)
+
+
+func _draw_sangrado(c: Vector2) -> void:
+	var col := Color(0.85, 0.1, 0.15, 0.95)
+	# Gota principal
+	var drop := PackedVector2Array([
+		c + Vector2(0, -20), c + Vector2(12, 0), c + Vector2(0, 16), c + Vector2(-12, 0)
+	])
+	draw_colored_polygon(drop, col)
+	# Goteo continuo bajo el centro
+	for i in 3:
+		var dy := fmod(_time * 26.0 + i * 12.0, 30.0)
+		draw_circle(c + Vector2(0, 16 + dy), 3.5 - i * 0.6, Color(col.r, col.g, col.b, 0.8 - i * 0.2))
+
+
+func _draw_deuda(c: Vector2) -> void:
+	var frame := Color(0.6, 0.62, 0.7, 0.9)
+	var blood := Color(0.85, 0.1, 0.15, 0.95)
+	# Marco del reloj de arena
+	draw_line(c + Vector2(-14, -20), c + Vector2(14, -20), frame, 3.0)
+	draw_line(c + Vector2(-14, 20), c + Vector2(14, 20), frame, 3.0)
+	# Arena (sangre) arriba y abajo
+	draw_colored_polygon(PackedVector2Array([c + Vector2(-11, -17), c + Vector2(11, -17), c + Vector2(0, -2)]), blood)
+	draw_colored_polygon(PackedVector2Array([c + Vector2(0, 2), c + Vector2(11, 17), c + Vector2(-11, 17)]), blood)
+	# Vidrio
+	draw_line(c + Vector2(-14, -20), c + Vector2(0, 0), frame, 1.5)
+	draw_line(c + Vector2(14, -20), c + Vector2(0, 0), frame, 1.5)
+	draw_line(c + Vector2(0, 0), c + Vector2(-14, 20), frame, 1.5)
+	draw_line(c + Vector2(0, 0), c + Vector2(14, 20), frame, 1.5)
+
+
+func _draw_anclaje(c: Vector2) -> void:
+	var col := Color(0.5, 0.55, 0.65, 0.95)
+	# Anilla superior
+	draw_arc(c + Vector2(0, -18), 5.0, 0, TAU, 16, col, 2.5)
+	# Eje
+	draw_line(c + Vector2(0, -13), c + Vector2(0, 16), col, 3.0)
+	# Travesaño
+	draw_line(c + Vector2(-11, -8), c + Vector2(11, -8), col, 3.0)
+	# Arcos inferiores
+	draw_arc(c + Vector2(0, 6), 12.0, PI * 0.15, PI * 0.85, 16, col, 3.0)
+	# Puntas
+	draw_line(c + Vector2(-11, 10), c + Vector2(-8, 16), col, 2.5)
+	draw_line(c + Vector2(11, 10), c + Vector2(8, 16), col, 2.5)
+	# Campo de anclaje
+	var pulse := fmod(_time * 1.5, 1.0)
+	draw_arc(c, 18.0 + pulse * 8.0, 0, TAU, 24, Color(0.4, 0.8, 1.0, (1.0 - pulse) * 0.5), 1.5)
+
+
+func _draw_tiempo(c: Vector2) -> void:
+	var face := Color(0.85, 0.9, 1.0, 0.95)
+	draw_circle(c, 21.0, Color(0.08, 0.12, 0.22, 0.92))
+	draw_arc(c, 21.0, 0, TAU, 32, face, 2.0)
+	# Marcas
+	for i in 12:
+		var ang := float(i) * TAU / 12.0
+		var a := c + Vector2(cos(ang), sin(ang)) * 16.0
+		var b := c + Vector2(cos(ang), sin(ang)) * 19.0
+		draw_line(a, b, Color(face.r, face.g, face.b, 0.7), 1.5)
+	# Agujas
+	var t := _time * 1.2
+	draw_line(c, c + Vector2(cos(-PI / 2 + t), sin(-PI / 2 + t)) * 12.0, Color(1.0, 0.4, 0.4, 1.0), 2.0)
+	draw_line(c, c + Vector2(cos(-PI / 2 + t * 3.0), sin(-PI / 2 + t * 3.0)) * 9.0, Color.WHITE, 2.0)
+
+
+func _draw_piel(c: Vector2) -> void:
+	# Capas de piel endurecida
+	for i in 3:
+		var w := 40.0 - i * 8.0
+		var y := -14.0 + i * 12.0
+		var r := Rect2(c + Vector2(-w * 0.5, y), Vector2(w, 10))
+		draw_rect(r, Color(0.55 - i * 0.08, 0.38, 0.28, 0.95))
+		draw_rect(r, Color(0.8, 0.6, 0.4, 0.6), false, 1.5)
+	# Sello de resistencia
+	draw_circle(c + Vector2(0, -21), 4.0, Color(0.3, 1.0, 0.45, 0.9))
+
+
+func _draw_vitalidad(c: Vector2) -> void:
+	# Cruz médica sólida (vida plana)
+	var col := Color(0.95, 0.3, 0.35, 0.95)
+	draw_rect(Rect2(c + Vector2(-7, -20), Vector2(14, 40)), col)
+	draw_rect(Rect2(c + Vector2(-20, -7), Vector2(40, 14)), col)
+	draw_rect(Rect2(c + Vector2(-7, -20), Vector2(14, 40)), Color.WHITE, false, 1.5)
+	draw_rect(Rect2(c + Vector2(-20, -7), Vector2(40, 14)), Color.WHITE, false, 1.5)
+
+
+func _draw_corazon(c: Vector2) -> void:
+	var col := Color(0.9, 0.15, 0.3, 0.95)
+	var heart := PackedVector2Array([
+		c + Vector2(0, 18), c + Vector2(-18, -2), c + Vector2(-18, -12),
+		c + Vector2(-9, -19), c + Vector2(0, -11),
+		c + Vector2(9, -19), c + Vector2(18, -12), c + Vector2(18, -2)
+	])
+	draw_colored_polygon(heart, col)
+	draw_polyline(heart, Color(1.0, 0.6, 0.65, 0.8), 1.5)
+	# Signo +
+	draw_line(c + Vector2(0, -7), c + Vector2(0, 9), Color.WHITE, 3.0)
+	draw_line(c + Vector2(-8, 1), c + Vector2(8, 1), Color.WHITE, 3.0)
+	# Destello de "extra"
+	draw_circle(c + Vector2(20, -16), 3.0, Color(1.0, 0.9, 0.4, 0.9))
+
+
+func _draw_default(c: Vector2) -> void:
+	pass

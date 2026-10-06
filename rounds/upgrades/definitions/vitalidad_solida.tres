@@ -22,6 +22,7 @@ titulo = "Vitalidad Sólida"
 subtitulo = "Salud base plana, no porcentual"
 descripcion = "Aumenta tu salud máxima base en +30 puntos directos (no porcentual). Ligeramente más lento al moverte."
 categoria = 1
+tema = &"vitalidad"
 ventajas = Array[String](["+30 Salud base máxima (plana)"])
 desventajas = Array[String](["-8% Velocidad de movimiento"])
 mecanicas = Array[String](["Incremento de salud base no porcentual"])

@@ -22,6 +22,7 @@ subtitulo = "Tanque colosal a cambio de capacidad"
 nivel = 2
 descripcion = "Aumenta tu salud máxima base en +70 puntos directos. Reduce en 1 la capacidad de munición de tu cargador."
 rareza = 1
+tema = &"corazon"
 ventajas = Array[String](["+70 Salud base máxima (plana)"])
 desventajas = Array[String](["-1 Capacidad de cargador"])
 mecanicas = Array[String](["Salud masiva a cambio de munición"])

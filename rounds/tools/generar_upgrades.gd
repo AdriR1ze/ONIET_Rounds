@@ -150,7 +150,7 @@ func _generar() -> void:
 		["+1 Rebote base"],
 		["-10% Daño de bala inicial"],
 		["División en 3 proyectiles"],
-		&"rebote")
+		&"division")
 
 	# 5. Bala de Plomo (Lead Slug): Nivel 2 (Rara)
 	_crear(&"lead_slug", "Bala de Plomo", "Balas pesadas con empuje demoledor", 2,
@@ -203,7 +203,7 @@ func _generar() -> void:
 		["Gran aumento en tamaño de bala (+60%)", "+30% Daño de impacto"],
 		["-20% Cadencia de tiro"],
 		["Aturde brevemente al oponente"],
-		&"pesado")
+		&"bala_grande")
 
 	# 9. Maestro del Rebote (Ricochet Master): Nivel 3 (Rara)
 	_crear(&"ricochet_master", "Maestro del Rebote", "Cada rebote potencia el proyectil", 3,
@@ -214,7 +214,7 @@ func _generar() -> void:
 		["+2 Rebotes adicionales"],
 		["-20% Daño base sin rebotar"],
 		["+45% Daño por cada rebote previo al hit"],
-		&"rebote")
+		&"ricochet")
 
 	# 10. Campo Minado (Minefield): Nivel 4 (Épica)
 	_crear(&"minefield", "Campo Minado", "Planta minas de proximidad en el suelo", 4,
@@ -225,7 +225,7 @@ func _generar() -> void:
 		["Control de zona y trampa de proximidad"],
 		["+60% Tiempo de recarga"],
 		["Balas al suelo se vuelven minas (6s)"],
-		&"explosivo")
+		&"minas")
 
 	# 11. Disparo Explosivo (Explosivo): Nivel 2 (Legendaria)
 	var explosivo := ExplosiveEffect.new()
@@ -270,7 +270,7 @@ func _generar() -> void:
 		["+70% Velocidad de bala en primer tiro", "Precisión perfecta (0 dispersión)"],
 		["-1 Capacidad del cargador"],
 		["Disparo inicial post-recarga instantáneo"],
-		&"rapido")
+		&"desenfunde")
 
 	# 15. Ruleta Rusa (Russian Roulette): Nivel 4 (Épica)
 	_crear(&"russian_roulette", "Ruleta Rusa", "Una bala secreta inflige daño colosal", 4,
@@ -303,7 +303,7 @@ func _generar() -> void:
 		["Balas un 90% más lentas (control total)", "Tus balas no expiran por tiempo", "+1% Daño por segundo en el aire"],
 		["Los proyectiles tardan en llegar al rival"],
 		["Cámara lenta de proyectiles (bullet time)", "Escala daño mientras más tiempo vuela la bala"],
-		&"default",
+		&"tiempo",
 		UpgradeDefinition.Categoria.CONTROL)
 
 	# 18. Gatillo Eléctrico: Nivel 1 (Común)
@@ -319,7 +319,7 @@ func _generar() -> void:
 		["+100% Cadencia de tiro", "-30% Tiempo de recarga"],
 		["-25% Daño de impacto"],
 		["Cadencia de fuego desmedida"],
-		&"rapido")
+		&"electrico")
 
 	# 19. Piel Gruesa: Nivel 1 (Común)
 	_crear(&"piel_gruesa", "Piel Gruesa", "Más aguante, menos agresividad", 1,
@@ -334,7 +334,7 @@ func _generar() -> void:
 		["+30% Salud máxima"],
 		["-10% Daño de impacto", "-10% Cadencia de tiro"],
 		["Más resistencia a cambio de ofensiva"],
-		&"default",
+		&"piel",
 		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 20. Contragolpe Sísmico: Nivel 3 (Rara)
@@ -346,7 +346,7 @@ func _generar() -> void:
 		["Explosión de 15% vida máx al parrear"],
 		["-10% Daño de disparo"],
 		["Contragolpe explosivo en área al hacer parry"],
-		&"sismico",
+		&"contragolpe",
 		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 22. Piel Adaptativa: Nivel 3 (Rara)
@@ -370,7 +370,7 @@ func _generar() -> void:
 		["Al recibir daño: +4 vida/s durante 3s (12 HP)"],
 		[],
 		["Regeneración reactiva en combate"],
-		&"vampirico",
+		&"regeneracion",
 		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 26. Impacto Sísmico: Nivel 3 (Rara)
@@ -394,7 +394,7 @@ func _generar() -> void:
 		["Onda expansiva de empuje en área (radio 90px)"],
 		["-15% Daño de bala"],
 		["Onda de choque al impactar"],
-		&"sismico",
+		&"onda",
 		UpgradeDefinition.Categoria.CONTROL)
 
 	# 28. Bala Anclante: Nivel 3 (Rara)
@@ -406,7 +406,7 @@ func _generar() -> void:
 		["Ralentiza al 50% en área durante 1.5s"],
 		[],
 		["Zona de anclaje y ralentización"],
-		&"gravedad",
+		&"anclaje",
 		UpgradeDefinition.Categoria.CONTROL)
 
 	# 29. Propulsión: Nivel 2 (Rara)
@@ -431,7 +431,7 @@ func _generar() -> void:
 		["Sangrado porcentual: 4% vida máx por tick (3 ticks)"],
 		[],
 		["Sangrado (DOT) basado en vida máxima rival"],
-		&"sangre")
+		&"sangrado")
 
 	# 32. Magnetismo: Nivel 3 (Rara)
 	_crear(&"magnetismo", "Magnetismo", "Tus balas proyectan un aura magnética que atrae rivales", 3,
@@ -454,7 +454,7 @@ func _generar() -> void:
 		["5s de gracia al recibir daño letal para curarte"],
 		["Mueres si no te curas en 5s (10s cooldown)"],
 		["Estado de deuda de sangre y supervivencia"],
-		&"sangre",
+		&"deuda",
 		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 34. Sacrificio Compartido: Nivel 3 (Rara)
@@ -505,7 +505,7 @@ func _generar() -> void:
 		["+30 Salud base máxima (plana)"],
 		["-8% Velocidad de movimiento"],
 		["Incremento de salud base no porcentual"],
-		&"default",
+		&"vitalidad",
 		UpgradeDefinition.Categoria.DEFENSA)
 
 	# 40. Corazón Extra: Nivel 2 (Rara)
@@ -520,7 +520,7 @@ func _generar() -> void:
 		["+70 Salud base máxima (plana)"],
 		["-1 Capacidad de cargador"],
 		["Salud masiva a cambio de munición"],
-		&"default")
+		&"corazon")
 
 	# 41. Golpe Titánico: Nivel 3 (Rara)
 	_crear(&"golpe_titanico", "Golpe Titánico", "Tus disparos son reemplazados por un golpe masivo", 3,
@@ -531,4 +531,4 @@ func _generar() -> void:
 		["Reemplaza balas por golpe melee devastador", "Daño escala con tu salud máxima (35% max HP)"],
 		["Rango limitado a cuerpo a cuerpo"],
 		["Ataque cuerpo a cuerpo devastador"],
-		&"sismico")
+		&"titanico")
