@@ -511,7 +511,7 @@ func _confirmar(numero: int) -> void:
 	if _confirmados.get(numero, false):
 		return
 	_confirmados[numero] = true
-	var idx: int = _indices[numero]
+ad	var idx: int = _indices[numero]
 	if idx < _opciones[numero].size():
 		RunManager.elegir(numero, _opciones[numero][idx])
 	for carta in _cartas.get(numero, []):

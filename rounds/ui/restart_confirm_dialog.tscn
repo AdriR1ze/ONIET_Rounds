@@ -1,0 +1,80 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/restart_confirm_dialog.gd" id="1_dlg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.07, 0.08, 0.13, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.28, 0.4, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="RestartConfirmDialog" type="CanvasLayer"]
+layer = 25
+process_mode = 3
+script = ExtResource("1_dlg")
+
+[node name="Fondo" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.06, 0.1, 0.75)
+
+[node name="Centro" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Marco" type="PanelContainer" parent="Centro"]
+custom_minimum_size = Vector2(460, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Margin" type="MarginContainer" parent="Centro/Marco"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="Centro/Marco/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Titulo" type="Label" parent="Centro/Marco/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+horizontal_alignment = 1
+text = "¿Reiniciar partida?"
+
+[node name="Mensaje" type="Label" parent="Centro/Marco/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+text = "¿Estás seguro de que querés reiniciar la partida?"
+
+[node name="Botones" type="HBoxContainer" parent="Centro/Marco/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Cancelar" type="Button" parent="Centro/Marco/Margin/VBox/Botones"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+focus_neighbor_right = NodePath("../Reiniciar")
+text = "Cancelar"
+
+[node name="Reiniciar" type="Button" parent="Centro/Marco/Margin/VBox/Botones"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+focus_neighbor_left = NodePath("../Cancelar")
+text = "Reiniciar"

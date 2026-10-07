@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://effects/combat_camera.gd" id="17_camera"]
 [ext_resource type="PackedScene" path="res://ui/map_intro_banner.tscn" id="18_intro"]
 [ext_resource type="PackedScene" path="res://ui/kill_banner.tscn" id="21_kill"]
+[ext_resource type="PackedScene" path="res://ui/restart_confirm_dialog.tscn" id="22_restart"]
 
 [sub_resource type="Environment" id="Environment_glow"]
 background_mode = 3
@@ -61,6 +62,9 @@ visible = false
 script = ExtResource("10_run")
 
 [node name="PauseMenu" parent="." unique_id=1473422197 instance=ExtResource("13_pause")]
+visible = false
+
+[node name="RestartConfirmDialog" parent="." instance=ExtResource("22_restart")]
 visible = false
 
 [node name="MatchHUD" parent="." instance=ExtResource("14_hud")]
